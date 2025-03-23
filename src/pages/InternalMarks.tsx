@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -675,12 +674,12 @@ const InternalMarks = () => {
                     <div className="mt-4">
                       <Progress 
                         value={internalPercentage} 
-                        className="h-2 bg-dark-800"
-                        indicatorClassName={`${
+                        className={cn(
+                          "h-2 bg-dark-800",
                           internalPercentage! < 40 ? "bg-red-500" : 
                           internalPercentage! < 60 ? "bg-yellow-500" : 
                           "bg-blue-500"
-                        }`}
+                        )}
                       />
                     </div>
                   </div>

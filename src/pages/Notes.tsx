@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -115,7 +114,7 @@ const Notes = () => {
   });
 
   // Get subjects for the selected semester
-  const currentSubjects = selectedSemester ? subjects[selectedSemester as keyof typeof subjects] || [] : [];
+  const currentSubjects = selectedSemester ? subjects[parseInt(selectedSemester) as keyof typeof subjects] || [] : [];
 
   return (
     <div className="min-h-screen bg-dark-950 text-white flex flex-col">
