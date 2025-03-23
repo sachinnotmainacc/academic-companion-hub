@@ -1,34 +1,28 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Notes from "./pages/Notes";
-import CGPA from "./pages/CGPA";
-import InternalMarks from "./pages/InternalMarks";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner";
 
-const queryClient = new QueryClient();
+import Index from "@/pages/Index";
+import CGPA from "@/pages/CGPA";
+import InternalMarks from "@/pages/InternalMarks";
+import KTUCalculator from "@/pages/KTUCalculator"; // Add the new page
+import Notes from "@/pages/Notes";
+import NotFound from "@/pages/NotFound";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <Router>
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/cgpa" element={<CGPA />} />
-          <Route path="/internal-marks" element={<InternalMarks />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/cgpa" element={<CGPA />} />
+        <Route path="/internal-marks" element={<InternalMarks />} />
+        <Route path="/ktu-calculator" element={<KTUCalculator />} /> {/* Add the new route */}
+        <Route path="/notes" element={<Notes />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;
