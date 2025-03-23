@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -152,7 +153,7 @@ const Notes = () => {
                     <SelectValue placeholder="Semester" />
                   </SelectTrigger>
                   <SelectContent className="bg-dark-800 border-dark-700 text-white">
-                    <SelectItem value="">All Semesters</SelectItem>
+                    <SelectItem value="all">All Semesters</SelectItem>
                     {semesters.map((semester) => (
                       <SelectItem key={semester} value={semester.toString()}>
                         Semester {semester}
@@ -166,13 +167,13 @@ const Notes = () => {
                 <Select 
                   value={selectedSubject} 
                   onValueChange={setSelectedSubject}
-                  disabled={!selectedSemester}
+                  disabled={!selectedSemester || selectedSemester === "all"}
                 >
                   <SelectTrigger className="bg-dark-800 border-dark-700 text-white">
                     <SelectValue placeholder="Subject" />
                   </SelectTrigger>
                   <SelectContent className="bg-dark-800 border-dark-700 text-white">
-                    <SelectItem value="">All Subjects</SelectItem>
+                    <SelectItem value="all">All Subjects</SelectItem>
                     {currentSubjects.map((subject) => (
                       <SelectItem key={subject} value={subject}>
                         {subject}

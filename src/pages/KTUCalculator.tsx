@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { FileText, List, TestTube, Star, Calculator } from "lucide-react";
+import { FileText, List, TestTube, Star, Calculator, CheckCircle, XCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
