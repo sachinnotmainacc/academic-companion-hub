@@ -1,6 +1,6 @@
 
 import React from "react";
-import { FeatureCard } from "@/components/ui/FeatureCard";
+import FeatureCard from "@/components/ui/FeatureCard";
 import { Calculator, BookOpen, Award, ClipboardCheck } from "lucide-react";
 
 const Features: React.FC = () => {
