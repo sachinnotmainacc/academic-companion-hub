@@ -1,19 +1,10 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Settings,
-  Play,
-  Pause,
-  RotateCcw,
-  Maximize,
-  Minimize,
-  Youtube
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Play, Pause, RotateCcw, Settings, Maximize, Volume2, VolumeX } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,202 +12,227 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
-// Define types for settings and stats
-type PomodoroSettings = {
-  workDuration: number;
-  breakDuration: number;
-  longBreakDuration: number;
-  sessionsBeforeLongBreak: number;
-};
+interface TimerSettings {
+  pomodoro: number;
+  shortBreak: number;
+  longBreak: number;
+  cycles: number;
+  autoStartBreaks: boolean;
+  autoStartPomodoros: boolean;
+}
 
-type PomodoroStats = {
-  totalWorkTime: number;
+interface Stats {
+  completedPomodoros: number;
+  totalStudyTime: number;
   totalBreakTime: number;
-  completedSessions: number;
+}
+
+const DEFAULT_SETTINGS: TimerSettings = {
+  pomodoro: 25,
+  shortBreak: 5,
+  longBreak: 15,
+  cycles: 4,
+  autoStartBreaks: true,
+  autoStartPomodoros: true,
 };
 
 const Pomodoro = () => {
+  const { toast } = useToast();
+  
   // Timer state
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
-  const [isActive, setIsActive] = useState(false);
-  const [mode, setMode] = useState<"work" | "break" | "longBreak">("work");
-  const [currentSession, setCurrentSession] = useState(1);
+  const [settings, setSettings] = useState<TimerSettings>(DEFAULT_SETTINGS);
+  const [activeTimer, setActiveTimer] = useState<'pomodoro' | 'shortBreak' | 'longBreak'>('pomodoro');
+  const [timeLeft, setTimeLeft] = useState(settings.pomodoro * 60);
+  const [isRunning, setIsRunning] = useState(false);
+  const [cycle, setCycle] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // YouTube embed state
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [embedUrl, setEmbedUrl] = useState("");
   
   // Stats
-  const [stats, setStats] = useState<PomodoroStats>({
-    totalWorkTime: 0,
+  const [stats, setStats] = useState<Stats>({
+    completedPomodoros: 0,
+    totalStudyTime: 0,
     totalBreakTime: 0,
-    completedSessions: 0,
   });
   
-  // Settings
-  const [settings, setSettings] = useState<PomodoroSettings>({
-    workDuration: 25,
-    breakDuration: 5,
-    longBreakDuration: 15,
-    sessionsBeforeLongBreak: 4,
-  });
-
-  const timerRef = useRef<HTMLDivElement>(null);
-  const intervalRef = useRef<number | null>(null);
-  const { toast } = useToast();
-
-  // Initialize timer based on current mode
+  // Refs
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fullscreenRef = useRef<HTMLDivElement>(null);
+  
+  // Initialize audio
   useEffect(() => {
-    const durationMap = {
-      work: settings.workDuration * 60,
-      break: settings.breakDuration * 60,
-      longBreak: settings.longBreakDuration * 60,
+    audioRef.current = new Audio("/alarm.mp3");
+    audioRef.current.volume = 0.7;
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
-
-    setTimeLeft(durationMap[mode]);
-  }, [mode, settings]);
-
-  // Timer effect
+  }, []);
+  
+  // Update timer when settings or active timer change
   useEffect(() => {
-    if (isActive) {
-      intervalRef.current = window.setInterval(() => {
+    resetTimer();
+  }, [settings, activeTimer]);
+  
+  // Timer logic
+  useEffect(() => {
+    if (isRunning) {
+      timerRef.current = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
-            // Timer completed
-            clearInterval(intervalRef.current!);
             handleTimerComplete();
             return 0;
           }
-          
-          // Update stats
-          if (mode === "work") {
-            setStats(prev => ({
-              ...prev,
-              totalWorkTime: prev.totalWorkTime + 1
-            }));
-          } else {
-            setStats(prev => ({
-              ...prev,
-              totalBreakTime: prev.totalBreakTime + 1
-            }));
-          }
-          
           return prevTime - 1;
         });
       }, 1000);
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
-
+    
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
-  }, [isActive, mode]);
-
+  }, [isRunning]);
+  
   // Handle timer completion
   const handleTimerComplete = () => {
-    setIsActive(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     
-    // Update stats and cycle through modes
-    if (mode === "work") {
+    // Play sound if not muted
+    if (!isMuted && audioRef.current) {
+      audioRef.current.play().catch(error => console.error("Error playing audio:", error));
+    }
+    
+    // Show notification
+    toast({
+      title: `${activeTimer === 'pomodoro' ? 'Work session' : 'Break'} completed!`,
+      description: `Time to ${activeTimer === 'pomodoro' ? 'take a break' : 'focus'}!`,
+    });
+    
+    // Update stats
+    if (activeTimer === 'pomodoro') {
       setStats(prev => ({
         ...prev,
-        completedSessions: prev.completedSessions + 1
+        completedPomodoros: prev.completedPomodoros + 1,
+        totalStudyTime: prev.totalStudyTime + settings.pomodoro
       }));
+    } else {
+      setStats(prev => ({
+        ...prev,
+        totalBreakTime: prev.totalBreakTime + (activeTimer === 'shortBreak' ? settings.shortBreak : settings.longBreak)
+      }));
+    }
+    
+    // Auto transition to next timer
+    if (activeTimer === 'pomodoro') {
+      const isLongBreakDue = cycle % settings.cycles === 0;
+      const nextTimer = isLongBreakDue ? 'longBreak' : 'shortBreak';
       
-      // Determine if it's time for a long break
-      if (currentSession % settings.sessionsBeforeLongBreak === 0) {
-        setMode("longBreak");
-        toast({
-          title: "Long Break Time!",
-          description: `Take a ${settings.longBreakDuration} minute break.`,
-        });
-      } else {
-        setMode("break");
-        toast({
-          title: "Break Time!",
-          description: `Take a ${settings.breakDuration} minute break.`,
-        });
+      setActiveTimer(nextTimer);
+      setTimeLeft(settings[nextTimer] * 60);
+      setIsRunning(settings.autoStartBreaks);
+    } else {
+      // If coming from a break, increment the cycle if it was a long break
+      if (activeTimer === 'longBreak') {
+        setCycle(prev => prev + 1);
       }
       
-      setCurrentSession(prev => prev + 1);
-    } else {
-      setMode("work");
-      toast({
-        title: "Work Time!",
-        description: `Focus for ${settings.workDuration} minutes.`,
-      });
+      setActiveTimer('pomodoro');
+      setTimeLeft(settings.pomodoro * 60);
+      setIsRunning(settings.autoStartPomodoros);
     }
   };
-
-  // Toggle timer
-  const toggleTimer = () => {
-    setIsActive(!isActive);
-  };
-
-  // Reset timer
+  
+  // Reset the current timer
   const resetTimer = () => {
-    setIsActive(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
     
-    const durationMap = {
-      work: settings.workDuration * 60,
-      break: settings.breakDuration * 60,
-      longBreak: settings.longBreakDuration * 60,
-    };
-    
-    setTimeLeft(durationMap[mode]);
+    const duration = settings[activeTimer];
+    setTimeLeft(duration * 60);
+    setIsRunning(false);
   };
-
-  // Format time display
-  const formatTime = (seconds: number) => {
+  
+  // Toggle timer state
+  const toggleTimer = () => {
+    setIsRunning(prev => !prev);
+  };
+  
+  // Format time for display
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
-  // Format total time for stats (hours, minutes, seconds)
-  const formatTotalTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
+  
+  // Handle fullscreen toggle
+  const toggleFullscreen = () => {
+    if (!fullscreenRef.current) return;
     
-    return `${hours}h ${minutes}m ${remainingSeconds}s`;
+    if (!isFullscreen) {
+      if (fullscreenRef.current.requestFullscreen) {
+        fullscreenRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
   };
-
-  // Handle YouTube URL input
-  const handleYoutubeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  
+  // Update fullscreen state based on document state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+  
+  // Process YouTube URL to get embed URL
+  const processYoutubeUrl = () => {
+    if (!youtubeUrl) return;
     
     try {
-      // Extract video ID from different YouTube URL formats
+      const url = new URL(youtubeUrl);
       let videoId = "";
       
-      if (youtubeUrl.includes("youtube.com/watch")) {
-        const url = new URL(youtubeUrl);
+      if (url.hostname.includes("youtube.com")) {
         videoId = url.searchParams.get("v") || "";
-      } else if (youtubeUrl.includes("youtu.be")) {
-        videoId = youtubeUrl.split("youtu.be/")[1]?.split("?")[0] || "";
-      } else if (youtubeUrl.includes("youtube.com/embed")) {
-        videoId = youtubeUrl.split("youtube.com/embed/")[1]?.split("?")[0] || "";
+      } else if (url.hostname.includes("youtu.be")) {
+        videoId = url.pathname.substring(1);
       }
       
       if (videoId) {
         setEmbedUrl(`https://www.youtube.com/embed/${videoId}`);
         toast({
-          title: "YouTube Video Added",
-          description: "Your video is now playing.",
+          title: "YouTube video added",
+          description: "The video has been added to your study session.",
         });
       } else {
         toast({
@@ -227,246 +243,401 @@ const Pomodoro = () => {
       }
     } catch (error) {
       toast({
-        title: "Error Processing URL",
+        title: "Invalid URL",
         description: "Please enter a valid YouTube video URL.",
         variant: "destructive",
       });
     }
   };
-
-  // Toggle fullscreen mode
-  const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      if (timerRef.current?.requestFullscreen) {
-        timerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    }
+  
+  // Save settings
+  const saveSettings = (newSettings: TimerSettings) => {
+    setSettings(newSettings);
+    setShowSettings(false);
+    resetTimer();
     
-    // Listen for fullscreen change
-    document.addEventListener('fullscreenchange', () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    toast({
+      title: "Settings saved",
+      description: "Your timer settings have been updated.",
     });
   };
-
-  // Progress percentage for the timer circle
-  const progressPercentage = (() => {
-    const durationMap = {
-      work: settings.workDuration * 60,
-      break: settings.breakDuration * 60,
-      longBreak: settings.longBreakDuration * 60,
-    };
-    
-    const totalDuration = durationMap[mode];
-    return ((totalDuration - timeLeft) / totalDuration) * 100;
-  })();
-
-  // Color based on current mode
-  const modeColor = {
-    work: "from-red-500 to-orange-500",
-    break: "from-green-500 to-teal-500",
-    longBreak: "from-blue-500 to-indigo-500",
-  }[mode];
-
+  
+  // Render progress based on timer type
+  const getProgressPercentage = () => {
+    const total = settings[activeTimer] * 60;
+    return ((total - timeLeft) / total) * 100;
+  };
+  
   return (
-    <div className="min-h-screen bg-dark-950 text-white">
+    <div className="min-h-screen bg-dark-950 text-white flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto py-10 px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">Pomodoro Timer</h1>
-        
-        <div className="flex flex-col items-center justify-center mb-8">
-          {/* Timer Circle */}
-          <div 
-            ref={timerRef}
-            className="relative flex items-center justify-center w-64 h-64 mb-6"
-          >
-            {/* Background circle */}
-            <div className="absolute inset-0 rounded-full bg-dark-800 shadow-lg"></div>
-            
-            {/* Progress circle with gradient and animation */}
-            <div 
-              className={`absolute inset-0 rounded-full bg-gradient-to-br ${modeColor} shadow-lg`}
-              style={{
-                background: `conic-gradient(currentColor ${progressPercentage}%, transparent 0%)`,
-                clipPath: 'circle(50%)',
-                transition: 'all 1s ease-in-out',
-              }}
-            ></div>
-            
-            {/* Pulsing animation behind the time */}
-            <div className={`absolute inset-4 rounded-full bg-gradient-to-br ${modeColor} opacity-30 animate-ping`} 
-                 style={{animationDuration: '3s'}}></div>
-            
-            {/* Inner circle with time */}
-            <div className="absolute inset-4 rounded-full bg-dark-900 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl font-bold">{formatTime(timeLeft)}</div>
-                <div className="text-sm text-gray-400 mt-2 capitalize">{mode.replace(/([A-Z])/g, ' $1')}</div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Timer Controls */}
-          <div className="flex space-x-4 mb-6">
-            <Button 
-              onClick={toggleTimer}
-              variant="outline"
-              className="w-12 h-12 rounded-full"
-            >
-              {isActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-            </Button>
-            
-            <Button 
-              onClick={resetTimer}
-              variant="outline"
-              className="w-12 h-12 rounded-full"
-            >
-              <RotateCcw className="h-5 w-5" />
-            </Button>
-            
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="w-12 h-12 rounded-full"
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Pomodoro Settings</DialogTitle>
-                </DialogHeader>
+      <main className="flex-grow pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* Timer Controls */}
+            <div className="mb-8">
+              <Tabs 
+                defaultValue="pomodoro" 
+                value={activeTimer}
+                onValueChange={(value) => setActiveTimer(value as 'pomodoro' | 'shortBreak' | 'longBreak')}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-3 mb-8">
+                  <TabsTrigger value="pomodoro" className="text-lg">Pomodoro</TabsTrigger>
+                  <TabsTrigger value="shortBreak" className="text-lg">Short Break</TabsTrigger>
+                  <TabsTrigger value="longBreak" className="text-lg">Long Break</TabsTrigger>
+                </TabsList>
                 
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 items-center gap-4">
-                    <Label htmlFor="workDuration">Work Duration (minutes)</Label>
-                    <Input
-                      id="workDuration"
-                      type="number"
-                      min="1"
-                      max="120"
-                      value={settings.workDuration}
-                      onChange={(e) => setSettings({...settings, workDuration: parseInt(e.target.value) || 25})}
-                    />
+                <TabsContent value="pomodoro" className="mt-0">
+                  <div 
+                    ref={fullscreenRef}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-8 rounded-lg transition-all duration-300",
+                      isFullscreen ? "h-screen bg-dark-950" : "h-96 bg-dark-900"
+                    )}
+                  >
+                    <div className="mb-8 relative">
+                      {isFullscreen ? (
+                        <div className="relative flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[300px] h-[300px] rounded-full bg-blue-500/20 animate-pulse"></div>
+                          </div>
+                          <div className="text-8xl font-bold text-white z-10">
+                            {formatTime(timeLeft)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-8xl font-bold text-white">
+                          {formatTime(timeLeft)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {!isFullscreen && (
+                      <div className="flex items-center space-x-4">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={resetTimer}
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                        </Button>
+                        
+                        <Button 
+                          variant="default"
+                          size="icon"
+                          className="h-16 w-16 rounded-full bg-blue-500 hover:bg-blue-600"
+                          onClick={toggleTimer}
+                        >
+                          {isRunning ? (
+                            <Pause className="h-8 w-8" />
+                          ) : (
+                            <Play className="h-8 w-8 ml-1" />
+                          )}
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={toggleFullscreen}
+                        >
+                          <Maximize className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="shortBreak" className="mt-0">
+                  <div 
+                    ref={fullscreenRef}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-8 rounded-lg transition-all duration-300",
+                      isFullscreen ? "h-screen bg-dark-950" : "h-96 bg-dark-900"
+                    )}
+                  >
+                    <div className="mb-8 relative">
+                      {isFullscreen ? (
+                        <div className="relative flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[300px] h-[300px] rounded-full bg-green-500/20 animate-pulse"></div>
+                          </div>
+                          <div className="text-8xl font-bold text-white z-10">
+                            {formatTime(timeLeft)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-8xl font-bold text-white">
+                          {formatTime(timeLeft)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {!isFullscreen && (
+                      <div className="flex items-center space-x-4">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={resetTimer}
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                        </Button>
+                        
+                        <Button 
+                          variant="default"
+                          size="icon"
+                          className="h-16 w-16 rounded-full bg-green-500 hover:bg-green-600"
+                          onClick={toggleTimer}
+                        >
+                          {isRunning ? (
+                            <Pause className="h-8 w-8" />
+                          ) : (
+                            <Play className="h-8 w-8 ml-1" />
+                          )}
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={toggleFullscreen}
+                        >
+                          <Maximize className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="longBreak" className="mt-0">
+                  <div 
+                    ref={fullscreenRef}
+                    className={cn(
+                      "flex flex-col items-center justify-center p-8 rounded-lg transition-all duration-300",
+                      isFullscreen ? "h-screen bg-dark-950" : "h-96 bg-dark-900"
+                    )}
+                  >
+                    <div className="mb-8 relative">
+                      {isFullscreen ? (
+                        <div className="relative flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[300px] h-[300px] rounded-full bg-purple-500/20 animate-pulse"></div>
+                          </div>
+                          <div className="text-8xl font-bold text-white z-10">
+                            {formatTime(timeLeft)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-8xl font-bold text-white">
+                          {formatTime(timeLeft)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {!isFullscreen && (
+                      <div className="flex items-center space-x-4">
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={resetTimer}
+                        >
+                          <RotateCcw className="h-5 w-5" />
+                        </Button>
+                        
+                        <Button 
+                          variant="default"
+                          size="icon"
+                          className="h-16 w-16 rounded-full bg-purple-500 hover:bg-purple-600"
+                          onClick={toggleTimer}
+                        >
+                          {isRunning ? (
+                            <Pause className="h-8 w-8" />
+                          ) : (
+                            <Play className="h-8 w-8 ml-1" />
+                          )}
+                        </Button>
+                        
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="h-12 w-12 rounded-full border-2"
+                          onClick={toggleFullscreen}
+                        >
+                          <Maximize className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+            
+            {/* Control Buttons */}
+            <div className="flex justify-center gap-4 mb-12">
+              <Dialog open={showSettings} onOpenChange={setShowSettings}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-dark-900 border-dark-700 text-white">
+                  <DialogHeader>
+                    <DialogTitle>Timer Settings</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="pomodoro">Pomodoro</Label>
+                        <Input
+                          id="pomodoro"
+                          type="number"
+                          min="1"
+                          max="60"
+                          className="bg-dark-800 border-dark-700"
+                          value={settings.pomodoro}
+                          onChange={(e) => setSettings({...settings, pomodoro: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="shortBreak">Short Break</Label>
+                        <Input
+                          id="shortBreak"
+                          type="number"
+                          min="1"
+                          max="30"
+                          className="bg-dark-800 border-dark-700"
+                          value={settings.shortBreak}
+                          onChange={(e) => setSettings({...settings, shortBreak: Number(e.target.value)})}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="longBreak">Long Break</Label>
+                        <Input
+                          id="longBreak"
+                          type="number"
+                          min="1"
+                          max="60"
+                          className="bg-dark-800 border-dark-700"
+                          value={settings.longBreak}
+                          onChange={(e) => setSettings({...settings, longBreak: Number(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="cycles">Cycles before Long Break</Label>
+                      <Input
+                        id="cycles"
+                        type="number"
+                        min="1"
+                        max="10"
+                        className="bg-dark-800 border-dark-700"
+                        value={settings.cycles}
+                        onChange={(e) => setSettings({...settings, cycles: Number(e.target.value)})}
+                      />
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 items-center gap-4">
-                    <Label htmlFor="breakDuration">Break Duration (minutes)</Label>
-                    <Input
-                      id="breakDuration"
-                      type="number"
-                      min="1"
-                      max="60"
-                      value={settings.breakDuration}
-                      onChange={(e) => setSettings({...settings, breakDuration: parseInt(e.target.value) || 5})}
+                  <div className="flex justify-end">
+                    <Button 
+                      className="bg-blue-500 hover:bg-blue-600" 
+                      onClick={() => saveSettings(settings)}
+                    >
+                      Save Settings
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={() => setIsMuted(!isMuted)}
+              >
+                {isMuted ? (
+                  <>
+                    <VolumeX className="h-4 w-4" />
+                    Unmute
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="h-4 w-4" />
+                    Mute
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {/* YouTube Embed and Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <Card className="bg-dark-900 border-dark-700">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">Add YouTube Video</h3>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <Input 
+                      placeholder="Paste YouTube URL" 
+                      className="bg-dark-800 border-dark-700"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
                     />
+                    <Button 
+                      onClick={processYoutubeUrl}
+                      className="bg-blue-500 hover:bg-blue-600"
+                    >
+                      Add
+                    </Button>
                   </div>
                   
-                  <div className="grid grid-cols-2 items-center gap-4">
-                    <Label htmlFor="longBreakDuration">Long Break Duration (minutes)</Label>
-                    <Input
-                      id="longBreakDuration"
-                      type="number"
-                      min="1"
-                      max="120"
-                      value={settings.longBreakDuration}
-                      onChange={(e) => setSettings({...settings, longBreakDuration: parseInt(e.target.value) || 15})}
-                    />
-                  </div>
+                  {embedUrl && (
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="YouTube video player"
+                      ></iframe>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-dark-900 border-dark-700">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">Study Statistics</h3>
                   
-                  <div className="grid grid-cols-2 items-center gap-4">
-                    <Label htmlFor="sessionsBeforeLongBreak">Sessions Before Long Break</Label>
-                    <Input
-                      id="sessionsBeforeLongBreak"
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={settings.sessionsBeforeLongBreak}
-                      onChange={(e) => setSettings({...settings, sessionsBeforeLongBreak: parseInt(e.target.value) || 4})}
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-gray-400 mb-1">Completed Pomodoros</p>
+                      <p className="text-2xl font-bold">{stats.completedPomodoros}</p>
+                    </div>
+                    <Separator className="bg-dark-700" />
+                    
+                    <div>
+                      <p className="text-gray-400 mb-1">Total Study Time</p>
+                      <p className="text-2xl font-bold">{stats.totalStudyTime} minutes</p>
+                    </div>
+                    <Separator className="bg-dark-700" />
+                    
+                    <div>
+                      <p className="text-gray-400 mb-1">Total Break Time</p>
+                      <p className="text-2xl font-bold">{stats.totalBreakTime} minutes</p>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Button 
-              onClick={toggleFullscreen}
-              variant="outline"
-              className="w-12 h-12 rounded-full"
-            >
-              {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-            </Button>
-          </div>
-        </div>
-        
-        {/* YouTube and Stats Section */}
-        <div className="grid md:grid-cols-2 gap-6 mt-8">
-          {/* YouTube Embed */}
-          <div className="bg-dark-800 rounded-lg p-4">
-            <h3 className="text-xl font-bold mb-4 flex items-center">
-              <Youtube className="mr-2 h-5 w-5" /> Study Music
-            </h3>
-            
-            <form onSubmit={handleYoutubeSubmit} className="mb-4">
-              <div className="flex space-x-2">
-                <Input
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  placeholder="Enter YouTube URL"
-                  className="flex-1"
-                />
-                <Button type="submit">Play</Button>
-              </div>
-            </form>
-            
-            {embedUrl && (
-              <div className="aspect-video bg-dark-900 rounded">
-                <iframe
-                  src={embedUrl}
-                  title="YouTube video player"
-                  className="w-full h-full rounded"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            )}
-          </div>
-          
-          {/* Stats */}
-          <div className="bg-dark-800 rounded-lg p-4">
-            <h3 className="text-xl font-bold mb-4">Your Study Stats</h3>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span>Total Study Time:</span>
-                <span className="font-semibold">{formatTotalTime(stats.totalWorkTime)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Total Break Time:</span>
-                <span className="font-semibold">{formatTotalTime(stats.totalBreakTime)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Completed Sessions:</span>
-                <span className="font-semibold">{stats.completedSessions}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>Current Session:</span>
-                <span className="font-semibold">{currentSession}</span>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
-      </div>
+      </main>
       
       <Footer />
     </div>
