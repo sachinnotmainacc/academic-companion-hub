@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 
 import Index from "@/pages/Index";
@@ -17,7 +17,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/ktu-calculator" element={<KTUCalculator />} />
-        <Route path="/ktu-internal" element={<KTUInternalCalculator />} />
+        <Route path="/internal-marks" element={<KTUInternalCalculator />} />
+        <Route path="/ktu-internal" element={<Navigate to="/internal-marks" replace />} />
         <Route path="/notes" element={<Notes />} />
         <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/cgpa" element={<CGPA />} />
