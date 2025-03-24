@@ -28,7 +28,6 @@ const Navbar = () => {
     { name: "CGPA Calculator", path: "/cgpa", icon: Calculator },
     { name: "Internal Marks", path: "/internal-marks", icon: Calculator },
     { name: "Pomodoro", path: "/pomodoro", icon: Clock },
-    { name: "Roadmaps", path: "/roadmaps", icon: Map },
   ];
   
   return (
