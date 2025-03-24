@@ -1,7 +1,7 @@
 
 import React from "react";
 import FeatureCard from "@/components/ui/FeatureCard";
-import { Calculator, BookOpen, Award, ClipboardCheck } from "lucide-react";
+import { Calculator, BookOpen, Clock, Youtube } from "lucide-react";
 
 const Features: React.FC = () => {
   return (
@@ -16,41 +16,23 @@ const Features: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard
-            title="CGPA Calculator"
-            description="Calculate your CGPA easily by entering your semester marks."
-            icon={Calculator}
-            href="/cgpa"
-            className="bg-gradient-to-br from-purple-500/10 to-purple-700/10 hover:from-purple-500/20 hover:to-purple-700/20"
-            style={{ animationDelay: "0.1s" }}
-          />
-          
-          <FeatureCard
-            title="Internal Assessment"
-            description="Calculate your internal marks and check exam eligibility."
-            icon={ClipboardCheck}
-            href="/internal-marks"
-            className="bg-gradient-to-br from-blue-500/10 to-blue-700/10 hover:from-blue-500/20 hover:to-blue-700/20"
-            style={{ animationDelay: "0.2s" }}
-          />
-          
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
             title="KTU Calculator"
             description="Calculate your KTU marks and grade based on the examination pattern."
             icon={Calculator}
             href="/ktu-calculator"
             className="bg-gradient-to-br from-green-500/10 to-green-700/10 hover:from-green-500/20 hover:to-green-700/20"
-            style={{ animationDelay: "0.3s" }}
+            style={{ animationDelay: "0.1s" }}
           />
           
           <FeatureCard
-            title="KTU Internal Calculator"
-            description="Calculate your KTU internal marks with 3/4 credit course support."
-            icon={ClipboardCheck}
-            href="/ktu-internal"
-            className="bg-gradient-to-br from-yellow-500/10 to-yellow-700/10 hover:from-yellow-500/20 hover:to-yellow-700/20"
-            style={{ animationDelay: "0.4s" }}
+            title="CGPA Calculator"
+            description="Calculate your CGPA and predict what grades you need to achieve your target."
+            icon={Calculator}
+            href="/cgpa"
+            className="bg-gradient-to-br from-blue-500/10 to-blue-700/10 hover:from-blue-500/20 hover:to-blue-700/20"
+            style={{ animationDelay: "0.2s" }}
           />
           
           <FeatureCard
@@ -59,16 +41,16 @@ const Features: React.FC = () => {
             icon={BookOpen}
             href="/notes"
             className="bg-gradient-to-br from-red-500/10 to-red-700/10 hover:from-red-500/20 hover:to-red-700/20"
-            style={{ animationDelay: "0.5s" }}
+            style={{ animationDelay: "0.3s" }}
           />
           
           <FeatureCard
-            title="Grade Tracker"
-            description="Track your academic progress and set goals for improvement."
-            icon={Award}
-            href="#"
-            className="bg-gradient-to-br from-teal-500/10 to-teal-700/10 hover:from-teal-500/20 hover:to-teal-700/20"
-            style={{ animationDelay: "0.6s" }}
+            title="Pomodoro Timer"
+            description="Focus on your studies with this customizable pomodoro timer."
+            icon={Clock}
+            href="/pomodoro"
+            className="bg-gradient-to-br from-yellow-500/10 to-yellow-700/10 hover:from-yellow-500/20 hover:to-yellow-700/20"
+            style={{ animationDelay: "0.4s" }}
           />
         </div>
       </div>

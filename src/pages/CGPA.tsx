@@ -1,145 +1,109 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Minus, RefreshCw, Calculator as CalcIcon, Trash2 } from "lucide-react";
+import { RefreshCw, Calculator as CalcIcon, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-
-interface SemesterInput {
-  id: number;
-  name: string;
-  sgpa: string;
-  credits: string;
-}
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 const CGPA = () => {
   const { toast } = useToast();
-  const [semesters, setSemesters] = useState<SemesterInput[]>([
-    { id: 1, name: "Semester 1", sgpa: "", credits: "" },
-    { id: 2, name: "Semester 2", sgpa: "", credits: "" },
-  ]);
+  
+  // User inputs
+  const [currentCGPA, setCurrentCGPA] = useState("");
+  const [completedSemesters, setCompletedSemesters] = useState("");
   const [targetCGPA, setTargetCGPA] = useState("");
-  const [currentCGPA, setCurrentCGPA] = useState<number | null>(null);
-  const [requiredSGPA, setRequiredSGPA] = useState<number | null>(null);
-  const [eligibleCompanies, setEligibleCompanies] = useState<string[]>([]);
+  const [totalSemesters, setTotalSemesters] = useState("");
+  
+  // Results
+  const [requiredCGPA, setRequiredCGPA] = useState<number | null>(null);
+  const [isAchievable, setIsAchievable] = useState<boolean | null>(null);
+  const [showResults, setShowResults] = useState(false);
 
-  // Add a new semester
-  const addSemester = () => {
-    const newId = semesters.length > 0 ? Math.max(...semesters.map(s => s.id)) + 1 : 1;
-    setSemesters([...semesters, { id: newId, name: `Semester ${newId}`, sgpa: "", credits: "" }]);
-  };
-
-  // Remove a semester
-  const removeSemester = (id: number) => {
-    if (semesters.length <= 1) {
-      toast({
-        title: "Cannot remove all semesters",
-        description: "At least one semester must remain for calculations",
-        variant: "destructive",
-      });
-      return;
-    }
-    setSemesters(semesters.filter(semester => semester.id !== id));
-  };
-
-  // Handle input changes
-  const handleChange = (id: number, field: keyof SemesterInput, value: string) => {
-    setSemesters(semesters.map(semester => {
-      if (semester.id === id) {
-        return { ...semester, [field]: value };
-      }
-      return semester;
-    }));
-  };
-
-  // Calculate CGPA
-  const calculateCGPA = () => {
+  // Calculate required CGPA
+  const calculateRequiredCGPA = () => {
     // Validate inputs
-    const invalidInputs = semesters.some(semester => {
-      const sgpa = parseFloat(semester.sgpa);
-      const credits = parseFloat(semester.credits);
-      return (
-        isNaN(sgpa) || isNaN(credits) ||
-        sgpa < 0 || sgpa > 10 ||
-        credits <= 0
-      );
-    });
-
-    if (invalidInputs) {
+    const currCGPA = parseFloat(currentCGPA);
+    const compSemesters = parseInt(completedSemesters);
+    const targCGPA = parseFloat(targetCGPA);
+    const totSemesters = parseInt(totalSemesters);
+    
+    if (isNaN(currCGPA) || isNaN(compSemesters) || isNaN(targCGPA) || isNaN(totSemesters)) {
       toast({
         title: "Invalid inputs",
-        description: "Please ensure all SGPA values are between 0-10 and credits are positive numbers",
+        description: "Please fill all fields with valid numbers",
         variant: "destructive",
       });
       return;
     }
-
-    let totalCreditsPoints = 0;
-    let totalCredits = 0;
-
-    semesters.forEach(semester => {
-      const sgpa = parseFloat(semester.sgpa);
-      const credits = parseFloat(semester.credits);
-      
-      totalCreditsPoints += sgpa * credits;
-      totalCredits += credits;
+    
+    if (currCGPA < 0 || currCGPA > 10) {
+      toast({
+        title: "Invalid CGPA",
+        description: "CGPA must be between 0 and 10",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (targCGPA < 0 || targCGPA > 10) {
+      toast({
+        title: "Invalid Target CGPA",
+        description: "Target CGPA must be between 0 and 10",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (compSemesters <= 0 || totSemesters <= 0) {
+      toast({
+        title: "Invalid semester count",
+        description: "Semester count must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (compSemesters >= totSemesters) {
+      toast({
+        title: "Invalid semester count",
+        description: "Total semesters must be greater than completed semesters",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Calculate required CGPA in remaining semesters
+    const remainingSemesters = totSemesters - compSemesters;
+    const currentCGPAWeight = currCGPA * compSemesters;
+    const targetCGPAWeight = targCGPA * totSemesters;
+    const remainingCGPAWeight = targetCGPAWeight - currentCGPAWeight;
+    const requiredCGPAValue = remainingCGPAWeight / remainingSemesters;
+    
+    setRequiredCGPA(parseFloat(requiredCGPAValue.toFixed(2)));
+    setIsAchievable(requiredCGPAValue <= 10);
+    setShowResults(true);
+    
+    toast({
+      title: "Calculation Complete",
+      description: "Your required CGPA has been calculated",
     });
-
-    const cgpa = totalCreditsPoints / totalCredits;
-    setCurrentCGPA(parseFloat(cgpa.toFixed(2)));
-
-    // Calculate what companies student is eligible for
-    const companies: string[] = [];
-    if (cgpa >= 9.0) {
-      companies.push("Google", "Microsoft", "Amazon", "Apple", "Facebook");
-    } else if (cgpa >= 8.0) {
-      companies.push("IBM", "Intel", "Adobe", "Oracle", "Salesforce");
-    } else if (cgpa >= 7.0) {
-      companies.push("Infosys", "TCS", "Wipro", "Cognizant", "Accenture");
-    } else if (cgpa >= 6.0) {
-      companies.push("Capgemini", "Tech Mahindra", "HCL", "Mindtree");
-    }
-
-    setEligibleCompanies(companies);
-
-    // Calculate required SGPA if target is set
-    if (targetCGPA) {
-      const targetValue = parseFloat(targetCGPA);
-      if (!isNaN(targetValue) && targetValue > 0 && targetValue <= 10) {
-        const remainingCredits = 30; // Assumption for avg credits per sem
-        const requiredTotal = targetValue * (totalCredits + remainingCredits);
-        const requiredSGPA = (requiredTotal - totalCreditsPoints) / remainingCredits;
-        
-        if (requiredSGPA <= 10 && requiredSGPA > 0) {
-          setRequiredSGPA(parseFloat(requiredSGPA.toFixed(2)));
-        } else if (requiredSGPA > 10) {
-          toast({
-            title: "Target CGPA not achievable",
-            description: "The required SGPA exceeds 10.0, which is not possible",
-            variant: "destructive",
-          });
-          setRequiredSGPA(null);
-        } else {
-          setRequiredSGPA(null);
-        }
-      }
-    }
   };
 
   // Reset all inputs
   const resetInputs = () => {
-    setSemesters([
-      { id: 1, name: "Semester 1", sgpa: "", credits: "" },
-      { id: 2, name: "Semester 2", sgpa: "", credits: "" },
-    ]);
+    setCurrentCGPA("");
+    setCompletedSemesters("");
     setTargetCGPA("");
-    setCurrentCGPA(null);
-    setRequiredSGPA(null);
-    setEligibleCompanies([]);
+    setTotalSemesters("");
+    setRequiredCGPA(null);
+    setIsAchievable(null);
+    setShowResults(false);
   };
 
   return (
@@ -153,7 +117,7 @@ const CGPA = () => {
               CGPA <span className="text-blue-500">Calculator</span>
             </h1>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Calculate your Cumulative Grade Point Average and plan your academic goals
+              Calculate the required CGPA in your remaining semesters to achieve your target
             </p>
           </div>
           
@@ -161,85 +125,64 @@ const CGPA = () => {
             <CardHeader className="bg-dark-900 border-b border-dark-800">
               <CardTitle className="text-white flex items-center">
                 <CalcIcon className="h-5 w-5 text-blue-500 mr-2" />
-                Enter Your Semester Details
+                Enter Your Details
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              {semesters.map((semester) => (
-                <div key={semester.id} className="mb-4 last:mb-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-white">{semester.name}</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-400 hover:text-red-400 hover:bg-red-500/10"
-                      onClick={() => removeSemester(semester.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-1">SGPA</label>
-                      <Input
-                        type="number"
-                        placeholder="0.0 - 10.0"
-                        className="bg-dark-800 border-dark-700 text-white"
-                        min="0"
-                        max="10"
-                        step="0.01"
-                        value={semester.sgpa}
-                        onChange={(e) => handleChange(semester.id, "sgpa", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-1">Credits</label>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 21"
-                        className="bg-dark-800 border-dark-700 text-white"
-                        min="1"
-                        value={semester.credits}
-                        onChange={(e) => handleChange(semester.id, "credits", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  {semester.id !== semesters[semesters.length - 1].id && (
-                    <Separator className="my-4 bg-dark-800" />
-                  )}
+              <div className="space-y-4">
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Current CGPA</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 7.5"
+                    className="bg-dark-800 border-dark-700 text-white"
+                    min="0"
+                    max="10"
+                    step="0.01"
+                    value={currentCGPA}
+                    onChange={(e) => setCurrentCGPA(e.target.value)}
+                  />
                 </div>
-              ))}
-              
-              <Button
-                variant="outline"
-                className="w-full mt-4 border-dashed border-gray-600 text-gray-400 hover:text-blue-400 hover:border-blue-500 hover:bg-blue-500/5"
-                onClick={addSemester}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Semester
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass-card border-dark-800 mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="bg-dark-900 border-b border-dark-800">
-              <CardTitle className="text-white">Target CGPA (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">
-                  What CGPA do you want to achieve?
-                </label>
-                <Input
-                  type="number"
-                  placeholder="e.g. 8.5"
-                  className="bg-dark-800 border-dark-700 text-white"
-                  min="0"
-                  max="10"
-                  step="0.01"
-                  value={targetCGPA}
-                  onChange={(e) => setTargetCGPA(e.target.value)}
-                />
+                
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 4"
+                    className="bg-dark-800 border-dark-700 text-white"
+                    min="1"
+                    value={completedSemesters}
+                    onChange={(e) => setCompletedSemesters(e.target.value)}
+                  />
+                </div>
+                
+                <Separator className="my-2 bg-dark-800" />
+                
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Target CGPA</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 8.5"
+                    className="bg-dark-800 border-dark-700 text-white"
+                    min="0"
+                    max="10"
+                    step="0.01"
+                    value={targetCGPA}
+                    onChange={(e) => setTargetCGPA(e.target.value)}
+                  />
+                </div>
+                
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Total Semesters</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 8"
+                    className="bg-dark-800 border-dark-700 text-white"
+                    min="1"
+                    value={totalSemesters}
+                    onChange={(e) => setTotalSemesters(e.target.value)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -247,7 +190,7 @@ const CGPA = () => {
           <div className="flex gap-4 mb-8">
             <Button 
               className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-              onClick={calculateCGPA}
+              onClick={calculateRequiredCGPA}
             >
               <CalcIcon className="h-4 w-4 mr-2" />
               Calculate
@@ -262,43 +205,93 @@ const CGPA = () => {
             </Button>
           </div>
           
-          {currentCGPA !== null && (
-            <Card className="glass-card border-dark-800 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          {showResults && (
+            <Card className="glass-card border-dark-800 animate-fade-in-up">
               <CardHeader className="bg-dark-900 border-b border-dark-800">
                 <CardTitle className="text-white">Results</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="mb-6">
-                  <h3 className="text-lg text-gray-300 mb-2">Your Current CGPA</h3>
-                  <div className="text-4xl font-bold text-blue-500">{currentCGPA}</div>
+                  <h3 className="text-lg text-gray-300 mb-2">Required CGPA in Remaining Semesters</h3>
+                  <div className="text-4xl font-bold text-blue-500">
+                    {isAchievable ? (
+                      requiredCGPA
+                    ) : (
+                      <span className="text-red-500">Not Achievable</span>
+                    )}
+                  </div>
+                  
+                  {isAchievable ? (
+                    <p className="text-sm text-gray-400 mt-2">
+                      You need to maintain a CGPA of {requiredCGPA} in your remaining {
+                        parseInt(totalSemesters) - parseInt(completedSemesters)
+                      } semesters to achieve your target CGPA of {targetCGPA}.
+                    </p>
+                  ) : (
+                    <div className="flex items-start mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                      <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-red-400 font-medium">Goal Not Achievable</p>
+                        <p className="text-sm text-gray-400 mt-1">
+                          The required CGPA ({requiredCGPA}) exceeds the maximum possible CGPA (10.0). 
+                          Consider adjusting your target or extending your academic timeline.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
-                {requiredSGPA !== null && (
-                  <div className="mb-6">
-                    <h3 className="text-lg text-gray-300 mb-2">Required SGPA in Next Semester</h3>
-                    <div className="text-2xl font-bold text-white">
-                      {requiredSGPA > 10 ? "Not Possible" : requiredSGPA}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
+                    <div className="text-sm text-gray-400 mb-1">Current Status</div>
+                    <div className="text-xl font-medium text-white">
+                      {currentCGPA} CGPA
                     </div>
-                    <p className="text-sm text-gray-400 mt-1">
-                      To achieve your target CGPA of {targetCGPA}
-                    </p>
+                    <div className="text-sm text-gray-400 mt-1">
+                      After {completedSemesters} semesters
+                    </div>
                   </div>
-                )}
+                  
+                  <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
+                    <div className="text-sm text-gray-400 mb-1">Target</div>
+                    <div className="text-xl font-medium text-white">
+                      {targetCGPA} CGPA
+                    </div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      By {totalSemesters} semesters
+                    </div>
+                  </div>
+                </div>
                 
-                {eligibleCompanies.length > 0 && (
-                  <div>
-                    <h3 className="text-lg text-gray-300 mb-2">
-                      Companies You May Be Eligible For
-                    </h3>
+                {isAchievable && requiredCGPA && (
+                  <div className="mt-6">
+                    <h3 className="text-lg text-gray-300 mb-2">Equivalent Grades</h3>
                     <div className="flex flex-wrap gap-2">
-                      {eligibleCompanies.map((company) => (
-                        <div
-                          key={company}
-                          className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-sm"
-                        >
-                          {company}
-                        </div>
-                      ))}
+                      {requiredCGPA >= 9.0 ? (
+                        <Badge className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 py-1">
+                          O Grade (Outstanding)
+                        </Badge>
+                      ) : requiredCGPA >= 8.0 ? (
+                        <Badge className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 py-1">
+                          A+ Grade (Excellent)
+                        </Badge>
+                      ) : requiredCGPA >= 7.0 ? (
+                        <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/30 py-1">
+                          A Grade (Very Good)
+                        </Badge>
+                      ) : requiredCGPA >= 6.0 ? (
+                        <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 py-1">
+                          B+ Grade (Good)
+                        </Badge>
+                      ) : requiredCGPA >= 5.0 ? (
+                        <Badge className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 py-1">
+                          C+ Grade (Average)
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/30 py-1">
+                          C Grade (Below Average)
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 )}
