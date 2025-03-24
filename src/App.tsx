@@ -8,6 +8,7 @@ import Notes from "@/pages/Notes";
 import Pomodoro from "@/pages/Pomodoro";
 import CGPA from "@/pages/CGPA";
 import NotFound from "@/pages/NotFound";
+import KTUInternalCalculator from "@/pages/KTUInternalCalculator";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/ktu-calculator" element={<KTUCalculator />} />
+        <Route path="/ktu-internal" element={<KTUInternalCalculator />} />
         <Route path="/notes" element={<Notes />} />
         <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/cgpa" element={<CGPA />} />
