@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 // Company data with tier categorization
@@ -145,7 +145,7 @@ const CGPA = () => {
   const [currentCGPA, setCurrentCGPA] = useState("");
   const [completedSemesters, setCompletedSemesters] = useState("4");
   const [targetCGPA, setTargetCGPA] = useState("");
-  const [totalSemesters, setTotalSemesters] = useState("8");
+  const [totalSemesters] = useState("8"); // Fixed to 8 as per requirements
   
   // Results
   const [requiredCGPA, setRequiredCGPA] = useState<number | null>(null);
@@ -156,7 +156,6 @@ const CGPA = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [semesterValues, setSemesterValues] = useState<{[key: string]: string}>({});
   const [eligibleCompanies, setEligibleCompanies] = useState<{[key: string]: string[]}>({});
-  const [activeTab, setActiveTab] = useState("calculator");
   
   // Initialize semester values
   useEffect(() => {
@@ -175,7 +174,7 @@ const CGPA = () => {
     const targCGPA = parseFloat(targetCGPA);
     const totSemesters = parseInt(totalSemesters);
     
-    if (isNaN(currCGPA) || isNaN(compSemesters) || isNaN(targCGPA) || isNaN(totSemesters)) {
+    if (isNaN(currCGPA) || isNaN(compSemesters) || isNaN(targCGPA)) {
       toast({
         title: "Invalid inputs",
         description: "Please fill all fields with valid numbers",
@@ -202,7 +201,7 @@ const CGPA = () => {
       return;
     }
     
-    if (compSemesters <= 0 || totSemesters <= 0) {
+    if (compSemesters <= 0) {
       toast({
         title: "Invalid semester count",
         description: "Semester count must be greater than 0",
@@ -291,7 +290,6 @@ const CGPA = () => {
     setCurrentCGPA("");
     setCompletedSemesters("4");
     setTargetCGPA("");
-    setTotalSemesters("8");
     setRequiredCGPA(null);
     setIsAchievable(null);
     setShowResults(false);
@@ -387,7 +385,7 @@ const CGPA = () => {
       <Navbar />
       
       <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
               CGPA <span className="text-blue-500">Calculator</span>
@@ -397,312 +395,284 @@ const CGPA = () => {
             </p>
           </div>
           
-          <Tabs defaultValue="calculator" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6">
-              <TabsTrigger value="calculator" className="data-[state=active]:bg-blue-500">
-                Calculator
-              </TabsTrigger>
-              <TabsTrigger value="semester" className="data-[state=active]:bg-blue-500">
-                Semester Input
-              </TabsTrigger>
-              <TabsTrigger value="companies" className="data-[state=active]:bg-blue-500">
-                Company Eligibility
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="calculator">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <Card className="glass-card border-dark-800 overflow-hidden animate-fade-in-up">
-                    <CardHeader className="bg-dark-900 border-b border-dark-800">
-                      <CardTitle className="text-white flex items-center">
-                        <CalcIcon className="h-5 w-5 text-blue-500 mr-2" />
-                        CGPA Calculator
-                      </CardTitle>
-                      <CardDescription className="text-gray-400">
-                        Calculate the CGPA required in future semesters
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <Label className="block text-sm text-gray-400 mb-1">Current CGPA</Label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 7.5"
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="0"
-                            max="10"
-                            step="0.01"
-                            value={currentCGPA}
-                            onChange={(e) => setCurrentCGPA(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 4"
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="1"
-                            value={completedSemesters}
-                            onChange={(e) => setCompletedSemesters(e.target.value)}
-                          />
-                        </div>
-                        
-                        <Separator className="my-2 bg-dark-800" />
-                        
-                        <div>
-                          <Label className="block text-sm text-gray-400 mb-1">Target CGPA</Label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 8.5"
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="0"
-                            max="10"
-                            step="0.01"
-                            value={targetCGPA}
-                            onChange={(e) => setTargetCGPA(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label className="block text-sm text-gray-400 mb-1">Total Semesters</Label>
-                          <Input
-                            type="number"
-                            placeholder="e.g. 8"
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="1"
-                            value={totalSemesters}
-                            onChange={(e) => setTotalSemesters(e.target.value)}
-                          />
-                        </div>
-                        
-                        <div className="flex gap-4 pt-2">
-                          <Button 
-                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                            onClick={calculateRequiredCGPA}
-                          >
-                            <CalcIcon className="h-4 w-4 mr-2" />
-                            Calculate
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            className="border-gray-600 text-gray-400 hover:text-gray-300"
-                            onClick={resetInputs}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Reset
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  {showResults && (
-                    <Card className="glass-card border-dark-800 animate-fade-in-up mt-6">
-                      <CardHeader className="bg-dark-900 border-b border-dark-800">
-                        <CardTitle className="text-white">Results</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="mb-6">
-                          <h3 className="text-lg text-gray-300 mb-2">Required CGPA in Remaining Semesters</h3>
-                          <div className="text-4xl font-bold text-blue-500">
-                            {isAchievable ? (
-                              requiredCGPA
-                            ) : (
-                              <span className="text-red-500">Not Achievable</span>
-                            )}
-                          </div>
-                          
-                          {isAchievable ? (
-                            <p className="text-sm text-gray-400 mt-2">
-                              You need to maintain a CGPA of {requiredCGPA} in your remaining {
-                                parseInt(totalSemesters) - parseInt(completedSemesters)
-                              } semesters to achieve your target CGPA of {targetCGPA}.
-                            </p>
-                          ) : (
-                            <div className="flex items-start mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                              <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-red-400 font-medium">Goal Not Achievable</p>
-                                <p className="text-sm text-gray-400 mt-1">
-                                  The required CGPA ({requiredCGPA}) exceeds the maximum possible CGPA (10.0). 
-                                  Consider adjusting your target or extending your academic timeline.
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                            <div className="text-sm text-gray-400 mb-1">Current Status</div>
-                            <div className="text-xl font-medium text-white">
-                              {currentCGPA} CGPA
-                            </div>
-                            <div className="text-sm text-gray-400 mt-1">
-                              After {completedSemesters} semesters
-                            </div>
-                          </div>
-                          
-                          <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                            <div className="text-sm text-gray-400 mb-1">Target</div>
-                            <div className="text-xl font-medium text-white">
-                              {targetCGPA} CGPA
-                            </div>
-                            <div className="text-sm text-gray-400 mt-1">
-                              By {totalSemesters} semesters
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {isAchievable && requiredCGPA && (
-                          <div className="mt-6">
-                            <h3 className="text-lg text-gray-300 mb-2">Equivalent Grades</h3>
-                            <div className="flex flex-wrap gap-2">
-                              {requiredCGPA >= 9.0 ? (
-                                <Badge className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 py-1">
-                                  O Grade (Outstanding)
-                                </Badge>
-                              ) : requiredCGPA >= 8.0 ? (
-                                <Badge className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 py-1">
-                                  A+ Grade (Excellent)
-                                </Badge>
-                              ) : requiredCGPA >= 7.0 ? (
-                                <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/30 py-1">
-                                  A Grade (Very Good)
-                                </Badge>
-                              ) : requiredCGPA >= 6.0 ? (
-                                <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 py-1">
-                                  B+ Grade (Good)
-                                </Badge>
-                              ) : requiredCGPA >= 5.0 ? (
-                                <Badge className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 py-1">
-                                  C+ Grade (Average)
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/30 py-1">
-                                  C Grade (Below Average)
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-                
-                {showResults && chartData.length > 0 && (
-                  <div>
-                    <Card className="glass-card border-dark-800 h-full animate-fade-in-up">
-                      <CardHeader className="bg-dark-900 border-b border-dark-800">
-                        <CardTitle className="text-white flex items-center">
-                          <BarChart className="h-5 w-5 text-blue-500 mr-2" />
-                          CGPA Visualization
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="mb-6">
-                          <h3 className="text-lg text-gray-300 mb-2">CGPA Projection</h3>
-                          <div className="h-72">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <RechartsBarChart
-                                data={chartData}
-                                margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
-                              >
-                                <XAxis dataKey="name" stroke="#6b7280" />
-                                <YAxis domain={[0, 10]} stroke="#6b7280" />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="cgpa" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                              </RechartsBarChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                          <div className="flex items-start">
-                            <div className="h-5 w-5 rounded-full bg-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p className="text-white font-medium">Understanding Your Projection</p>
-                              <p className="text-sm text-gray-400 mt-1">
-                                To achieve your target CGPA of {targetCGPA}, you need to maintain a CGPA of {requiredCGPA} in each of your remaining {
-                                  parseInt(totalSemesters) - parseInt(completedSemesters)
-                                } semesters.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="semester">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="glass-card border-dark-800 animate-fade-in-up">
-                  <CardHeader className="bg-dark-900 border-b border-dark-800">
-                    <CardTitle className="text-white">Semester-wise GPA Input</CardTitle>
-                    <CardDescription className="text-gray-400">
-                      Enter your semester-wise SGPA to calculate your current CGPA
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      {Array.from({length: 8}, (_, i) => i + 1).map(sem => (
-                        <div key={sem}>
-                          <Label className="block text-sm text-gray-400 mb-1">Semester {sem}</Label>
-                          <Input
-                            type="number"
-                            placeholder={`SGPA ${sem}`}
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="0"
-                            max="10"
-                            step="0.01"
-                            value={semesterValues[`sem${sem}`]}
-                            onChange={(e) => setSemesterValues({...semesterValues, [`sem${sem}`]: e.target.value})}
-                          />
-                        </div>
-                      ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column: Calculator and Results */}
+            <div>
+              <Card className="glass-card border-dark-800 overflow-hidden animate-fade-in-up mb-6">
+                <CardHeader className="bg-dark-900 border-b border-dark-800">
+                  <CardTitle className="text-white flex items-center">
+                    <CalcIcon className="h-5 w-5 text-blue-500 mr-2" />
+                    CGPA Calculator
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Calculate the CGPA required in future semesters
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="block text-sm text-gray-400 mb-1">Current CGPA</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 7.5"
+                        className="bg-dark-800 border-dark-700 text-white"
+                        min="0"
+                        max="10"
+                        step="0.01"
+                        value={currentCGPA}
+                        onChange={(e) => setCurrentCGPA(e.target.value)}
+                      />
                     </div>
                     
-                    <div className="flex gap-4 mt-6">
+                    <div>
+                      <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 4"
+                        className="bg-dark-800 border-dark-700 text-white"
+                        min="1"
+                        max="7"
+                        value={completedSemesters}
+                        onChange={(e) => setCompletedSemesters(e.target.value)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Total semesters is fixed at 8</p>
+                    </div>
+                    
+                    <Separator className="my-2 bg-dark-800" />
+                    
+                    <div>
+                      <Label className="block text-sm text-gray-400 mb-1">Target CGPA</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 8.5"
+                        className="bg-dark-800 border-dark-700 text-white"
+                        min="0"
+                        max="10"
+                        step="0.01"
+                        value={targetCGPA}
+                        onChange={(e) => setTargetCGPA(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex gap-4 pt-2">
                       <Button 
                         className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                        onClick={calculateCGPAFromSemesters}
+                        onClick={calculateRequiredCGPA}
                       >
                         <CalcIcon className="h-4 w-4 mr-2" />
-                        Calculate CGPA
+                        Calculate
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-600 text-gray-400 hover:text-gray-300"
+                        onClick={resetInputs}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset
                       </Button>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Alternative Method: Calculate CGPA from Semesters */}
+              <Card className="glass-card border-dark-800 overflow-hidden animate-fade-in-up mb-6">
+                <CardHeader className="bg-dark-900 border-b border-dark-800">
+                  <CardTitle className="text-white">Or Enter Semester SGPAs</CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Calculate your current CGPA from individual semester SGPAs
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-4 gap-3 mb-4">
+                    {Array.from({length: 8}, (_, i) => i + 1).map(sem => (
+                      <div key={sem}>
+                        <Label className="block text-xs text-gray-400 mb-1">Sem {sem}</Label>
+                        <Input
+                          type="number"
+                          placeholder={`${sem}`}
+                          className="bg-dark-800 border-dark-700 text-white text-sm h-9"
+                          min="0"
+                          max="10"
+                          step="0.01"
+                          value={semesterValues[`sem${sem}`]}
+                          onChange={(e) => setSemesterValues({...semesterValues, [`sem${sem}`]: e.target.value})}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                    onClick={calculateCGPAFromSemesters}
+                  >
+                    <CalcIcon className="h-4 w-4 mr-2" />
+                    Calculate CGPA
+                  </Button>
+                </CardContent>
+              </Card>
+              
+              {/* Results Card */}
+              {showResults && (
+                <Card className="glass-card border-dark-800 animate-fade-in-up">
+                  <CardHeader className="bg-dark-900 border-b border-dark-800">
+                    <CardTitle className="text-white">Results</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="mb-6">
+                      <h3 className="text-lg text-gray-300 mb-2">Required CGPA in Remaining Semesters</h3>
+                      <div className="text-4xl font-bold text-blue-500">
+                        {isAchievable ? (
+                          requiredCGPA
+                        ) : (
+                          <span className="text-red-500">Not Achievable</span>
+                        )}
+                      </div>
+                      
+                      {isAchievable ? (
+                        <p className="text-sm text-gray-400 mt-2">
+                          You need to maintain a CGPA of {requiredCGPA} in your remaining {
+                            parseInt(totalSemesters) - parseInt(completedSemesters)
+                          } semesters to achieve your target CGPA of {targetCGPA}.
+                        </p>
+                      ) : (
+                        <div className="flex items-start mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-red-400 font-medium">Goal Not Achievable</p>
+                            <p className="text-sm text-gray-400 mt-1">
+                              The required CGPA ({requiredCGPA}) exceeds the maximum possible CGPA (10.0). 
+                              Consider adjusting your target or extending your academic timeline.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     
-                    {currentCGPA && (
-                      <div className="mt-6 p-4 bg-dark-800 rounded-lg border border-dark-700">
-                        <div className="text-lg font-medium text-white">
-                          Your Current CGPA: <span className="text-blue-500">{currentCGPA}</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
+                        <div className="text-sm text-gray-400 mb-1">Current Status</div>
+                        <div className="text-xl font-medium text-white">
+                          {currentCGPA} CGPA
                         </div>
                         <div className="text-sm text-gray-400 mt-1">
-                          Based on {completedSemesters} completed semesters
+                          After {completedSemesters} semesters
+                        </div>
+                      </div>
+                      
+                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
+                        <div className="text-sm text-gray-400 mb-1">Target</div>
+                        <div className="text-xl font-medium text-white">
+                          {targetCGPA} CGPA
+                        </div>
+                        <div className="text-sm text-gray-400 mt-1">
+                          By {totalSemesters} semesters
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {isAchievable && requiredCGPA && (
+                      <div className="mt-6">
+                        <h3 className="text-lg text-gray-300 mb-2">Equivalent Grades</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {requiredCGPA >= 9.0 ? (
+                            <Badge className="bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 py-1">
+                              O Grade (Outstanding)
+                            </Badge>
+                          ) : requiredCGPA >= 8.0 ? (
+                            <Badge className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 py-1">
+                              A+ Grade (Excellent)
+                            </Badge>
+                          ) : requiredCGPA >= 7.0 ? (
+                            <Badge className="bg-green-500/20 text-green-400 hover:bg-green-500/30 py-1">
+                              A Grade (Very Good)
+                            </Badge>
+                          ) : requiredCGPA >= 6.0 ? (
+                            <Badge className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 py-1">
+                              B+ Grade (Good)
+                            </Badge>
+                          ) : requiredCGPA >= 5.0 ? (
+                            <Badge className="bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 py-1">
+                              C+ Grade (Average)
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/30 py-1">
+                              C Grade (Below Average)
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
-                
-                {Object.keys(eligibleCompanies).length > 0 && (
-                  <Card className="glass-card border-dark-800 animate-fade-in-up h-full">
-                    <CardHeader className="bg-dark-900 border-b border-dark-800">
-                      <CardTitle className="text-white flex items-center">
-                        <Building2 className="h-5 w-5 text-blue-500 mr-2" />
-                        Company Tier Distribution
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
+              )}
+            </div>
+            
+            {/* Right Column: Visualization and Eligibility */}
+            <div>
+              {/* CGPA Visualization */}
+              {showResults && chartData.length > 0 && (
+                <Card className="glass-card border-dark-800 animate-fade-in-up mb-6">
+                  <CardHeader className="bg-dark-900 border-b border-dark-800">
+                    <CardTitle className="text-white flex items-center">
+                      <BarChart className="h-5 w-5 text-blue-500 mr-2" />
+                      CGPA Visualization
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="mb-4">
+                      <h3 className="text-lg text-gray-300 mb-2">CGPA Projection</h3>
                       <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsBarChart
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                          >
+                            <XAxis dataKey="name" stroke="#6b7280" />
+                            <YAxis domain={[0, 10]} stroke="#6b7280" />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Bar dataKey="cgpa" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
+                      <div className="flex items-start">
+                        <div className="h-5 w-5 rounded-full bg-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-medium">Understanding Your Projection</p>
+                          <p className="text-sm text-gray-400 mt-1">
+                            To achieve your target CGPA of {targetCGPA}, you need to maintain a CGPA of {requiredCGPA} in each of your remaining {
+                              parseInt(totalSemesters) - parseInt(completedSemesters)
+                            } semesters.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Company Eligibility */}
+              {Object.keys(eligibleCompanies).length > 0 && (
+                <Card className="glass-card border-dark-800 animate-fade-in-up">
+                  <CardHeader className="bg-dark-900 border-b border-dark-800">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white flex items-center">
+                        <Briefcase className="h-5 w-5 text-blue-500 mr-2" />
+                        Company Eligibility
+                      </CardTitle>
+                      <Badge className="bg-blue-500">{currentCGPA} CGPA</Badge>
+                    </div>
+                    <CardDescription className="text-gray-400">
+                      Companies you're eligible for based on your current CGPA
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="mb-6">
+                      <h3 className="text-lg text-gray-300 mb-4">Distribution by Tier</h3>
+                      <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -724,157 +694,43 @@ const CGPA = () => {
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      <div className="text-center mt-4 text-gray-400 text-sm">
-                        Distribution of eligible companies across different tiers based on your CGPA of {currentCGPA}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="companies">
-              <Card className="glass-card border-dark-800 animate-fade-in-up">
-                <CardHeader className="bg-dark-900 border-b border-dark-800">
-                  <CardTitle className="text-white flex items-center">
-                    <Briefcase className="h-5 w-5 text-blue-500 mr-2" />
-                    Companies You're Eligible For
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Based on your current CGPA of {currentCGPA || "0.00"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {!currentCGPA && (
-                    <div className="bg-dark-800 p-4 rounded-lg border border-dark-700 text-center">
-                      <p className="text-gray-400">
-                        Please calculate your CGPA first to see eligible companies
-                      </p>
-                      <Button 
-                        className="mt-4 bg-blue-500 hover:bg-blue-600 text-white"
-                        onClick={() => setActiveTab("calculator")}
-                      >
-                        Go to Calculator
-                      </Button>
                     </div>
-                  )}
-                  
-                  {Object.keys(eligibleCompanies).length > 0 ? (
-                    <div className="space-y-6">
-                      {Object.keys(eligibleCompanies).sort().reverse().map(tier => (
-                        <div key={tier} className="animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-                          <div className="flex items-center mb-2">
-                            <Badge variant="outline" className={getTierColor(tier)}>
-                              {tier} Tier
-                            </Badge>
-                            <span className="ml-2 text-sm text-gray-400">
-                              {processedCompanyTiers[tier].ctc} • Minimum CGPA: {processedCompanyTiers[tier].minCGPA}
-                            </span>
-                          </div>
-                          <div className="bg-dark-800 rounded-lg border border-dark-700 p-4">
-                            <div className="flex flex-wrap gap-2">
-                              {eligibleCompanies[tier].map(company => (
-                                <Badge key={company} variant="outline" className="bg-dark-700 text-gray-300">
-                                  {company}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : currentCGPA ? (
-                    <div className="flex items-start p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-md">
-                      <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-yellow-400 font-medium">No Eligible Companies Found</p>
-                        <p className="text-sm text-gray-400 mt-1">
-                          Your current CGPA of {currentCGPA} doesn't meet the minimum requirements for the companies in our database. 
-                          Focus on improving your CGPA to unlock more opportunities.
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-              
-              {Object.keys(eligibleCompanies).length > 0 && (
-                <Card className="glass-card border-dark-800 animate-fade-in-up mt-6">
-                  <CardHeader className="bg-dark-900 border-b border-dark-800">
-                    <CardTitle className="text-white">Tier Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
+                    
+                    <Separator className="my-6 bg-dark-800" />
+                    
                     <div className="space-y-4">
-                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                        <div className="flex items-center">
-                          <Badge variant="outline" className="text-purple-400 bg-purple-500/20 border-purple-500/30">
-                            S+ Tier
-                          </Badge>
-                          <span className="ml-2 font-medium text-white">Top Tech & Finance Companies</span>
+                      <h3 className="text-lg text-gray-300 mb-1">Eligible Companies</h3>
+                      <ScrollArea className="h-64 pr-4">
+                        <div className="space-y-4">
+                          {Object.keys(eligibleCompanies).sort().reverse().map(tier => (
+                            <div key={tier} className="animate-fade-in-up">
+                              <div className="flex items-center mb-2">
+                                <Badge variant="outline" className={getTierColor(tier)}>
+                                  {tier} Tier
+                                </Badge>
+                                <span className="ml-2 text-sm text-gray-400">
+                                  {processedCompanyTiers[tier].ctc} • Min CGPA: {processedCompanyTiers[tier].minCGPA}
+                                </span>
+                              </div>
+                              <div className="bg-dark-800 rounded-lg border border-dark-700 p-4">
+                                <div className="flex flex-wrap gap-2">
+                                  {eligibleCompanies[tier].map(company => (
+                                    <Badge key={company} variant="outline" className="bg-dark-700 text-gray-300">
+                                      {company}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Elite tech giants and high-frequency trading firms offering excellent compensation and benefits.
-                          Typically requires CGPA of 8.0 or higher.
-                        </p>
-                      </div>
-                      
-                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                        <div className="flex items-center">
-                          <Badge variant="outline" className="text-blue-400 bg-blue-500/20 border-blue-500/30">
-                            A+ Tier
-                          </Badge>
-                          <span className="ml-2 font-medium text-white">Premium Companies</span>
-                        </div>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Well-established tech companies and successful startups with excellent growth opportunities.
-                          Typically requires CGPA of 7.5 or higher.
-                        </p>
-                      </div>
-                      
-                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                        <div className="flex items-center">
-                          <Badge variant="outline" className="text-green-400 bg-green-500/20 border-green-500/30">
-                            A Tier
-                          </Badge>
-                          <span className="ml-2 font-medium text-white">Good Companies</span>
-                        </div>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Solid tech companies and reputable IT service providers with good work-life balance.
-                          Typically requires CGPA of 7.0-7.5.
-                        </p>
-                      </div>
-                      
-                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                        <div className="flex items-center">
-                          <Badge variant="outline" className="text-yellow-400 bg-yellow-500/20 border-yellow-500/30">
-                            B Tier
-                          </Badge>
-                          <span className="ml-2 font-medium text-white">Mid-Tier Companies</span>
-                        </div>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Mid-sized companies and startups offering decent packages and learning opportunities.
-                          Typically requires CGPA of 6.0-7.0.
-                        </p>
-                      </div>
-                      
-                      <div className="bg-dark-800 p-4 rounded-lg border border-dark-700">
-                        <div className="flex items-center">
-                          <Badge variant="outline" className="text-orange-400 bg-orange-500/20 border-orange-500/30">
-                            C Tier
-                          </Badge>
-                          <span className="ml-2 font-medium text-white">Entry-Level Companies</span>
-                        </div>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Services and BPO companies that hire in bulk, often with lower compensation packages.
-                          Typically requires CGPA of 6.0 or higher.
-                        </p>
-                      </div>
+                      </ScrollArea>
                     </div>
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </div>
       </main>
       

@@ -1,533 +1,475 @@
+
 import { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "sonner";
-import { Play, Pause, SkipForward, Maximize, Minimize, Volume2, VolumeX } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { Play, Pause, RotateCcw, Maximize, Volume2, Volume1, VolumeX, Settings } from "lucide-react";
 
 const Pomodoro = () => {
-  // Timer states
-  const [minutes, setMinutes] = useState(25);
-  const [seconds, setSeconds] = useState(0);
-  const [isActive, setIsActive] = useState(false);
-  const [mode, setMode] = useState<"focus" | "shortBreak" | "longBreak">("focus");
-  const [cycles, setCycles] = useState(0);
-  
-  // Timer settings
-  const [focusDuration, setFocusDuration] = useState(25);
-  const [shortBreakDuration, setShortBreakDuration] = useState(5);
-  const [longBreakDuration, setLongBreakDuration] = useState(15);
-  const [autoStartBreaks, setAutoStartBreaks] = useState(false);
-  const [autoStartPomodoros, setAutoStartPomodoros] = useState(false);
-  
-  // Sound settings
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [volume, setVolume] = useState(50);
-  
-  // UI states
+  const { toast } = useToast();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [activeMode, setActiveMode] = useState("pomodoro");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const pomodoroRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [volume, setVolume] = useState(70);
+  const [isMuted, setIsMuted] = useState(false);
+  const fullscreenRef = useRef<HTMLDivElement>(null);
   
-  // Progress calculation
-  const getTotalSeconds = () => {
-    switch (mode) {
-      case "focus":
-        return focusDuration * 60;
-      case "shortBreak":
-        return shortBreakDuration * 60;
-      case "longBreak":
-        return longBreakDuration * 60;
-    }
-  };
+  // Timer durations in seconds
+  const [timerDurations, setTimerDurations] = useState({
+    pomodoro: 25 * 60,
+    shortBreak: 5 * 60,
+    longBreak: 15 * 60,
+  });
   
-  const getRemainingSeconds = () => minutes * 60 + seconds;
-  const getProgress = () => {
-    const total = getTotalSeconds();
-    const remaining = getRemainingSeconds();
-    return ((total - remaining) / total) * 100;
-  };
+  useEffect(() => {
+    // Initialize audio
+    audioRef.current = new Audio("/alarm.mp3");
+    audioRef.current.volume = volume / 100;
+    
+    // Set initial timer based on mode
+    setTimeLeft(timerDurations[activeMode as keyof typeof timerDurations]);
+    
+    // Cleanup function
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
   
-  // Timer logic
+  useEffect(() => {
+    // Reset timer when mode changes
+    setTimeLeft(timerDurations[activeMode as keyof typeof timerDurations]);
+    setIsPlaying(false);
+  }, [activeMode, timerDurations]);
+  
   useEffect(() => {
     let interval: number | null = null;
     
-    if (isActive) {
+    if (isPlaying && timeLeft > 0) {
       interval = window.setInterval(() => {
-        if (seconds === 0) {
-          if (minutes === 0) {
-            clearInterval(interval!);
-            handleTimerComplete();
-          } else {
-            setMinutes(minutes - 1);
-            setSeconds(59);
-          }
-        } else {
-          setSeconds(seconds - 1);
-        }
+        setTimeLeft(prevTime => prevTime - 1);
       }, 1000);
-    } else if (interval) {
-      clearInterval(interval);
+    } else if (isPlaying && timeLeft === 0) {
+      // Timer finished, play sound
+      playAlarm();
+      
+      // Show notification
+      toast({
+        title: `${activeMode === "pomodoro" ? "Work session" : "Break"} complete!`,
+        description: `${activeMode === "pomodoro" ? "Time for a break!" : "Ready to get back to work?"}`,
+      });
+      
+      // Stop the timer
+      setIsPlaying(false);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, minutes, seconds]);
+  }, [isPlaying, timeLeft, activeMode]);
   
-  // Handle timer completion
-  const handleTimerComplete = () => {
-    if (soundEnabled && audioRef.current) {
-      audioRef.current.volume = volume / 100;
+  // Update audio volume when volume changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume / 100;
+    }
+  }, [volume, isMuted]);
+  
+  const togglePlayPause = () => {
+    setIsPlaying(prevState => !prevState);
+  };
+  
+  const resetTimer = () => {
+    setIsPlaying(false);
+    setTimeLeft(timerDurations[activeMode as keyof typeof timerDurations]);
+  };
+  
+  const playAlarm = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
       audioRef.current.play();
     }
-    
-    // Notify user
-    toast({
-      title: mode === "focus" ? "Focus time complete!" : "Break time complete!",
-      description: mode === "focus" ? "Time to take a break!" : "Ready to focus again?",
-    });
-    
-    // Cycle management
-    if (mode === "focus") {
-      const newCycles = cycles + 1;
-      setCycles(newCycles);
-      
-      if (newCycles % 4 === 0) {
-        // After 4 focus sessions, take a long break
-        setMode("longBreak");
-        setMinutes(longBreakDuration);
-        if (autoStartBreaks) setIsActive(true);
-      } else {
-        // Otherwise take a short break
-        setMode("shortBreak");
-        setMinutes(shortBreakDuration);
-        if (autoStartBreaks) setIsActive(true);
-      }
-    } else {
-      // After a break, return to focus mode
-      setMode("focus");
-      setMinutes(focusDuration);
-      if (autoStartPomodoros) setIsActive(true);
-    }
-    
-    setSeconds(0);
-    if (!autoStartBreaks && !autoStartPomodoros) {
-      setIsActive(false);
-    }
   };
   
-  // Reset timer
-  const resetTimer = () => {
-    setIsActive(false);
-    
-    switch (mode) {
-      case "focus":
-        setMinutes(focusDuration);
-        break;
-      case "shortBreak":
-        setMinutes(shortBreakDuration);
-        break;
-      case "longBreak":
-        setMinutes(longBreakDuration);
-        break;
-    }
-    
-    setSeconds(0);
-  };
-  
-  // Skip to next timer
-  const skipTimer = () => {
-    if (mode === "focus") {
-      if ((cycles + 1) % 4 === 0) {
-        setMode("longBreak");
-        setMinutes(longBreakDuration);
-      } else {
-        setMode("shortBreak");
-        setMinutes(shortBreakDuration);
-      }
-    } else {
-      setMode("focus");
-      setMinutes(focusDuration);
-    }
-    
-    setSeconds(0);
-    setIsActive(false);
-  };
-  
-  // Toggle fullscreen
   const toggleFullscreen = () => {
-    if (!isFullscreen) {
-      if (timerRef.current && timerRef.current.requestFullscreen) {
-        timerRef.current.requestFullscreen()
-          .then(() => setIsFullscreen(true))
-          .catch(err => console.error('Error attempting to enable fullscreen:', err));
-      }
+    if (!document.fullscreenElement && fullscreenRef.current) {
+      fullscreenRef.current.requestFullscreen().catch(err => {
+        toast({
+          description: `Error attempting to enable fullscreen: ${err.message}`,
+          variant: "destructive",
+        });
+      });
+      setIsFullscreen(true);
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen()
-          .then(() => setIsFullscreen(false))
-          .catch(err => console.error('Error attempting to exit fullscreen:', err));
+        document.exitFullscreen();
+        setIsFullscreen(false);
       }
     }
   };
   
-  // Handle document fullscreen change
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-  
-  // Timer mode colors
-  const getModeColor = () => {
-    switch (mode) {
-      case "focus": return "from-blue-600 to-blue-400";
-      case "shortBreak": return "from-green-600 to-green-400";
-      case "longBreak": return "from-purple-600 to-purple-400";
-    }
+  const toggleMute = () => {
+    setIsMuted(prev => !prev);
   };
   
-  const getModeTextColor = () => {
-    switch (mode) {
-      case "focus": return "text-blue-500";
-      case "shortBreak": return "text-green-500";
-      case "longBreak": return "text-purple-500";
-    }
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
-  const getModeBgColor = () => {
-    switch (mode) {
-      case "focus": return "bg-blue-500/10";
-      case "shortBreak": return "bg-green-500/10";
-      case "longBreak": return "bg-purple-500/10";
-    }
+  // Calculate progress percentage
+  const calculateProgress = () => {
+    const totalSeconds = timerDurations[activeMode as keyof typeof timerDurations];
+    return ((totalSeconds - timeLeft) / totalSeconds) * 100;
   };
+  
+  const progress = calculateProgress();
   
   return (
-    <div className="min-h-screen bg-dark-950 text-white flex flex-col">
-      {!isFullscreen && <Navbar />}
+    <div className="min-h-screen bg-dark-950 text-white flex flex-col" ref={fullscreenRef}>
+      <Navbar />
       
-      <main className={cn(
-        "flex-grow flex flex-col items-center justify-center p-4",
-        isFullscreen ? "pt-0" : "pt-24"
-      )}>
-        <div ref={pomodoroRef} className="w-full max-w-3xl mx-auto">
-          {!isFullscreen && (
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                Pomodoro <span className={getModeTextColor()}>Timer</span>
-              </h1>
-              <p className="text-gray-400">
-                Stay focused and productive with the Pomodoro technique
-              </p>
-            </div>
-          )}
-          
-          <div 
-            ref={timerRef} 
-            className={cn(
-              "relative flex flex-col items-center justify-center",
-              isFullscreen ? "h-screen" : ""
-            )}
-          >
-            {/* Timer Circle */}
-            <div className={cn(
-              "relative flex items-center justify-center",
-              isFullscreen ? "scale-150" : ""
-            )}>
-              {/* Animated Background Circle */}
-              <div className={cn(
-                "absolute w-64 h-64 md:w-80 md:h-80 rounded-full",
-                getModeBgColor(),
-                "flex items-center justify-center"
-              )}>
-                <div className={cn(
-                  "w-60 h-60 md:w-76 md:h-76 rounded-full bg-dark-950",
-                  "flex items-center justify-center"
-                )} />
-              </div>
-              
-              {/* Progress Circle */}
-              <svg className="absolute w-64 h-64 md:w-80 md:h-80 transform -rotate-90">
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="48%"
-                  stroke="rgba(255, 255, 255, 0.1)"
-                  strokeWidth="8"
-                  fill="none"
-                />
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r="48%"
-                  stroke={`url(#${mode}Gradient)`}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  fill="none"
-                  strokeDasharray="100"
-                  strokeDashoffset={100 - getProgress()}
-                  className="transition-all duration-1000 ease-linear"
-                />
-                <defs>
-                  <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#60A5FA" />
-                  </linearGradient>
-                  <linearGradient id="shortBreakGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#22C55E" />
-                    <stop offset="100%" stopColor="#4ADE80" />
-                  </linearGradient>
-                  <linearGradient id="longBreakGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#8B5CF6" />
-                    <stop offset="100%" stopColor="#A78BFA" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              
-              {/* Timer Display */}
-              <div className="text-center z-10">
-                <div className={cn(
-                  "text-6xl md:text-7xl font-bold transition-colors",
-                  getModeTextColor()
-                )}>
-                  {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-                </div>
-                {!isFullscreen && (
-                  <div className="text-lg font-medium text-gray-300 mt-2">
-                    {mode === "focus" ? "Focus Time" : mode === "shortBreak" ? "Short Break" : "Long Break"}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Timer Controls */}
-            <div className={cn(
-              "flex space-x-4 mt-8",
-              isFullscreen ? "mt-16" : ""
-            )}>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 rounded-full border-gray-600 text-gray-400 hover:text-white hover:border-gray-500"
-                onClick={resetTimer}
-              >
-                <SkipForward className="h-5 w-5" />
-              </Button>
-              
-              <Button
-                variant="default"
-                size="icon"
-                className={cn(
-                  "h-14 w-14 rounded-full ",
-                  !isActive ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"
-                )}
-                onClick={() => setIsActive(!isActive)}
-              >
-                {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon" 
-                className="h-12 w-12 rounded-full border-gray-600 text-gray-400 hover:text-white hover:border-gray-500"
-                onClick={skipTimer}
-              >
-                <SkipForward className="h-5 w-5 rotate-180" />
-              </Button>
-            </div>
-            
-            {/* Mode Selector - Only show if not fullscreen */}
-            {!isFullscreen && (
-              <div className="grid grid-cols-3 gap-2 w-full max-w-md mt-8">
-                <Button
-                  variant={mode === "focus" ? "default" : "outline"}
-                  className={cn(
-                    mode === "focus" ? "bg-blue-500 hover:bg-blue-600" : "border-gray-600 text-gray-400 hover:text-white"
-                  )}
-                  onClick={() => {
-                    setMode("focus");
-                    setMinutes(focusDuration);
-                    setSeconds(0);
-                    setIsActive(false);
-                  }}
-                >
-                  Focus
-                </Button>
-                <Button
-                  variant={mode === "shortBreak" ? "default" : "outline"}
-                  className={cn(
-                    mode === "shortBreak" ? "bg-green-500 hover:bg-green-600" : "border-gray-600 text-gray-400 hover:text-white"
-                  )}
-                  onClick={() => {
-                    setMode("shortBreak");
-                    setMinutes(shortBreakDuration);
-                    setSeconds(0);
-                    setIsActive(false);
-                  }}
-                >
-                  Short Break
-                </Button>
-                <Button
-                  variant={mode === "longBreak" ? "default" : "outline"}
-                  className={cn(
-                    mode === "longBreak" ? "bg-purple-500 hover:bg-purple-600" : "border-gray-600 text-gray-400 hover:text-white"
-                  )}
-                  onClick={() => {
-                    setMode("longBreak");
-                    setMinutes(longBreakDuration);
-                    setSeconds(0);
-                    setIsActive(false);
-                  }}
-                >
-                  Long Break
-                </Button>
-              </div>
-            )}
-            
-            {/* Fullscreen Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "absolute bottom-4 right-4 text-gray-400 hover:text-white",
-                isFullscreen ? "bottom-8 right-8" : ""
-              )}
-              onClick={toggleFullscreen}
-            >
-              {isFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
-            </Button>
-            
-            {/* Volume Toggle - Only when in fullscreen */}
-            {isFullscreen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute bottom-8 left-8 text-gray-400 hover:text-white"
-                onClick={() => setSoundEnabled(!soundEnabled)}
-              >
-                {soundEnabled ? <Volume2 className="h-6 w-6" /> : <VolumeX className="h-6 w-6" />}
-              </Button>
-            )}
+      <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white">
+              Pomodoro <span className="text-blue-500">Timer</span>
+            </h1>
+            <p className="text-gray-400 mt-2">
+              Boost your productivity with focused work sessions
+            </p>
           </div>
           
-          {/* Settings - Only show if not fullscreen */}
-          {!isFullscreen && (
-            <div className="mt-12 bg-dark-900 rounded-lg p-6 border border-dark-800">
-              <h2 className="text-xl font-bold mb-4">Timer Settings</h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Focus Duration: {focusDuration} minutes</label>
-                  <Slider
-                    value={[focusDuration]}
-                    min={5}
-                    max={60}
-                    step={5}
-                    onValueChange={(value) => {
-                      setFocusDuration(value[0]);
-                      if (mode === "focus" && !isActive) {
-                        setMinutes(value[0]);
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Short Break Duration: {shortBreakDuration} minutes</label>
-                  <Slider
-                    value={[shortBreakDuration]}
-                    min={1}
-                    max={15}
-                    step={1}
-                    onValueChange={(value) => {
-                      setShortBreakDuration(value[0]);
-                      if (mode === "shortBreak" && !isActive) {
-                        setMinutes(value[0]);
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Long Break Duration: {longBreakDuration} minutes</label>
-                  <Slider
-                    value={[longBreakDuration]}
-                    min={5}
-                    max={30}
-                    step={5}
-                    onValueChange={(value) => {
-                      setLongBreakDuration(value[0]);
-                      if (mode === "longBreak" && !isActive) {
-                        setMinutes(value[0]);
-                      }
-                    }}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm text-gray-400 mb-2">Sound Volume: {volume}%</label>
-                  <Slider
-                    value={[volume]}
-                    min={0}
-                    max={100}
-                    step={10}
-                    onValueChange={(value) => setVolume(value[0])}
-                  />
-                </div>
-                
-                <div className="flex space-x-4">
-                  <Button
-                    variant={soundEnabled ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      soundEnabled ? "bg-blue-500 hover:bg-blue-600" : "border-gray-600 text-gray-400 hover:text-white"
-                    )}
-                    onClick={() => setSoundEnabled(!soundEnabled)}
+          <Card className="border-dark-800 overflow-hidden">
+            <CardHeader className="bg-dark-900 border-b border-dark-700 pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-white">Timer</CardTitle>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 border-dark-700"
+                    onClick={toggleMute}
                   >
-                    {soundEnabled ? "Sound On" : "Sound Off"}
+                    {isMuted ? (
+                      <VolumeX className="h-4 w-4 text-gray-400" />
+                    ) : volume > 50 ? (
+                      <Volume2 className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Volume1 className="h-4 w-4 text-gray-400" />
+                    )}
                   </Button>
-                  
-                  <Button
-                    variant={autoStartBreaks ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      autoStartBreaks ? "bg-blue-500 hover:bg-blue-600" : "border-gray-600 text-gray-400 hover:text-white"
-                    )}
-                    onClick={() => setAutoStartBreaks(!autoStartBreaks)}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 border-dark-700"
+                    onClick={() => setShowSettings(!showSettings)}
                   >
-                    {autoStartBreaks ? "Auto-start Breaks" : "Manual Start Breaks"}
+                    <Settings className="h-4 w-4 text-gray-400" />
                   </Button>
-                  
-                  <Button
-                    variant={autoStartPomodoros ? "default" : "outline"}
-                    size="sm"
-                    className={cn(
-                      autoStartPomodoros ? "bg-blue-500 hover:bg-blue-600" : "border-gray-600 text-gray-400 hover:text-white"
-                    )}
-                    onClick={() => setAutoStartPomodoros(!autoStartPomodoros)}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 border-dark-700"
+                    onClick={toggleFullscreen}
                   >
-                    {autoStartPomodoros ? "Auto-start Focus" : "Manual Start Focus"}
+                    <Maximize className="h-4 w-4 text-gray-400" />
                   </Button>
                 </div>
               </div>
-            </div>
-          )}
+            </CardHeader>
+            
+            <CardContent className="p-6">
+              <Tabs defaultValue="pomodoro" value={activeMode} onValueChange={setActiveMode}>
+                <TabsList className="grid grid-cols-3 mb-6">
+                  <TabsTrigger value="pomodoro" className="data-[state=active]:bg-blue-500">
+                    Pomodoro
+                  </TabsTrigger>
+                  <TabsTrigger value="shortBreak" className="data-[state=active]:bg-blue-500">
+                    Short Break
+                  </TabsTrigger>
+                  <TabsTrigger value="longBreak" className="data-[state=active]:bg-blue-500">
+                    Long Break
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="pomodoro" className="mt-0">
+                  <div className="flex flex-col items-center">
+                    <div className="relative w-64 h-64 mb-6">
+                      {/* Progress circle */}
+                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                        {/* Background circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#1e293b" 
+                          strokeWidth="8" 
+                        />
+                        
+                        {/* Progress circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#3b82f6" 
+                          strokeWidth="8" 
+                          strokeLinecap="round" 
+                          strokeDasharray="282.74"
+                          strokeDashoffset={282.74 - (282.74 * progress) / 100}
+                          transform="rotate(-90 50 50)"
+                          className="transition-all duration-1000 ease-linear"
+                        />
+                        
+                        {/* Text in the middle */}
+                        <text 
+                          x="50" 
+                          y="50" 
+                          textAnchor="middle" 
+                          dominantBaseline="middle" 
+                          className="text-white text-xl font-bold"
+                          fontSize="16"
+                          fill="white"
+                        >
+                          {formatTime(timeLeft)}
+                        </text>
+                      </svg>
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <Button 
+                        className={`${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6`}
+                        onClick={togglePlayPause}
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Start
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-600 text-gray-400 hover:text-white"
+                        onClick={resetTimer}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="shortBreak" className="mt-0">
+                  <div className="flex flex-col items-center">
+                    <div className="relative w-64 h-64 mb-6">
+                      {/* Progress circle */}
+                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                        {/* Background circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#1e293b" 
+                          strokeWidth="8" 
+                        />
+                        
+                        {/* Progress circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#3b82f6" 
+                          strokeWidth="8" 
+                          strokeLinecap="round" 
+                          strokeDasharray="282.74"
+                          strokeDashoffset={282.74 - (282.74 * progress) / 100}
+                          transform="rotate(-90 50 50)"
+                          className="transition-all duration-1000 ease-linear"
+                        />
+                        
+                        {/* Text in the middle */}
+                        <text 
+                          x="50" 
+                          y="50" 
+                          textAnchor="middle" 
+                          dominantBaseline="middle" 
+                          className="text-white text-xl font-bold"
+                          fontSize="16"
+                          fill="white"
+                        >
+                          {formatTime(timeLeft)}
+                        </text>
+                      </svg>
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <Button 
+                        className={`${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6`}
+                        onClick={togglePlayPause}
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Start
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-600 text-gray-400 hover:text-white"
+                        onClick={resetTimer}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="longBreak" className="mt-0">
+                  <div className="flex flex-col items-center">
+                    <div className="relative w-64 h-64 mb-6">
+                      {/* Progress circle */}
+                      <svg className="w-full h-full" viewBox="0 0 100 100">
+                        {/* Background circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#1e293b" 
+                          strokeWidth="8" 
+                        />
+                        
+                        {/* Progress circle */}
+                        <circle 
+                          cx="50" 
+                          cy="50" 
+                          r="45" 
+                          fill="transparent" 
+                          stroke="#3b82f6" 
+                          strokeWidth="8" 
+                          strokeLinecap="round" 
+                          strokeDasharray="282.74"
+                          strokeDashoffset={282.74 - (282.74 * progress) / 100}
+                          transform="rotate(-90 50 50)"
+                          className="transition-all duration-1000 ease-linear"
+                        />
+                        
+                        {/* Text in the middle */}
+                        <text 
+                          x="50" 
+                          y="50" 
+                          textAnchor="middle" 
+                          dominantBaseline="middle" 
+                          className="text-white text-xl font-bold"
+                          fontSize="16"
+                          fill="white"
+                        >
+                          {formatTime(timeLeft)}
+                        </text>
+                      </svg>
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <Button 
+                        className={`${isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} text-white px-6`}
+                        onClick={togglePlayPause}
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="h-4 w-4 mr-2" />
+                            Pause
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Start
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="border-gray-600 text-gray-400 hover:text-white"
+                        onClick={resetTimer}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
+              {showSettings && (
+                <div className="mt-6 p-4 bg-dark-900 rounded-lg border border-dark-700 animate-fade-in">
+                  <h3 className="text-lg text-white font-medium mb-4">Settings</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-gray-400">Volume</span>
+                        <span className="text-gray-400">{volume}%</span>
+                      </div>
+                      <Slider
+                        value={[volume]}
+                        min={0}
+                        max={100}
+                        step={1}
+                        onValueChange={(vals) => setVolume(vals[0])}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <div className="mt-8">
+            <Card className="border-dark-800">
+              <CardHeader className="bg-dark-900 border-b border-dark-700">
+                <CardTitle className="text-white text-lg">How to use the Pomodoro Technique</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ol className="list-decimal list-inside space-y-2 text-gray-300">
+                  <li>Set the timer for 25 minutes (Pomodoro session)</li>
+                  <li>Work on your task until the timer rings</li>
+                  <li>Take a short break (5 minutes)</li>
+                  <li>After 4 Pomodoro sessions, take a longer break (15-30 minutes)</li>
+                </ol>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
       
-      <audio ref={audioRef} src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" />
-      
-      {!isFullscreen && <Footer />}
+      <Footer />
     </div>
   );
 };
