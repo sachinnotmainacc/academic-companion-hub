@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Toaster } from "@/components/ui/sonner";
 
 import Index from "@/pages/Index";
-import KTUInternalCalculator from "@/pages/KTUInternalCalculator";
+import InternalMarks from "@/pages/InternalMarks";
 import Notes from "@/pages/Notes";
 import Pomodoro from "@/pages/Pomodoro";
 import CGPA from "@/pages/CGPA";
@@ -16,7 +16,7 @@ function App() {
       <Toaster />
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/internal-marks" element={<KTUInternalCalculator />} />
+        <Route path="/internal-marks" element={<InternalMarks />} />
         {/* Redirect legacy URLs to the new internal-marks page */}
         <Route path="/ktu-calculator" element={<Navigate to="/internal-marks" replace />} />
         <Route path="/ktu-internal" element={<Navigate to="/internal-marks" replace />} />
