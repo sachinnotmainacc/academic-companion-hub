@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -17,6 +16,8 @@ import {
   ChevronUp,
   ChevronDown,
   BarChart as ChartIcon,
+  Settings,
+  SlidersHorizontal,
 } from "lucide-react";
 import {
   BarChart,
@@ -33,9 +34,30 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+
+// Type definitions
+type CompanyTier = 'S+' | 'A+' | 'A' | 'B' | 'C';
+
+interface Company {
+  name: string;
+  tier: CompanyTier;
+  cgpa: number;
+}
+
+interface TierData {
+  minCGPA: number;
+  companies: string[];
+  ctc: string;
+  color: string;
+}
+
+interface TierInfo {
+  [key: string]: TierData;
+}
 
 // Company data with tier categorization
-const companyTiers = {
+const companyTiers: TierInfo = {
   'S+': { minCGPA: 8.0, companies: [], ctc: '₹30+ LPA', color: '#8884d8' },
   'A+': { minCGPA: 7.5, companies: [], ctc: '₹20-30 LPA', color: '#82ca9d' },
   'A': { minCGPA: 7.5, companies: [], ctc: '₹10-20 LPA', color: '#ffc658' },
@@ -44,7 +66,7 @@ const companyTiers = {
 };
 
 // Company data
-const companyData = [
+const companyData: Company[] = [
   // S+ Tier Companies (₹30+ LPA)
   { name: 'McKinsey & Company', tier: 'S+', cgpa: 8.0 },
   { name: 'Boston Consulting Group', tier: 'S+', cgpa: 8.0 },
@@ -145,8 +167,11 @@ const CGPA = () => {
   
   // Dynamic semester input values
   const defaultTotalSemesters = 8;
+  const minTotalSemesters = 2;
+  const maxTotalSemesters = 12;
   const [totalSemesters, setTotalSemesters] = useState(defaultTotalSemesters);
   const [completedSemesters, setCompletedSemesters] = useState(4);
+  const [showSemesterSettings, setShowSemesterSettings] = useState(false);
   
   // Results
   const [requiredCGPA, setRequiredCGPA] = useState<number | null>(null);
@@ -157,7 +182,7 @@ const CGPA = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [semesterChartData, setSemesterChartData] = useState<any[]>([]);
   const [eligibleCompanies, setEligibleCompanies] = useState<{[key: string]: string[]}>({});
-  const [tierDistribution, setTierDistribution] = useState<{name: string, value: number}[]>([]);
+  const [tierDistribution, setTierDistribution] = useState<{name: string, value: number, color: string}[]>([]);
   
   // Validation for semester inputs
   useEffect(() => {
@@ -264,7 +289,7 @@ const CGPA = () => {
     // Add data points for completed semesters (using current CGPA)
     for (let i = 1; i <= completed; i++) {
       data.push({
-        semester: `Semester ${i}`,
+        semester: `Sem ${i}`,
         cgpa: current,
         type: 'Completed'
       });
@@ -273,7 +298,7 @@ const CGPA = () => {
     // Add data points for remaining semesters (using required CGPA)
     for (let i = completed + 1; i <= total; i++) {
       data.push({
-        semester: `Semester ${i}`,
+        semester: `Sem ${i}`,
         cgpa: required > 10 ? 10 : required,
         type: 'Remaining'
       });
@@ -285,14 +310,15 @@ const CGPA = () => {
   // Find companies that the student is eligible for
   const findEligibleCompanies = (currCGPA: number) => {
     const eligible: {[key: string]: string[]} = {};
-    let distribution: {name: string, value: number}[] = [];
+    let distribution: {name: string, value: number, color: string}[] = [];
     
     Object.keys(processedCompanyTiers).forEach(tier => {
       if (currCGPA >= processedCompanyTiers[tier].minCGPA) {
         eligible[tier] = processedCompanyTiers[tier].companies;
         distribution.push({
           name: tier,
-          value: processedCompanyTiers[tier].companies.length
+          value: processedCompanyTiers[tier].companies.length,
+          color: processedCompanyTiers[tier].color
         });
       }
     });
@@ -362,37 +388,20 @@ const CGPA = () => {
     return count;
   };
   
-  // Adjust completed semesters
-  const incrementCompletedSemesters = () => {
-    if (completedSemesters < totalSemesters - 1) {
-      setCompletedSemesters(prev => prev + 1);
-    }
+  // Update semester settings
+  const updateTotalSemesters = (value: number) => {
+    setTotalSemesters(Math.min(Math.max(value, minTotalSemesters), maxTotalSemesters));
   };
   
-  const decrementCompletedSemesters = () => {
-    if (completedSemesters > 1) {
-      setCompletedSemesters(prev => prev - 1);
-    }
-  };
-  
-  // Adjust total semesters
-  const incrementTotalSemesters = () => {
-    if (totalSemesters < 12) { // Setting a reasonable max
-      setTotalSemesters(prev => prev + 1);
-    }
-  };
-  
-  const decrementTotalSemesters = () => {
-    if (totalSemesters > completedSemesters + 1) {
-      setTotalSemesters(prev => prev - 1);
-    }
+  const updateCompletedSemesters = (value: number) => {
+    setCompletedSemesters(Math.min(Math.max(value, 1), totalSemesters - 1));
   };
   
   return (
-    <div className="min-h-screen bg-dark-950 text-white">
+    <div className="min-h-screen bg-dark-950 text-white overflow-y-auto">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4 overflow-y-auto">
+      <main className="pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
@@ -407,9 +416,103 @@ const CGPA = () => {
             {/* Input Section */}
             <Card className="md:col-span-4 glass-card border-dark-800">
               <CardHeader className="bg-dark-900 border-b border-dark-800">
-                <CardTitle className="text-white flex items-center">
-                  <Calculator className="h-5 w-5 text-blue-500 mr-2" />
-                  CGPA Calculator
+                <CardTitle className="text-white flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Calculator className="h-5 w-5 text-blue-500 mr-2" />
+                    CGPA Calculator
+                  </div>
+                  <Dialog open={showSemesterSettings} onOpenChange={setShowSemesterSettings}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full border-dark-700 text-gray-400 hover:text-blue-400 hover:border-blue-500"
+                      >
+                        <SlidersHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-dark-900 border-dark-700 text-white">
+                      <DialogHeader>
+                        <DialogTitle>Semester Settings</DialogTitle>
+                        <DialogDescription className="text-gray-400">
+                          Adjust the number of semesters in your program
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-gray-300">Total Semesters ({minTotalSemesters}-{maxTotalSemesters})</Label>
+                          <div className="flex items-center space-x-2">
+                            <Input 
+                              type="number" 
+                              className="bg-dark-800 border-dark-700 text-white"
+                              value={totalSemesters}
+                              min={minTotalSemesters}
+                              max={maxTotalSemesters}
+                              onChange={(e) => updateTotalSemesters(parseInt(e.target.value))}
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="border-dark-700 text-gray-400"
+                              onClick={() => updateTotalSemesters(totalSemesters - 1)}
+                              disabled={totalSemesters <= minTotalSemesters}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="border-dark-700 text-gray-400"
+                              onClick={() => updateTotalSemesters(totalSemesters + 1)}
+                              disabled={totalSemesters >= maxTotalSemesters}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-gray-300">Completed Semesters</Label>
+                          <div className="flex items-center space-x-2">
+                            <Input 
+                              type="number" 
+                              className="bg-dark-800 border-dark-700 text-white"
+                              value={completedSemesters}
+                              min={1}
+                              max={totalSemesters - 1}
+                              onChange={(e) => updateCompletedSemesters(parseInt(e.target.value))}
+                            />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="border-dark-700 text-gray-400"
+                              onClick={() => updateCompletedSemesters(completedSemesters - 1)}
+                              disabled={completedSemesters <= 1}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="border-dark-700 text-gray-400"
+                              onClick={() => updateCompletedSemesters(completedSemesters + 1)}
+                              disabled={completedSemesters >= totalSemesters - 1}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button 
+                          variant="outline" 
+                          className="border-dark-700 text-gray-300 hover:text-white"
+                          onClick={() => setShowSemesterSettings(false)}
+                        >
+                          Done
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
@@ -441,53 +544,19 @@ const CGPA = () => {
                   />
                 </div>
                 
-                <div>
-                  <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
-                  <div className="flex items-center">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-8 w-8 text-gray-400 border-gray-700"
-                      onClick={decrementCompletedSemesters}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                    <div className="flex-1 mx-2 py-1.5 text-center bg-dark-800 rounded-md">
-                      {completedSemesters}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="block text-sm text-gray-400 mb-1">Completed</Label>
+                    <div className="py-2 px-3 bg-dark-800 rounded-md border border-dark-700 text-center">
+                      {completedSemesters} <span className="text-xs text-gray-500">semesters</span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-8 w-8 text-gray-400 border-gray-700"
-                      onClick={incrementCompletedSemesters}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
                   </div>
-                </div>
-                
-                <div>
-                  <Label className="block text-sm text-gray-400 mb-1">Total Semesters</Label>
-                  <div className="flex items-center">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-8 w-8 text-gray-400 border-gray-700"
-                      onClick={decrementTotalSemesters}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                    <div className="flex-1 mx-2 py-1.5 text-center bg-dark-800 rounded-md">
-                      {totalSemesters}
+                  
+                  <div>
+                    <Label className="block text-sm text-gray-400 mb-1">Total</Label>
+                    <div className="py-2 px-3 bg-dark-800 rounded-md border border-dark-700 text-center">
+                      {totalSemesters} <span className="text-xs text-gray-500">semesters</span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="h-8 w-8 text-gray-400 border-gray-700"
-                      onClick={incrementTotalSemesters}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
                 
@@ -594,9 +663,7 @@ const CGPA = () => {
                                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                               >
                                 {tierDistribution.map((entry, index) => {
-                                  const tier = entry.name;
-                                  const color = processedCompanyTiers[tier]?.color || "#ccc";
-                                  return <Cell key={`cell-${index}`} fill={color} />;
+                                  return <Cell key={`cell-${index}`} fill={entry.color} />;
                                 })}
                               </Pie>
                               <Tooltip />
@@ -609,7 +676,12 @@ const CGPA = () => {
                       <div>
                         <h3 className="text-lg font-medium text-white mb-4">CTC Tiers</h3>
                         <div className="space-y-3">
-                          {Object.entries(processedCompanyTiers).map(([tier, data]) => (
+                          {Object.entries(processedCompanyTiers)
+                            .sort((a, b) => {
+                              const tierOrder = {'S+': 5, 'A+': 4, 'A': 3, 'B': 2, 'C': 1};
+                              return (tierOrder[b[0] as CompanyTier] || 0) - (tierOrder[a[0] as CompanyTier] || 0);
+                            })
+                            .map(([tier, data]) => (
                             <div key={tier} className="p-3 rounded-lg bg-dark-800 border border-dark-700">
                               <div className="flex items-center justify-between">
                                 <Badge variant="outline" className={getTierColor(tier)}>
@@ -640,68 +712,18 @@ const CGPA = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-white">Eligible Companies</h3>
+                        <h3 className="text-lg font-medium text-white">Eligible Tiers</h3>
                         <Badge className="bg-dark-800 text-white">
                           {countTotalEligibleCompanies()}/{countTotalCompanies()}
                         </Badge>
                       </div>
                       <div className="flex flex-col space-y-4">
-                        {Object.keys(eligibleCompanies).sort().reverse().map(tier => (
-                          <div key={tier} className="flex items-center space-x-3">
-                            <Badge variant="outline" className={getTierColor(tier)}>
-                              {tier}
-                            </Badge>
-                            <div className="text-lg font-medium text-white">
-                              {eligibleCompanies[tier].length}
-                            </div>
-                            <div className="text-sm text-gray-400">
-                              {processedCompanyTiers[tier].ctc}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-medium text-white mb-4">Company List</h3>
-                      <ScrollArea className="h-[300px] rounded-md border border-dark-700 bg-dark-800/50">
-                        <div className="p-4 space-y-6">
-                          {Object.keys(eligibleCompanies).sort().reverse().map(tier => (
-                            <div key={tier}>
-                              <div className="flex items-center mb-3">
-                                <Badge variant="outline" className={getTierColor(tier)}>
-                                  {tier} Tier
-                                </Badge>
-                                <span className="ml-2 text-sm text-gray-400">
-                                  {processedCompanyTiers[tier].ctc}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {eligibleCompanies[tier].map(company => (
-                                  <div 
-                                    key={company} 
-                                    className="p-2 rounded-md bg-dark-700/50 hover:bg-dark-700 transition-colors text-gray-300 text-sm"
-                                  >
-                                    {company}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default CGPA;
+                        {Object.keys(eligibleCompanies)
+                          .sort((a, b) => {
+                            const tierOrder = {'S+': 5, 'A+': 4, 'A': 3, 'B': 2, 'C': 1};
+                            return (tierOrder[b as CompanyTier] || 0) - (tierOrder[a as CompanyTier] || 0);
+                          })
+                          .map(tier => (
+                          <div key={tier} className="p-3 rounded-lg bg-dark-800/50 border border-dark-700/50 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Badge variant="outline
