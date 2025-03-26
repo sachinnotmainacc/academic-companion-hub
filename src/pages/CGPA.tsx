@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -726,4 +727,57 @@ const CGPA = () => {
                           .map(tier => (
                           <div key={tier} className="p-3 rounded-lg bg-dark-800/50 border border-dark-700/50 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <Badge variant="outline
+                              <Badge variant="outline" className={getTierColor(tier)}>
+                                {tier}
+                              </Badge>
+                              <span className="text-white">{eligibleCompanies[tier].length} Companies</span>
+                            </div>
+                            <span className="text-gray-400">{processedCompanyTiers[tier].ctc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-medium text-white mb-4">Company List</h3>
+                      <ScrollArea className="h-[300px] rounded-md border border-dark-700 bg-dark-800/50 p-4">
+                        <div className="space-y-6">
+                          {Object.keys(eligibleCompanies)
+                            .sort((a, b) => {
+                              const tierOrder = {'S+': 5, 'A+': 4, 'A': 3, 'B': 2, 'C': 1};
+                              return (tierOrder[b as CompanyTier] || 0) - (tierOrder[a as CompanyTier] || 0);
+                            })
+                            .map(tier => (
+                            <div key={tier}>
+                              <div className="flex items-center space-x-3 mb-2">
+                                <Badge variant="outline" className={getTierColor(tier)}>
+                                  {tier} Tier
+                                </Badge>
+                                <span className="text-gray-400 text-sm">{processedCompanyTiers[tier].ctc}</span>
+                              </div>
+                              <div className="space-y-1 pl-2 border-l-2 border-dark-700">
+                                {eligibleCompanies[tier].map(company => (
+                                  <div key={company} className="text-gray-300 py-1">
+                                    {company}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </main>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default CGPA;
