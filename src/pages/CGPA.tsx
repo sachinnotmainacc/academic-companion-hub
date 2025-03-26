@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import {
   Calculator,
   Building2,
   RefreshCw,
-  ArrowUpRight,
+  ChevronUp,
+  ChevronDown,
   BarChart as ChartIcon,
 } from "lucide-react";
 import {
@@ -27,15 +28,19 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  Legend,
 } from "recharts";
 
 // Company data with tier categorization
 const companyTiers = {
-  'S+': { minCGPA: 8.0, companies: [], ctc: '₹30+ LPA' },
-  'A+': { minCGPA: 7.5, companies: [], ctc: '₹20-30 LPA' },
-  'A': { minCGPA: 7.5, companies: [], ctc: '₹10-20 LPA' },
-  'B': { minCGPA: 7.0, companies: [], ctc: '₹5-10 LPA' },
-  'C': { minCGPA: 6.0, companies: [], ctc: 'Below ₹5 LPA' }
+  'S+': { minCGPA: 8.0, companies: [], ctc: '₹30+ LPA', color: '#8884d8' },
+  'A+': { minCGPA: 7.5, companies: [], ctc: '₹20-30 LPA', color: '#82ca9d' },
+  'A': { minCGPA: 7.5, companies: [], ctc: '₹10-20 LPA', color: '#ffc658' },
+  'B': { minCGPA: 7.0, companies: [], ctc: '₹5-10 LPA', color: '#ff8042' },
+  'C': { minCGPA: 6.0, companies: [], ctc: 'Below ₹5 LPA', color: '#0088FE' }
 };
 
 // Company data
@@ -131,9 +136,6 @@ const processCompanyData = () => {
   return tierData;
 };
 
-// Pie chart colors
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE'];
-
 const CGPA = () => {
   const processedCompanyTiers = processCompanyData();
   
@@ -141,8 +143,9 @@ const CGPA = () => {
   const [currentCGPA, setCurrentCGPA] = useState("");
   const [targetCGPA, setTargetCGPA] = useState("");
   
-  // Fixed values
-  const totalSemesters = 8;
+  // Dynamic semester input values
+  const defaultTotalSemesters = 8;
+  const [totalSemesters, setTotalSemesters] = useState(defaultTotalSemesters);
   const [completedSemesters, setCompletedSemesters] = useState(4);
   
   // Results
@@ -152,8 +155,16 @@ const CGPA = () => {
   
   // Chart data
   const [chartData, setChartData] = useState<any[]>([]);
+  const [semesterChartData, setSemesterChartData] = useState<any[]>([]);
   const [eligibleCompanies, setEligibleCompanies] = useState<{[key: string]: string[]}>({});
   const [tierDistribution, setTierDistribution] = useState<{name: string, value: number}[]>([]);
+  
+  // Validation for semester inputs
+  useEffect(() => {
+    if (completedSemesters >= totalSemesters) {
+      setCompletedSemesters(totalSemesters - 1);
+    }
+  }, [totalSemesters, completedSemesters]);
   
   // Calculate required CGPA
   const calculateRequiredCGPA = () => {
@@ -200,6 +211,9 @@ const CGPA = () => {
     // Generate chart data
     generateChartData(currCGPA, targCGPA, requiredCGPAValue);
     
+    // Generate semester-wise chart data
+    generateSemesterChartData(currCGPA, requiredCGPAValue, completedSemesters, totalSemesters);
+    
     // Find eligible companies
     findEligibleCompanies(currCGPA);
     
@@ -238,6 +252,36 @@ const CGPA = () => {
     setChartData(data);
   };
   
+  // Generate semester-wise chart data
+  const generateSemesterChartData = (
+    current: number,
+    required: number,
+    completed: number,
+    total: number
+  ) => {
+    const data = [];
+    
+    // Add data points for completed semesters (using current CGPA)
+    for (let i = 1; i <= completed; i++) {
+      data.push({
+        semester: `Semester ${i}`,
+        cgpa: current,
+        type: 'Completed'
+      });
+    }
+    
+    // Add data points for remaining semesters (using required CGPA)
+    for (let i = completed + 1; i <= total; i++) {
+      data.push({
+        semester: `Semester ${i}`,
+        cgpa: required > 10 ? 10 : required,
+        type: 'Remaining'
+      });
+    }
+    
+    setSemesterChartData(data);
+  };
+  
   // Find companies that the student is eligible for
   const findEligibleCompanies = (currCGPA: number) => {
     const eligible: {[key: string]: string[]} = {};
@@ -265,8 +309,11 @@ const CGPA = () => {
     setIsAchievable(null);
     setShowResults(false);
     setChartData([]);
+    setSemesterChartData([]);
     setEligibleCompanies({});
     setTierDistribution([]);
+    setTotalSemesters(defaultTotalSemesters);
+    setCompletedSemesters(4);
   };
   
   // Get color by tier
@@ -288,6 +335,9 @@ const CGPA = () => {
         <div className="bg-dark-800 p-3 rounded-md border border-dark-700 shadow-md">
           <p className="text-gray-200 font-medium">{label}</p>
           <p className="text-blue-400">CGPA: {payload[0].value.toFixed(2)}</p>
+          {payload[0].payload.type && (
+            <p className="text-gray-300">{payload[0].payload.type}</p>
+          )}
         </div>
       );
     }
@@ -312,11 +362,37 @@ const CGPA = () => {
     return count;
   };
   
+  // Adjust completed semesters
+  const incrementCompletedSemesters = () => {
+    if (completedSemesters < totalSemesters - 1) {
+      setCompletedSemesters(prev => prev + 1);
+    }
+  };
+  
+  const decrementCompletedSemesters = () => {
+    if (completedSemesters > 1) {
+      setCompletedSemesters(prev => prev - 1);
+    }
+  };
+  
+  // Adjust total semesters
+  const incrementTotalSemesters = () => {
+    if (totalSemesters < 12) { // Setting a reasonable max
+      setTotalSemesters(prev => prev + 1);
+    }
+  };
+  
+  const decrementTotalSemesters = () => {
+    if (totalSemesters > completedSemesters + 1) {
+      setTotalSemesters(prev => prev - 1);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-dark-950 text-white">
       <Navbar />
       
-      <main className="pt-24 pb-16 px-4">
+      <main className="pt-24 pb-16 px-4 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
@@ -365,14 +441,54 @@ const CGPA = () => {
                   />
                 </div>
                 
-                <div className="flex items-center justify-between text-sm text-gray-400 py-2 px-3 bg-dark-800/50 rounded">
-                  <span>Completed Semesters:</span>
-                  <span className="font-medium text-white">{completedSemesters}</span>
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
+                  <div className="flex items-center">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 text-gray-400 border-gray-700"
+                      onClick={decrementCompletedSemesters}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1 mx-2 py-1.5 text-center bg-dark-800 rounded-md">
+                      {completedSemesters}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 text-gray-400 border-gray-700"
+                      onClick={incrementCompletedSemesters}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="flex items-center justify-between text-sm text-gray-400 py-2 px-3 bg-dark-800/50 rounded">
-                  <span>Total Semesters:</span>
-                  <span className="font-medium text-white">{totalSemesters}</span>
+                <div>
+                  <Label className="block text-sm text-gray-400 mb-1">Total Semesters</Label>
+                  <div className="flex items-center">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 text-gray-400 border-gray-700"
+                      onClick={decrementTotalSemesters}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                    <div className="flex-1 mx-2 py-1.5 text-center bg-dark-800 rounded-md">
+                      {totalSemesters}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-8 w-8 text-gray-400 border-gray-700"
+                      onClick={incrementTotalSemesters}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="flex gap-4 pt-2">
@@ -425,18 +541,27 @@ const CGPA = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {chartData.length > 0 ? (
+                {semesterChartData.length > 0 ? (
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={chartData}
+                      <LineChart
+                        data={semesterChartData}
                         margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
                       >
-                        <XAxis dataKey="name" stroke="#6b7280" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                        <XAxis dataKey="semester" stroke="#6b7280" />
                         <YAxis domain={[0, 10]} stroke="#6b7280" />
                         <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="cgpa" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="cgpa" 
+                          stroke="#3b82f6" 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
@@ -468,9 +593,11 @@ const CGPA = () => {
                                 dataKey="value"
                                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                               >
-                                {tierDistribution.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
+                                {tierDistribution.map((entry, index) => {
+                                  const tier = entry.name;
+                                  const color = processedCompanyTiers[tier]?.color || "#ccc";
+                                  return <Cell key={`cell-${index}`} fill={color} />;
+                                })}
                               </Pie>
                               <Tooltip />
                             </PieChart>
@@ -482,46 +609,16 @@ const CGPA = () => {
                       <div>
                         <h3 className="text-lg font-medium text-white mb-4">CTC Tiers</h3>
                         <div className="space-y-3">
-                          <div className="p-3 rounded-lg bg-dark-800 border border-dark-700">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-purple-400 bg-purple-500/20 border-purple-500/30">
-                                S+ Tier
-                              </Badge>
-                              <span className="text-white font-medium">₹30+ LPA</span>
+                          {Object.entries(processedCompanyTiers).map(([tier, data]) => (
+                            <div key={tier} className="p-3 rounded-lg bg-dark-800 border border-dark-700">
+                              <div className="flex items-center justify-between">
+                                <Badge variant="outline" className={getTierColor(tier)}>
+                                  {tier} Tier
+                                </Badge>
+                                <span className="text-white font-medium">{data.ctc}</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="p-3 rounded-lg bg-dark-800 border border-dark-700">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-blue-400 bg-blue-500/20 border-blue-500/30">
-                                A+ Tier
-                              </Badge>
-                              <span className="text-white font-medium">₹20-30 LPA</span>
-                            </div>
-                          </div>
-                          <div className="p-3 rounded-lg bg-dark-800 border border-dark-700">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-green-400 bg-green-500/20 border-green-500/30">
-                                A Tier
-                              </Badge>
-                              <span className="text-white font-medium">₹10-20 LPA</span>
-                            </div>
-                          </div>
-                          <div className="p-3 rounded-lg bg-dark-800 border border-dark-700">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-yellow-400 bg-yellow-500/20 border-yellow-500/30">
-                                B Tier
-                              </Badge>
-                              <span className="text-white font-medium">₹5-10 LPA</span>
-                            </div>
-                          </div>
-                          <div className="p-3 rounded-lg bg-dark-800 border border-dark-700">
-                            <div className="flex items-center justify-between">
-                              <Badge variant="outline" className="text-orange-400 bg-orange-500/20 border-orange-500/30">
-                                C Tier
-                              </Badge>
-                              <span className="text-white font-medium">Below ₹5 LPA</span>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -567,11 +664,11 @@ const CGPA = () => {
                     
                     <div>
                       <h3 className="text-lg font-medium text-white mb-4">Company List</h3>
-                      <ScrollArea className="h-[300px] rounded-md border border-dark-700">
+                      <ScrollArea className="h-[300px] rounded-md border border-dark-700 bg-dark-800/50">
                         <div className="p-4 space-y-6">
                           {Object.keys(eligibleCompanies).sort().reverse().map(tier => (
                             <div key={tier}>
-                              <div className="flex items-center mb-2">
+                              <div className="flex items-center mb-3">
                                 <Badge variant="outline" className={getTierColor(tier)}>
                                   {tier} Tier
                                 </Badge>
@@ -579,11 +676,14 @@ const CGPA = () => {
                                   {processedCompanyTiers[tier].ctc}
                                 </span>
                               </div>
-                              <div className="flex flex-wrap gap-2">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                 {eligibleCompanies[tier].map(company => (
-                                  <Badge key={company} variant="outline" className="bg-dark-800 text-gray-300">
+                                  <div 
+                                    key={company} 
+                                    className="p-2 rounded-md bg-dark-700/50 hover:bg-dark-700 transition-colors text-gray-300 text-sm"
+                                  >
                                     {company}
-                                  </Badge>
+                                  </div>
                                 ))}
                               </div>
                             </div>
