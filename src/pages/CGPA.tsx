@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -142,6 +141,26 @@ const companyData: Company[] = [
   { name: 'Concentrix', tier: 'C', cgpa: 6.0 },
   { name: 'Sutherland Global Services', tier: 'C', cgpa: 6.0 },
   { name: 'Teleperformance', tier: 'C', cgpa: 6.0 },
+  { name: 'Infosys BPM', tier: 'C', cgpa: 6.0 },
+  { name: 'Wipro BPS', tier: 'C', cgpa: 6.0 },
+  { name: 'TCS BPS', tier: 'C', cgpa: 6.0 },
+  { name: 'HGS', tier: 'C', cgpa: 6.0 },
+  { name: 'Tech Mahindra BPS', tier: 'C', cgpa: 6.0 },
+  { name: 'Accenture Operations', tier: 'C', cgpa: 6.0 },
+  { name: 'Capgemini BPO', tier: 'C', cgpa: 6.0 },
+  { name: 'Genpact Headstrong', tier: 'C', cgpa: 6.0 },
+  { name: 'IBM Global Process Services', tier: 'C', cgpa: 6.0 },
+  { name: 'Cognizant BPS', tier: 'C', cgpa: 6.0 },
+  { name: 'Dell International Services', tier: 'C', cgpa: 6.0 },
+  { name: 'Wipro Technologies', tier: 'C', cgpa: 6.0 },
+  { name: 'Tata Elxsi', tier: 'C', cgpa: 6.0 },
+  { name: 'Sasken Communication Technologies', tier: 'C', cgpa: 6.0 },
+  { name: 'Mphasis Limited', tier: 'C', cgpa: 6.0 },
+  { name: 'Oracle Financial Services Software', tier: 'C', cgpa: 6.0 },
+  { name: 'Siemens Information Systems', tier: 'C', cgpa: 6.0 },
+  { name: 'Robert Bosch Engineering', tier: 'C', cgpa: 6.0 },
+  { name: 'Honeywell Technology Solutions', tier: 'C', cgpa: 6.0 },
+  { name: 'GE India Technology Centre', tier: 'C', cgpa: 6.0 }
 ];
 
 // Process company data for display and filtering
@@ -740,25 +759,51 @@ const CGPA = () => {
                     
                     <div>
                       <h3 className="text-lg font-medium text-white mb-4">Company List</h3>
-                      <ScrollArea className="h-[300px] rounded-md border border-dark-700 bg-dark-800/50 p-4">
-                        <div className="space-y-6">
+                      <ScrollArea className="h-[400px] rounded-md border border-dark-700 bg-dark-800/50">
+                        <div className="p-4">
                           {Object.keys(eligibleCompanies)
                             .sort((a, b) => {
                               const tierOrder = {'S+': 5, 'A+': 4, 'A': 3, 'B': 2, 'C': 1};
                               return (tierOrder[b as CompanyTier] || 0) - (tierOrder[a as CompanyTier] || 0);
                             })
                             .map(tier => (
-                            <div key={tier}>
-                              <div className="flex items-center space-x-3 mb-2">
-                                <Badge variant="outline" className={getTierColor(tier)}>
-                                  {tier} Tier
-                                </Badge>
-                                <span className="text-gray-400 text-sm">{processedCompanyTiers[tier].ctc}</span>
+                            <div key={tier} className="mb-8 last:mb-0">
+                              <div className="flex items-center justify-between mb-4 px-2">
+                                <div className="flex items-center space-x-3">
+                                  <Badge variant="outline" className={`${getTierColor(tier)} px-3 py-1 text-sm font-medium`}>
+                                    {tier} Tier
+                                  </Badge>
+                                  <span className="text-sm text-gray-400">{eligibleCompanies[tier].length} Companies</span>
+                                </div>
+                                <span className="text-sm font-medium text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">
+                                  {processedCompanyTiers[tier].ctc}
+                                </span>
                               </div>
-                              <div className="space-y-1 pl-2 border-l-2 border-dark-700">
+                              
+                              <div className="bg-dark-900/30 p-3 rounded-lg border border-dark-700/30 mb-4">
+                                <p className="text-xs text-gray-400 mb-2">
+                                  Minimum CGPA requirement: 
+                                  <span className="text-blue-400 ml-1 font-medium">{processedCompanyTiers[tier].minCGPA}</span>
+                                </p>
+                                <div className="w-full bg-dark-800 rounded-full h-1.5">
+                                  <div 
+                                    className="h-1.5 rounded-full" 
+                                    style={{
+                                      width: `${(parseFloat(currentCGPA) / 10) * 100}%`,
+                                      backgroundColor: processedCompanyTiers[tier].color
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {eligibleCompanies[tier].map(company => (
-                                  <div key={company} className="text-gray-300 py-1">
-                                    {company}
+                                  <div 
+                                    key={company} 
+                                    className="flex items-center p-3 rounded-md bg-dark-800/40 hover:bg-dark-800/70 transition-all duration-200 border border-dark-700/30 group hover:border-blue-500/30"
+                                  >
+                                    <div className="w-2 h-2 rounded-full mr-3" style={{backgroundColor: processedCompanyTiers[tier].color}}></div>
+                                    <span className="text-gray-300 text-sm group-hover:text-white transition-colors">{company}</span>
                                   </div>
                                 ))}
                               </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
@@ -28,21 +27,94 @@ const PomodoroSettings: React.FC<PomodoroSettingsProps> = ({
   const [localPomodoroTime, setLocalPomodoroTime] = React.useState(pomodoroTime / 60);
   const [localShortBreakTime, setLocalShortBreakTime] = React.useState(shortBreakTime / 60);
   const [localLongBreakTime, setLocalLongBreakTime] = React.useState(longBreakTime / 60);
+  const [errors, setErrors] = React.useState({
+    pomodoro: '',
+    shortBreak: '',
+    longBreak: ''
+  });
 
   React.useEffect(() => {
     setLocalPomodoroTime(pomodoroTime / 60);
     setLocalShortBreakTime(shortBreakTime / 60);
     setLocalLongBreakTime(longBreakTime / 60);
-  }, [pomodoroTime, shortBreakTime, longBreakTime]);
+    // Reset errors when settings dialog is opened
+    setErrors({ pomodoro: '', shortBreak: '', longBreak: '' });
+  }, [pomodoroTime, shortBreakTime, longBreakTime, open]);
+
+  const validateSettings = (): boolean => {
+    const newErrors = {
+      pomodoro: '',
+      shortBreak: '',
+      longBreak: ''
+    };
+
+    // Validate pomodoro time (1-120 minutes)
+    if (localPomodoroTime < 1 || localPomodoroTime > 120) {
+      newErrors.pomodoro = 'Focus duration must be between 1 and 120 minutes';
+    }
+
+    // Validate short break (1-30 minutes)
+    if (localShortBreakTime < 1 || localShortBreakTime > 30) {
+      newErrors.shortBreak = 'Short break must be between 1 and 30 minutes';
+    }
+
+    // Validate long break (5-45 minutes)
+    if (localLongBreakTime < 5 || localLongBreakTime > 45) {
+      newErrors.longBreak = 'Long break must be between 5 and 45 minutes';
+    }
+
+    // Validate relationships between times
+    if (localShortBreakTime >= localPomodoroTime) {
+      newErrors.shortBreak = 'Short break should be shorter than focus duration';
+    }
+
+    if (localLongBreakTime <= localShortBreakTime) {
+      newErrors.longBreak = 'Long break should be longer than short break';
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
+  const handleTimeChange = (value: string, setter: (value: number) => void, field: keyof typeof errors) => {
+    const numValue = parseInt(value) || 0;
+    setter(numValue);
+    // Clear error when user starts typing
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  };
 
   const handleSave = () => {
-    onSave(
-      localPomodoroTime * 60,
-      localShortBreakTime * 60,
-      localLongBreakTime * 60
-    );
-    onOpenChange(false);
+    if (validateSettings()) {
+      onSave(
+        localPomodoroTime * 60,
+        localShortBreakTime * 60,
+        localLongBreakTime * 60
+      );
+      onOpenChange(false);
+    }
   };
+
+  const renderInputField = (
+    label: string,
+    value: number,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    error: string,
+    min: number,
+    max: number
+  ) => (
+    <div className="space-y-2">
+      <label className="text-sm text-gray-400">{label}</label>
+      <Input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={onChange}
+        className={`bg-dark-800 border-dark-700 ${error ? 'border-red-500' : ''}`}
+      />
+      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+  );
 
   // Mobile drawer version
   if (isMobile) {
@@ -53,39 +125,30 @@ const PomodoroSettings: React.FC<PomodoroSettingsProps> = ({
             <DrawerTitle className="text-center text-lg font-semibold">Timer Settings</DrawerTitle>
           </DrawerHeader>
           <div className="p-4 space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm text-gray-400">Focus Duration (minutes)</label>
-              <Input
-                type="number"
-                min="1"
-                max="120"
-                value={localPomodoroTime}
-                onChange={(e) => setLocalPomodoroTime(Number(e.target.value))}
-                className="bg-dark-800 border-dark-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-gray-400">Short Break (minutes)</label>
-              <Input
-                type="number"
-                min="1"
-                max="30"
-                value={localShortBreakTime}
-                onChange={(e) => setLocalShortBreakTime(Number(e.target.value))}
-                className="bg-dark-800 border-dark-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm text-gray-400">Long Break (minutes)</label>
-              <Input
-                type="number"
-                min="5"
-                max="45"
-                value={localLongBreakTime}
-                onChange={(e) => setLocalLongBreakTime(Number(e.target.value))}
-                className="bg-dark-800 border-dark-700"
-              />
-            </div>
+            {renderInputField(
+              'Focus Duration (minutes)',
+              localPomodoroTime,
+              (e) => handleTimeChange(e.target.value, setLocalPomodoroTime, 'pomodoro'),
+              errors.pomodoro,
+              1,
+              120
+            )}
+            {renderInputField(
+              'Short Break (minutes)',
+              localShortBreakTime,
+              (e) => handleTimeChange(e.target.value, setLocalShortBreakTime, 'shortBreak'),
+              errors.shortBreak,
+              1,
+              30
+            )}
+            {renderInputField(
+              'Long Break (minutes)',
+              localLongBreakTime,
+              (e) => handleTimeChange(e.target.value, setLocalLongBreakTime, 'longBreak'),
+              errors.longBreak,
+              5,
+              45
+            )}
           </div>
           <DrawerFooter className="border-t border-dark-800 pt-4">
             <Button onClick={handleSave} className="w-full">Save Settings</Button>
@@ -103,39 +166,30 @@ const PomodoroSettings: React.FC<PomodoroSettingsProps> = ({
           <SheetTitle className="text-white">Timer Settings</SheetTitle>
         </SheetHeader>
         <div className="py-6 space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm text-gray-400">Focus Duration (minutes)</label>
-            <Input
-              type="number"
-              min="1"
-              max="120"
-              value={localPomodoroTime}
-              onChange={(e) => setLocalPomodoroTime(Number(e.target.value))}
-              className="bg-dark-800 border-dark-700"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-gray-400">Short Break (minutes)</label>
-            <Input
-              type="number"
-              min="1"
-              max="30"
-              value={localShortBreakTime}
-              onChange={(e) => setLocalShortBreakTime(Number(e.target.value))}
-              className="bg-dark-800 border-dark-700"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm text-gray-400">Long Break (minutes)</label>
-            <Input
-              type="number"
-              min="5"
-              max="45"
-              value={localLongBreakTime}
-              onChange={(e) => setLocalLongBreakTime(Number(e.target.value))}
-              className="bg-dark-800 border-dark-700"
-            />
-          </div>
+          {renderInputField(
+            'Focus Duration (minutes)',
+            localPomodoroTime,
+            (e) => handleTimeChange(e.target.value, setLocalPomodoroTime, 'pomodoro'),
+            errors.pomodoro,
+            1,
+            120
+          )}
+          {renderInputField(
+            'Short Break (minutes)',
+            localShortBreakTime,
+            (e) => handleTimeChange(e.target.value, setLocalShortBreakTime, 'shortBreak'),
+            errors.shortBreak,
+            1,
+            30
+          )}
+          {renderInputField(
+            'Long Break (minutes)',
+            localLongBreakTime,
+            (e) => handleTimeChange(e.target.value, setLocalLongBreakTime, 'longBreak'),
+            errors.longBreak,
+            5,
+            45
+          )}
         </div>
         <SheetFooter className="border-t border-dark-800 pt-4">
           <Button onClick={handleSave} className="w-full">Save Settings</Button>

@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Music2, Link, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { Slider } from '@/components/ui/slider';
 
 interface YouTubePlayerProps {
   className?: string;
@@ -15,6 +15,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [playerReady, setPlayerReady] = useState<boolean>(false);
+  const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
+  const [volume, setVolume] = useState<number>(100);
+  const [videoTitle, setVideoTitle] = useState<string>('');
   const playerRef = useRef<YT.Player | null>(null);
 
   // Load YouTube API
@@ -65,6 +68,8 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
           onReady: (event) => {
             playerRef.current = event.target;
             event.target.pauseVideo();
+            // Get video title
+            setVideoTitle(event.target.getVideoData().title);
           },
           onStateChange: (event) => {
             if (event.data === window.YT.PlayerState.ENDED) {
@@ -75,6 +80,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
             toast.error("Error playing this video");
             setVideoId(null);
             setUrl('');
+            setVideoTitle('');
           }
         }
       });
@@ -96,6 +102,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
     const id = extractVideoId(url);
     if (id) {
       setVideoId(id);
+      setShowUrlInput(false);
       toast.success("YouTube audio loaded");
     } else {
       toast.error("Invalid YouTube URL");
@@ -118,10 +125,25 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
     
     if (isMuted) {
       playerRef.current.unMute();
+      playerRef.current.setVolume(volume);
     } else {
       playerRef.current.mute();
     }
     setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    if (!playerRef.current) return;
+    const newVolume = value[0];
+    setVolume(newVolume);
+    playerRef.current.setVolume(newVolume);
+    if (newVolume === 0) {
+      setIsMuted(true);
+      playerRef.current.mute();
+    } else if (isMuted) {
+      setIsMuted(false);
+      playerRef.current.unMute();
+    }
   };
 
   const skipForward = () => {
@@ -136,61 +158,129 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ className }) => {
     playerRef.current.seekTo(Math.max(0, currentTime - 10), true);
   };
 
+  const clearVideo = () => {
+    if (playerRef.current) {
+      playerRef.current.stopVideo();
+    }
+    setVideoId(null);
+    setUrl('');
+    setVideoTitle('');
+    setIsPlaying(false);
+  };
+
   return (
-    <div className={`rounded-xl overflow-hidden bg-dark-900/80 backdrop-blur-md border border-dark-800 p-4 ${className}`}>
-      <h3 className="text-white text-lg font-medium mb-3">Background Music</h3>
-      
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <Input
-          value={url}
-          onChange={handleUrlChange}
-          placeholder="Paste YouTube URL..."
-          className="bg-dark-800 border-dark-700 flex-1"
-        />
-        <Button type="submit" variant="secondary" className="shrink-0">
-          Load
-        </Button>
-      </form>
+    <div className={`rounded-xl overflow-hidden bg-dark-900/80 backdrop-blur-md border border-dark-800 ${className}`}>
+      <div className="p-4 border-b border-dark-800">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Music2 className="h-5 w-5 text-blue-500" />
+            <h3 className="text-white text-lg font-medium">Background Music</h3>
+          </div>
+          {!videoId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-white"
+              onClick={() => setShowUrlInput(true)}
+            >
+              <Link className="h-4 w-4 mr-2" />
+              Add Music
+            </Button>
+          )}
+        </div>
+        
+        {showUrlInput && (
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <Input
+              value={url}
+              onChange={handleUrlChange}
+              placeholder="Paste YouTube URL..."
+              className="bg-dark-800 border-dark-700 flex-1"
+              autoFocus
+            />
+            <Button type="submit" variant="secondary" className="shrink-0">
+              Load
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowUrlInput(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </form>
+        )}
+      </div>
       
       {videoId && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={skipBackward}
-              className="text-gray-400 hover:text-white"
+        <div className="p-4 space-y-4">
+          {/* Video Title */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-400 truncate flex-1">{videoTitle}</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={clearVideo}
+              className="text-gray-400 hover:text-white ml-2"
             >
-              <SkipBack className="h-5 w-5" />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={togglePlay}
-              className={isPlaying ? "text-green-500 hover:text-green-400" : "text-gray-400 hover:text-white"}
-            >
-              {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={skipForward}
-              className="text-gray-400 hover:text-white"
-            >
-              <SkipForward className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </Button>
           </div>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleMute}
-            className={isMuted ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-white"}
-          >
-            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-          </Button>
+
+          {/* Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={skipBackward}
+                className="text-gray-400 hover:text-white"
+              >
+                <SkipBack className="h-5 w-5" />
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={togglePlay}
+                className={`${isPlaying ? "text-blue-500 hover:text-blue-400" : "text-gray-400 hover:text-white"} transition-colors`}
+              >
+                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={skipForward}
+                className="text-gray-400 hover:text-white"
+              >
+                <SkipForward className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-24">
+                <Slider
+                  value={[volume]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                  className="cursor-pointer"
+                />
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleMute}
+                className={`${isMuted ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-white"} transition-colors`}
+              >
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
       

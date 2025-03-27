@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, BookOpen, Calculator, Clock, Map } from "lucide-react";
+import { Menu, X, BookOpen, Calculator, Clock, Map, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +27,7 @@ const Navbar = () => {
     { name: "CGPA Calculator", path: "/cgpa", icon: Calculator },
     { name: "Internal Marks", path: "/internal-marks", icon: Calculator },
     { name: "Pomodoro", path: "/pomodoro", icon: Clock },
+    { name: "Placement DSA", path: "/placement-dsa", icon: Code },
     { name: "Roadmaps", path: "/roadmaps", icon: Map },
   ];
   

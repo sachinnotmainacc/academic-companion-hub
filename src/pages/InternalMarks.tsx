@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -13,6 +12,50 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+/**
+ * KTU INTERNAL MARKS CALCULATOR - SECTION GUIDE
+ * --------------------------------------------
+ * 
+ * This component calculates internal marks for KTU courses and displays eligibility for SEE exam.
+ * It also shows achievable grades based on current internal marks.
+ * 
+ * MAIN SECTIONS:
+ * 
+ * 1. GRADE SCALE DEFINITION (Lines 15-23)
+ *    - Defines the KTU grading system (O, A+, A, etc.)
+ * 
+ * 2. STATE VARIABLES (Lines 30-60)
+ *    - Mode toggle: isFourCredit (3-credit vs 4-credit courses)
+ *    - Input values: series exams, assignments, modules, lab marks
+ *    - Results: scaled marks, total marks, eligibility, grade table
+ * 
+ * 3. CALCULATION FUNCTIONS
+ *    - calculateKTUFinalMarks: Main calculation function (Line 275)
+ *    - calculateFourCreditMarks: 4-credit course calculations (Line 300)
+ *    - calculateThreeCreditMarks: 3-credit course calculations (Line 365)
+ *    - calculateRequiredSEEMarks: Calculates SEE marks needed for each grade (Line 425)
+ * 
+ * 4. UI SECTIONS
+ *    - Course Type Toggle: Switch between 3 and 4-credit courses (Line 520)
+ *    - Input Fields Section:
+ *      - Series Exams Input (Line 550)
+ *      - Assignment Input (Line 610)
+ *      - Module Tests Input (Line 650)
+ *      - Lab Marks Input (4-credit only) (Line 735)
+ *      - Grace Marks Input (Line 770)
+ *    - Calculate Button: Triggers calculation (Line 785)
+ *    - Results Section: Only visible after calculation (Line 800)
+ *      - Scaled marks breakdown (Line 810)
+ *      - Total marks display (Line 850)
+ *      - Eligibility status (Line 860)
+ *      - Achievable Grades Table: Only visible if eligible (Line 870)
+ *        THIS IS WHERE THE ACHIEVABLE GRADES ARE SHOWN
+ * 
+ * NOTE: The Achievable Grades table (Line 870) will ONLY appear when:
+ * 1. You've clicked "Calculate Internal Marks" button AND
+ * 2. Your internal marks meet the minimum requirement (45/100 for 4-credit or 20/50 for 3-credit)
+ */
 
 // KTU Grade scale definition
 const gradeScale = [
@@ -32,7 +75,6 @@ const InternalMarks = () => {
   const { toast } = useToast();
   
   // Mode toggle
-  const [isLabMode, setIsLabMode] = useState(false);
   const [isFourCredit, setIsFourCredit] = useState(true);
   
   // Input values
@@ -60,16 +102,17 @@ const InternalMarks = () => {
   const [showResults, setShowResults] = useState(false);
   const [gradeTableData, setGradeTableData] = useState<GradeTableData[]>([]);
   
-  // Safe parsing function
-  const safeParseFloat = (value: string): number => {
+  // Safe parsing function with max limit
+  const safeParseFloat = (value: string, maxValue: number = Infinity): number => {
     const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
+    if (isNaN(parsed)) return 0;
+    return Math.min(parsed, maxValue);
   };
   
   // Reset all values when mode changes
   useEffect(() => {
     resetCalculator();
-  }, [isLabMode, isFourCredit]);
+  }, [isFourCredit]);
   
   const resetCalculator = () => {
     // Reset inputs
@@ -98,120 +141,177 @@ const InternalMarks = () => {
     setGradeTableData([]);
   };
   
-  const calculateMarks = () => {
-    try {
-      if (isLabMode) {
-        calculateLabMode();
-      } else {
-        calculateRegularMode();
-      }
-      
-      setShowResults(true);
-      
-      toast({
-        title: "Calculation Complete",
-        description: "Your internal marks have been calculated successfully!",
-      });
-    } catch (error) {
-      console.error("Error calculating marks:", error);
-      toast({
-        title: "Error calculating marks",
-        description: "Please check your inputs and try again",
-        variant: "destructive",
-      });
-    }
-  };
-  
   const calculateRegularMode = () => {
-    const series1Value = safeParseFloat(series1);
-    const series2Value = safeParseFloat(series2);
-    const series3Value = safeParseFloat(series3);
-    const assignment1Value = safeParseFloat(assignment1);
-    const assignment2Value = safeParseFloat(assignment2);
-    const module1Value = safeParseFloat(module1);
-    const module2Value = safeParseFloat(module2);
-    const module3Value = safeParseFloat(module3);
-    const graceMarksValue = safeParseFloat(graceMarks);
+    const series1Value = safeParseFloat(series1, 50);
+    const series2Value = safeParseFloat(series2, 50);
+    const series3Value = safeParseFloat(series3, 50);
+    const assignment1Value = safeParseFloat(assignment1, 10);
+    const assignment2Value = safeParseFloat(assignment2, 10);
+    const module1Value = safeParseFloat(module1, 10);
+    const module2Value = safeParseFloat(module2, 10);
+    const module3Value = safeParseFloat(module3, 10);
+    const graceValue = safeParseFloat(graceMarks, 10);
     
-    // Calculate scaled marks
+    // 1. Series Marks Scaling
     const seriesAvg = (series1Value + series2Value + series3Value) / 3;
     const scaledSeriesValue = (seriesAvg / 50) * 30;
     setScaledSeries(scaledSeriesValue);
     
+    // 2. Assignment Marks Scaling
     const assignmentTotal = assignment1Value + assignment2Value;
     const scaledAssignmentsValue = (assignmentTotal / 20) * 10;
     setScaledAssignments(scaledAssignmentsValue);
     
+    // 3. Module Marks Scaling
     const moduleTotal = module1Value + module2Value + module3Value;
     const scaledModulesValue = (moduleTotal / 30) * 10;
     setScaledModules(scaledModulesValue);
     
-    // Calculate total
-    const totalValue = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + graceMarksValue;
+    // 4. Total Marks Calculation (Regular Mode)
+    // Total Marks = Scaled Series + Scaled Assignments + Scaled Modules + Grace Marks
+    const totalValue = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + graceValue;
     setTotalMarks(totalValue);
     
-    // Check eligibility (must be >= 20 out of 50)
+    // 5. Eligibility Criteria (Regular Mode)
+    // Eligibility = Total Marks ≥ 20
     const eligibleValue = totalValue >= 20;
     setIsEligible(eligibleValue);
     
     if (eligibleValue) {
       setEligibilityReason("All eligibility criteria met");
-      // Calculate grade table with predictions
-      generateGradeTable(totalValue, false);
+      // Calculate required SEE marks for regular mode
+      calculateRegularSEEMarks(totalValue);
     } else {
       setEligibilityReason("Internal marks are below the minimum requirement of 20/50");
     }
   };
   
-  const calculateLabMode = () => {
-    const series1Value = safeParseFloat(series1);
-    const series2Value = safeParseFloat(series2);
-    const series3Value = safeParseFloat(series3);
-    const assignment1Value = safeParseFloat(assignment1);
-    const assignment2Value = safeParseFloat(assignment2);
-    const module1Value = safeParseFloat(module1);
-    const module2Value = safeParseFloat(module2);
-    const module3Value = safeParseFloat(module3);
-    const labInternalValue = safeParseFloat(labInternal);
-    const labExternalValue = safeParseFloat(labExternal);
+  // Calculate required SEE marks for Regular Mode
+  const calculateRegularSEEMarks = (internalMarks: number) => {
+    const maxInternalMarks = 50; // Regular mode is out of 50
     
-    // Calculate scaled marks
+    // Calculate required SEE marks for each grade
+    const updatedRequirements: GradeTableData[] = [];
+    
+    gradeScale.forEach(({ grade, points, minMarks }) => {
+      // Current percentage is internal marks as percentage of maxInternalMarks
+      const currentPercentage = (internalMarks / maxInternalMarks) * 100;
+      
+      // For Regular Mode: Required SEE Marks = Ceiling((Minimum Grade Percentage - Current Percentage) × 2)
+      const requiredSEE = Math.ceil((minMarks - currentPercentage) * 2);
+      
+      // Only include grades that are achievable (SEE marks <= 100 and > 0)
+      if (requiredSEE <= 100 && requiredSEE > 0) {
+        const finalMarks = currentPercentage + (requiredSEE / 2);
+        updatedRequirements.push({
+          grade,
+          points,
+          marks: requiredSEE,
+          finalMarks
+        });
+      }
+    });
+    
+    // Sort by grade value (higher grades first)
+    updatedRequirements.sort((a, b) => {
+      const gradeOrder = { 'O': 6, 'A+': 5, 'A': 4, 'B+': 3, 'C+': 2, 'C': 1, 'F': 0 };
+      return (gradeOrder[a.grade as keyof typeof gradeOrder] || 0) - 
+             (gradeOrder[b.grade as keyof typeof gradeOrder] || 0);
+    }).reverse();
+    
+    setGradeTableData(updatedRequirements);
+  };
+  
+  const calculateLabMode = () => {
+    const series1Value = safeParseFloat(series1, 50);
+    const series2Value = safeParseFloat(series2, 50);
+    const series3Value = safeParseFloat(series3, 50);
+    const assignment1Value = safeParseFloat(assignment1, 10);
+    const assignment2Value = safeParseFloat(assignment2, 10);
+    const module1Value = safeParseFloat(module1, 10);
+    const module2Value = safeParseFloat(module2, 10);
+    const module3Value = safeParseFloat(module3, 10);
+    const labInternalValue = safeParseFloat(labInternal, 50);
+    const labExternalValue = safeParseFloat(labExternal, 50);
+    
+    // Calculate scaled marks for internal components first (for eligibility)
+    // 1. Series Marks Scaling
     const seriesAvg = (series1Value + series2Value + series3Value) / 3;
     const scaledSeriesValue = (seriesAvg / 50) * 30;
     setScaledSeries(scaledSeriesValue);
     
+    // 2. Assignment Marks Scaling
     const assignmentTotal = assignment1Value + assignment2Value;
     const scaledAssignmentsValue = (assignmentTotal / 20) * 10;
     setScaledAssignments(scaledAssignmentsValue);
     
+    // 3. Module Marks Scaling
     const moduleTotal = module1Value + module2Value + module3Value;
     const scaledModulesValue = (moduleTotal / 30) * 10;
     setScaledModules(scaledModulesValue);
     
-    // Calculate lab component marks (each out of 25)
-    const labInternalMarksValue = labInternalValue / 2;
-    const labExternalMarksValue = labExternalValue / 2;
+    // Calculate total internal marks (out of 50 for eligibility check)
+    const totalInternalValue = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue;
+    
+    // Lab components - Lab Marks Scaling
+    // Lab Internal Marks
+    const labInternalMarksValue = (labInternalValue / 50) * 25;
     setLabInternalMarks(labInternalMarksValue);
+    
+    // Lab External Marks
+    const labExternalMarksValue = (labExternalValue / 50) * 25;
     setLabExternalMarks(labExternalMarksValue);
     
-    // Calculate total internal marks (out of 50 for eligibility check)
-    const totalInternal = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue;
-    
-    // Calculate final total (out of 75)
-    const totalValue = (totalInternal / 2) + labInternalMarksValue + labExternalMarksValue;
+    // Calculate final total (out of 75) as per formula:
+    // Final Total = (Total Internal Marks ÷ 2) + Lab Internal Scaled + Lab External Scaled
+    const totalValue = (totalInternalValue / 2) + labInternalMarksValue + labExternalMarksValue;
     setTotalMarks(totalValue);
     
     // Check eligibility based on internal marks (must be >= 20 out of 50)
-    const eligibleValue = totalInternal >= 20;
+    const eligibleValue = totalInternalValue >= 20;
     setIsEligible(eligibleValue);
     
     if (eligibleValue) {
       setEligibilityReason("All eligibility criteria met");
-      // Call generateGradeTable with the correct parameters
-      generateGradeTable(totalValue, true);
+      // Calculate required SEE marks for lab mode
+      calculateLabSEEMarks(totalValue);
     } else {
       setEligibilityReason("Internal marks are below the minimum requirement of 20/50");
     }
+  };
+  
+  // Calculate required SEE marks for Lab Mode
+  const calculateLabSEEMarks = (internalMarks: number) => {
+    // Lab mode has total marks out of 75
+    
+    // Calculate required SEE marks for each grade
+    const updatedRequirements: GradeTableData[] = [];
+    
+    gradeScale.forEach(({ grade, points, minMarks }) => {
+      // For Lab Mode: Required SEE Marks = Ceiling((Minimum Grade Percentage - (Current Total ÷ 75 × 50)) × 2)
+      const currentScaledPercentage = (internalMarks / 75) * 50;
+      const requiredSEE = Math.ceil((minMarks - currentScaledPercentage) * 2);
+      
+      // Only include grades that are achievable (SEE marks <= 100 and > 0)
+      if (requiredSEE <= 100 && requiredSEE > 0) {
+        const finalMarks = (internalMarks / 75 * 100) + (requiredSEE / 2);
+        updatedRequirements.push({
+          grade,
+          points,
+          marks: requiredSEE,
+          finalMarks
+        });
+      }
+    });
+    
+    // Sort by grade value (higher grades first)
+    updatedRequirements.sort((a, b) => {
+      const gradeOrder = { 'O': 6, 'A+': 5, 'A': 4, 'B+': 3, 'C+': 2, 'C': 1, 'F': 0 };
+      return (gradeOrder[a.grade as keyof typeof gradeOrder] || 0) - 
+             (gradeOrder[b.grade as keyof typeof gradeOrder] || 0);
+    }).reverse();
+    
+    setGradeTableData(updatedRequirements);
   };
   
   // Calculate KTU final marks
@@ -242,98 +342,60 @@ const InternalMarks = () => {
   
   // Calculate for 4-credit courses
   const calculateFourCreditMarks = () => {
-    const exam1 = safeParseFloat(series1);
-    const exam2 = safeParseFloat(series2);
-    const exam3 = safeParseFloat(series3);
-    const assign1 = safeParseFloat(assignment1);
-    const assign2 = safeParseFloat(assignment2);
-    const test1 = safeParseFloat(module1);
-    const test2 = safeParseFloat(module2);
-    const test3 = safeParseFloat(module3);
-    const grace = safeParseFloat(graceMarks);
-    const labInt = safeParseFloat(labInternal);
-    const labExt = safeParseFloat(labExternal);
-    
-    // Validate inputs
-    if (exam1 > 50 || exam2 > 50 || exam3 > 50) {
-      toast({
-        title: "Invalid input",
-        description: "Series exam marks cannot exceed 50",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (assign1 > 10 || assign2 > 10) {
-      toast({
-        title: "Invalid input",
-        description: "Assignment marks cannot exceed 10",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (test1 > 10 || test2 > 10 || test3 > 10) {
-      toast({
-        title: "Invalid input",
-        description: "Module test marks cannot exceed 10",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (labInt > 50 || labExt > 50) {
-      toast({
-        title: "Invalid input",
-        description: "Lab marks cannot exceed 50",
-        variant: "destructive",
-      });
-      return;
-    }
+    const series1Value = safeParseFloat(series1, 50);
+    const series2Value = safeParseFloat(series2, 50);
+    const series3Value = safeParseFloat(series3, 50);
+    const assignment1Value = safeParseFloat(assignment1, 10);
+    const assignment2Value = safeParseFloat(assignment2, 10);
+    const module1Value = safeParseFloat(module1, 10);
+    const module2Value = safeParseFloat(module2, 10);
+    const module3Value = safeParseFloat(module3, 10);
+    const graceValue = safeParseFloat(graceMarks, 10);
+    const labIntValue = safeParseFloat(labInternal, 50);
+    const labExtValue = safeParseFloat(labExternal, 50);
     
     // Calculate scaled series marks
-    const totalSeriesMarks = exam1 + exam2 + exam3;
-    const maxSeriesMarks = 150; // 3 exams × 50 marks
-    const seriesExamWeight = 30;
-    const scaledSeriesValue = (totalSeriesMarks / maxSeriesMarks) * seriesExamWeight;
+    const seriesAvg = (series1Value + series2Value + series3Value) / 3;
+    const scaledSeriesValue = (seriesAvg / 50) * 30;
     setScaledSeries(scaledSeriesValue);
     
     // Calculate scaled assignment marks
-    const totalAssignmentMarks = assign1 + assign2;
-    const maxAssignmentMarks = 20; // 2 assignments × 10 marks
-    const assignmentWeight = 10;
-    const scaledAssignmentsValue = (totalAssignmentMarks / maxAssignmentMarks) * assignmentWeight;
+    const assignmentTotal = assignment1Value + assignment2Value;
+    const scaledAssignmentsValue = (assignmentTotal / 20) * 10;
     setScaledAssignments(scaledAssignmentsValue);
     
     // Calculate scaled module test marks
-    const totalModuleTestMarks = test1 + test2 + test3;
-    const maxModuleTestMarks = 30; // 3 tests × 10 marks
-    const moduleTestWeight = 10;
-    const rawScaledModules = (totalModuleTestMarks / maxModuleTestMarks) * moduleTestWeight;
-    const minimumModulesMarks = moduleTestWeight * 0.2;
-    const scaledModulesValue = Math.max(rawScaledModules, minimumModulesMarks);
+    const moduleTotal = module1Value + module2Value + module3Value;
+    const scaledModulesValue = (moduleTotal / 30) * 10;
     setScaledModules(scaledModulesValue);
     
-    // Calculate lab marks if relevant
-    let labTotal = 0;
-    if (labInt > 0 || labExt > 0) {
-      const labWeight = 50;
-      const labHalfWeight = labWeight / 2;
+    // Calculate lab marks
+    let labInternalMarksValue = 0;
+    let labExternalMarksValue = 0;
+    
+    if (labIntValue > 0 || labExtValue > 0) {
+      // Lab Internal and External are each out of 50, scaled to 25
+      labInternalMarksValue = (labIntValue / 50) * 25;
+      labExternalMarksValue = (labExtValue / 50) * 25;
       
-      const internalContribution = (labInt / 50) * labHalfWeight;
-      const externalContribution = (labExt / 50) * labHalfWeight;
-      
-      setLabInternalMarks(internalContribution);
-      setLabExternalMarks(externalContribution);
-      
-      labTotal = internalContribution + externalContribution;
+      setLabInternalMarks(labInternalMarksValue);
+      setLabExternalMarks(labExternalMarksValue);
     }
     
-    // Calculate total marks
-    const total = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + labTotal + grace;
+    // Calculate total marks (out of 100)
+    const total = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + labInternalMarksValue + labExternalMarksValue + graceValue;
     setTotalMarks(total);
     
     // Check eligibility (minimum 45% of internal marks)
+    /* ==== ELIGIBILITY CHECK (4-CREDIT COURSE) ====
+     * This determines if:
+     * 1. The student is eligible for the SEE exam
+     * 2. Whether to show the Achievable Grades table
+     * 
+     * For 4-credit courses:
+     * - Minimum required: 45/100 (45%)
+     * - If marks are below this threshold, the Achievable Grades table will NOT appear
+     */
     const minimumRequiredPercentage = 45;
     const maxInternalMarks = 100;
     const minimumMarks = (minimumRequiredPercentage / 100) * maxInternalMarks;
@@ -342,6 +404,8 @@ const InternalMarks = () => {
     
     if (isEligibleValue) {
       setEligibilityReason("All eligibility criteria met");
+      // This function calculates what grades are achievable and what SEE marks are needed
+      // Its results will be shown in the Achievable Grades table
       calculateRequiredSEEMarks(total, true);
     } else {
       setEligibilityReason(`Internal marks (${total.toFixed(2)}) are below the minimum requirement (${minimumMarks})`);
@@ -350,149 +414,133 @@ const InternalMarks = () => {
   
   // Calculate for 3-credit courses
   const calculateThreeCreditMarks = () => {
-    const exam1 = safeParseFloat(series1);
-    const exam2 = safeParseFloat(series2);
-    const exam3 = safeParseFloat(series3);
-    const assign1 = safeParseFloat(assignment1);
-    const assign2 = safeParseFloat(assignment2);
-    const test1 = safeParseFloat(module1);
-    const test2 = safeParseFloat(module2);
-    const test3 = safeParseFloat(module3);
-    const grace = safeParseFloat(graceMarks);
+    const series1Value = safeParseFloat(series1, 50);
+    const series2Value = safeParseFloat(series2, 50);
+    const series3Value = safeParseFloat(series3, 50);
+    const assignment1Value = safeParseFloat(assignment1, 10);
+    const assignment2Value = safeParseFloat(assignment2, 10);
+    const module1Value = safeParseFloat(module1, 10);
+    const module2Value = safeParseFloat(module2, 10);
+    const module3Value = safeParseFloat(module3, 10);
+    const graceValue = safeParseFloat(graceMarks, 10);
     
-    // Validate inputs (same validation logic as 4-credit)
-    
-    // Calculate scaled series marks
-    const totalSeriesMarks = exam1 + exam2 + exam3;
-    const maxSeriesMarks = 150; // 3 exams × 50 marks
-    const seriesExamWeight = 15;
-    const scaledSeriesValue = (totalSeriesMarks / maxSeriesMarks) * seriesExamWeight;
+    // Calculate scaled series marks using the precise formula
+    const seriesAvg = (series1Value + series2Value + series3Value) / 3;
+    const scaledSeriesValue = (seriesAvg / 50) * 30;
     setScaledSeries(scaledSeriesValue);
     
     // Calculate scaled assignment marks
-    const totalAssignmentMarks = assign1 + assign2;
-    const maxAssignmentMarks = 20; // 2 assignments × 10 marks
-    const assignmentWeight = 5;
-    const scaledAssignmentsValue = (totalAssignmentMarks / maxAssignmentMarks) * assignmentWeight;
+    const assignmentTotal = assignment1Value + assignment2Value;
+    const scaledAssignmentsValue = (assignmentTotal / 20) * 10;
     setScaledAssignments(scaledAssignmentsValue);
     
     // Calculate scaled module test marks
-    const totalModuleTestMarks = test1 + test2 + test3;
-    const maxModuleTestMarks = 30; // 3 tests × 10 marks
-    const moduleTestWeight = 5;
-    const rawScaledModules = (totalModuleTestMarks / maxModuleTestMarks) * moduleTestWeight;
-    const minimumModulesMarks = moduleTestWeight * 0.2;
-    const scaledModulesValue = Math.max(rawScaledModules, minimumModulesMarks);
+    const moduleTotal = module1Value + module2Value + module3Value;
+    const scaledModulesValue = (moduleTotal / 30) * 10;
     setScaledModules(scaledModulesValue);
     
-    // Calculate total marks
-    const total = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + grace;
+    // Calculate total marks (out of 50)
+    const total = scaledSeriesValue + scaledAssignmentsValue + scaledModulesValue + graceValue;
     setTotalMarks(total);
     
-    // Check eligibility (minimum 45% of internal marks)
-    const minimumRequiredPercentage = 45;
-    const maxInternalMarks = 50;
-    const minimumMarks = (minimumRequiredPercentage / 100) * maxInternalMarks;
-    const isEligibleValue = total >= minimumMarks;
+    // Check eligibility (minimum 20 out of 50)
+    /* ==== ELIGIBILITY CHECK (3-CREDIT COURSE) ====
+     * This determines if:
+     * 1. The student is eligible for the SEE exam
+     * 2. Whether to show the Achievable Grades table
+     * 
+     * For 3-credit courses:
+     * - Minimum required: 20/50 (40%)
+     * - If marks are below this threshold, the Achievable Grades table will NOT appear
+     */
+    const isEligibleValue = total >= 20;
     setIsEligible(isEligibleValue);
     
     if (isEligibleValue) {
       setEligibilityReason("All eligibility criteria met");
+      // This function calculates what grades are achievable and what SEE marks are needed
+      // Its results will be shown in the Achievable Grades table
       calculateRequiredSEEMarks(total, false);
     } else {
-      setEligibilityReason(`Internal marks (${total.toFixed(2)}) are below the minimum requirement (${minimumMarks})`);
+      setEligibilityReason(`Internal marks (${total.toFixed(2)}) are below the minimum requirement (20/50)`);
     }
   };
   
   // Calculate required SEE marks for each grade
   const calculateRequiredSEEMarks = (internalMarks: number, isFourCredit: boolean) => {
+    /* ==== ACHIEVABLE GRADES CALCULATION ====
+     * This function calculates what SEE (Semester End Exam) marks 
+     * are needed to achieve each possible grade.
+     * 
+     * The results populate the "Achievable Grades" table that appears
+     * at the bottom of the results section.
+     * 
+     * This is only called when a student is eligible for the SEE exam
+     * (internal marks meet minimum requirements).
+     */
     const maxInternalMarks = isFourCredit ? 100 : 50;
     const maxSEEMarks = 100;
     
-    // Internal to SEE ratio is typically 50:50
-    const internalWeight = 0.5;
-    const seeWeight = 0.5;
-    
     // Calculate required SEE marks for each grade
-    const updatedRequirements: GradeTableData[] = [
-      { grade: "O", points: 10, marks: 0, finalMarks: 0 },
-      { grade: "A+", points: 9, marks: 0, finalMarks: 0 },
-      { grade: "A", points: 8, marks: 0, finalMarks: 0 },
-      { grade: "B+", points: 7, marks: 0, finalMarks: 0 }
-    ];
+    const updatedRequirements: GradeTableData[] = [];
     
-    // Grade thresholds
-    const gradeThresholds = [
-      { grade: "O", threshold: 90 },
-      { grade: "A+", threshold: 85 },
-      { grade: "A", threshold: 80 },
-      { grade: "B+", threshold: 70 }
-    ];
-    
-    updatedRequirements.forEach((req, index) => {
-      // Calculate the total points needed for this grade
-      const totalPointsNeeded = gradeThresholds[index].threshold;
+    gradeScale.forEach(({ grade, points, minMarks }) => {
+      // Calculate required SEE marks based on the formula:
+      // For Regular Mode (3 & 4 credit): 
+      // Required SEE Marks = Ceiling((Minimum Grade Percentage - Current Percentage) × 2)
       
-      // Calculate the points already earned from internal
-      const internalPercentage = (internalMarks / maxInternalMarks) * 100;
-      const internalContribution = internalPercentage * internalWeight;
+      // Current percentage is internal marks as percentage of maxInternalMarks
+      const currentPercentage = (internalMarks / maxInternalMarks) * 100;
       
-      // Required SEE percentage = (totalPointsNeeded - internalContribution) / seeWeight
-      const requiredSEEPercentage = (totalPointsNeeded - internalContribution) / seeWeight;
+      // Required SEE marks
+      const requiredSEE = Math.ceil((minMarks - currentPercentage) * 2);
       
-      // Convert to actual SEE marks
-      let requiredSEEMarks = (requiredSEEPercentage / 100) * maxSEEMarks;
-      
-      // Ensure it's not negative and not greater than max SEE marks
-      requiredSEEMarks = Math.max(0, Math.min(maxSEEMarks, requiredSEEMarks));
-      
-      // Calculate final marks percentage
-      const finalMarks = internalContribution + (Math.min(requiredSEEMarks, maxSEEMarks) / maxSEEMarks * 100 * seeWeight);
-      
-      // Update the requirement
-      updatedRequirements[index].marks = Math.ceil(requiredSEEMarks);
-      updatedRequirements[index].finalMarks = parseFloat(finalMarks.toFixed(1));
+      // Only include grades that are achievable (SEE marks <= 100 and > 0)
+      if (requiredSEE <= 100 && requiredSEE > 0) {
+        // The final marks would be currentPercentage + (requiredSEE/2)
+        const finalMarks = currentPercentage + (requiredSEE / 2);
+        updatedRequirements.push({
+          grade,
+          points,
+          marks: requiredSEE,
+          finalMarks
+        });
+      }
     });
     
+    // Sort by grade value (higher grades first)
+    updatedRequirements.sort((a, b) => {
+      const gradeOrder = { 'O': 6, 'A+': 5, 'A': 4, 'B+': 3, 'C+': 2, 'C': 1, 'F': 0 };
+      return (gradeOrder[b.grade as keyof typeof gradeOrder] || 0) - 
+             (gradeOrder[a.grade as keyof typeof gradeOrder] || 0);
+    });
+    
+    // This sets the data that will appear in the Achievable Grades table
     setGradeTableData(updatedRequirements);
   };
   
-  const generateGradeTable = (currentMarks: number, isLabMode: boolean) => {
+  const generateGradeTable = (currentMarks: number, isFourCredit: boolean) => {
     const newGradeData: GradeTableData[] = [];
     
     gradeScale.forEach(({ grade, points, minMarks }) => {
-      if (isLabMode) {
-        // For lab mode (marks out of 75)
-        // For a 4-credit course:
-        // Final = ((Internal/2) + Lab Assessment) + (SEE/2)
-        // where Internal is out of 50 and Lab Assessment is out of 50
-        // So Final = (currentMarks) + (SEE/2) where currentMarks is out of 75
+      if (isFourCredit) {
+        // For 4-credit courses, calculate required SEE marks
+        // Current marks are out of 100
+        const currentPercentage = (currentMarks / 100) * 100; // Already in percentage
+        const requiredSEE = Math.ceil((minMarks - currentPercentage) * 2);
         
-        // To achieve minMarks (as a percentage):
-        // minMarks = (currentMarks + (SEE/2))/100 * 100
-        // Solving for SEE:
-        // SEE = (minMarks - currentMarks) * 2
-        
-        const requiredSEE = Math.max(0, Math.ceil((minMarks - (currentMarks / 75 * 100)) * 2));
-        const finalMarks = Math.min(100, (currentMarks / 75 * 100) + (Math.min(requiredSEE, 100) / 2));
-        
-        // Only show grades that are achievable (SEE marks <= 100)
-        if (requiredSEE <= 100) {
+        // Only show grades that are achievable (SEE marks <= 100 and > 0)
+        if (requiredSEE <= 100 && requiredSEE > 0) {
+          const finalMarks = Math.min(100, currentPercentage + (Math.min(requiredSEE, 100) / 2));
           newGradeData.push({ grade, points, marks: requiredSEE, finalMarks });
         }
       } else {
-        // For regular mode (marks out of 50)
-        // Final = Internal + (SEE/2)
-        // To achieve minMarks (as a percentage):
-        // minMarks = (Internal + (SEE/2))/100 * 100
-        // Solving for SEE:
-        // SEE = (minMarks - (Internal/50 * 100)) * 2
+        // 3-credit courses calculation
+        const requiredSEE = Math.ceil((minMarks - (currentMarks / 50 * 100)) * 2);
         
-        const requiredSEE = Math.max(0, Math.ceil((minMarks - (currentMarks / 50 * 100)) * 2));
-        const finalMarks = Math.min(100, (currentMarks / 50 * 100) + (Math.min(requiredSEE, 100) / 2));
-        
-        // Only show grades that are achievable (SEE marks <= 100)
-        if (requiredSEE <= 100) {
+        // Only show grades that are achievable (SEE marks <= 100 and > 0)
+        if (requiredSEE <= 100 && requiredSEE > 0) {
+          const finalMarks = Math.min(100, (currentMarks / 50 * 100) + (Math.min(requiredSEE, 100) / 2));
           newGradeData.push({ grade, points, marks: requiredSEE, finalMarks });
         }
       }
@@ -550,8 +598,8 @@ const InternalMarks = () => {
                   </CardTitle>
                   <CardDescription className="text-gray-400 pt-2">
                     {isFourCredit ? 
-                      "For courses with lab components (4-credit courses)" : 
-                      "For theory-only courses (3-credit courses)"}
+                      "For courses with heavier credit weighting, usually with lab components" : 
+                      "For standard theory courses"}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -720,6 +768,52 @@ const InternalMarks = () => {
                     <Card className="glass-card border-dark-800 animate-fade-in-up">
                       <CardHeader className="bg-dark-900 border-b border-dark-800">
                         <CardTitle className="text-white flex items-center">
+                          Grace Marks
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div>
+                          <Label className="block text-sm text-gray-400 mb-1">Grace Marks (if any)</Label>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            className="bg-dark-800 border-dark-700 text-white"
+                            min="0"
+                            max="10"
+                            value={graceMarks}
+                            onChange={(e) => setGraceMarks(e.target.value)}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="glass-card border-dark-800 animate-fade-in-up">
+                      <CardHeader className="bg-dark-900 border-b border-dark-800">
+                        <CardTitle className="text-white flex items-center">
+                          Grace Marks
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div>
+                          <Label className="block text-sm text-gray-400 mb-1">Grace Marks (if any)</Label>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            className="bg-dark-800 border-dark-700 text-white"
+                            min="0"
+                            max="10"
+                            value={graceMarks}
+                            onChange={(e) => setGraceMarks(e.target.value)}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {isFourCredit && (
+                    <Card className="glass-card border-dark-800 animate-fade-in-up mt-6">
+                      <CardHeader className="bg-dark-900 border-b border-dark-800">
+                        <CardTitle className="text-white flex items-center">
                           Lab Assessment
                         </CardTitle>
                       </CardHeader>
@@ -758,39 +852,27 @@ const InternalMarks = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  ) : (
-                    <Card className="glass-card border-dark-800 animate-fade-in-up">
-                      <CardHeader className="bg-dark-900 border-b border-dark-800">
-                        <CardTitle className="text-white flex items-center">
-                          Grace Marks
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div>
-                          <Label className="block text-sm text-gray-400 mb-1">Grace Marks (if any)</Label>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            className="bg-dark-800 border-dark-700 text-white"
-                            min="0"
-                            max="10"
-                            value={graceMarks}
-                            onChange={(e) => setGraceMarks(e.target.value)}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
                   )}
                 </div>
               </div>
               
+              {/* ==== CALCULATION BUTTONS SECTION ====
+               * This is where you start the process to see achievable grades.
+               * 
+               * 1. Click "Calculate Internal Marks" button to:
+               *    - Calculate your total internal marks
+               *    - Check if you're eligible for the SEE exam
+               *    - Display the achievable grades table (if eligible)
+               * 
+               * 2. The "Reset" button clears all values
+               */}
               <div className="flex gap-4 my-8">
                 <Button 
                   className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={calculateKTUFinalMarks}
+                  onClick={() => calculateKTUFinalMarks()}
                 >
                   <Calculator className="h-4 w-4 mr-2" />
-                  Calculate Final Marks
+                  Calculate Internal Marks
                 </Button>
                 <Button 
                   variant="outline" 
@@ -805,26 +887,29 @@ const InternalMarks = () => {
               {showResults && (
                 <Card className="glass-card border-dark-800 mb-6 animate-fade-in">
                   <CardHeader className="bg-dark-900 border-b border-dark-800">
-                    <CardTitle className="text-white">Results</CardTitle>
+                    <CardTitle className="text-white flex items-center">
+                      <Calculator className="h-5 w-5 text-blue-500 mr-2" />
+                      Results
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       <div className="bg-dark-800 rounded-md p-3 flex justify-between items-center">
                         <span className="text-gray-300">Scaled Series Exam Marks</span>
-                        <span className="text-green-400 font-medium">{scaledSeries.toFixed(2)}/{isFourCredit ? "30" : "15"}</span>
+                        <span className="text-green-400 font-medium">{scaledSeries.toFixed(2)}/30</span>
                       </div>
                       
                       <div className="bg-dark-800 rounded-md p-3 flex justify-between items-center">
                         <span className="text-gray-300">Scaled Assignment Marks</span>
-                        <span className="text-green-400 font-medium">{scaledAssignments.toFixed(2)}/{isFourCredit ? "10" : "5"}</span>
+                        <span className="text-green-400 font-medium">{scaledAssignments.toFixed(2)}/10</span>
                       </div>
                       
                       <div className="bg-dark-800 rounded-md p-3 flex justify-between items-center">
                         <span className="text-gray-300">Scaled Module Test Marks</span>
-                        <span className="text-green-400 font-medium">{scaledModules.toFixed(2)}/{isFourCredit ? "10" : "5"}</span>
+                        <span className="text-green-400 font-medium">{scaledModules.toFixed(2)}/10</span>
                       </div>
                       
-                      {(isFourCredit && (labInternalMarks !== null || labExternalMarks !== null) && (labInternalMarks > 0 || labExternalMarks > 0)) && (
+                      {isFourCredit && (
                         <>
                           <div className="bg-dark-800 rounded-md p-3 flex justify-between items-center">
                             <span className="text-gray-300">Lab Internal Marks</span>
@@ -865,31 +950,48 @@ const InternalMarks = () => {
                         )}
                       </div>
                       
-                      <Separator className="bg-dark-800 my-4" />
-                      
-                      <div>
-                        <h3 className="text-lg text-white mb-3">Grade Requirements</h3>
-                        <div className="overflow-hidden rounded-md border border-dark-700">
-                          <table className="min-w-full divide-y divide-dark-700">
-                            <thead className="bg-dark-800">
-                              <tr>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">GRADE</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">POINTS</th>
-                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">REQUIRED SEE MARKS</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-dark-700 bg-dark-900">
-                              {gradeTableData.map((req, index) => (
-                                <tr key={index}>
-                                  <td className="px-4 py-3 text-sm text-white">{req.grade}</td>
-                                  <td className="px-4 py-3 text-sm text-white">{req.points}</td>
-                                  <td className="px-4 py-3 text-sm text-white">{req.marks}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                      {/* ===== ACHIEVABLE GRADES SECTION ===== 
+                          This section ONLY appears when:
+                          1. The user has clicked "Calculate Internal Marks" button
+                          2. The calculated marks meet the eligibility criteria:
+                             - For 4-credit courses: At least 45/100
+                             - For 3-credit courses: At least 20/50
+                          
+                          If you don't see this section, you need to:
+                          1. Enter higher marks in the input fields
+                          2. Click the "Calculate Internal Marks" button again
+                      */}
+                      {isEligible && gradeTableData.length > 0 && (
+                        <>
+                          <Separator className="bg-dark-800 my-4" />
+                          
+                          {/* ACHIEVABLE GRADES TABLE - STARTS HERE */}
+                          <div>
+                            <h3 className="text-lg text-white mb-3">Achievable Grades</h3>
+                            <div className="overflow-hidden rounded-md border border-dark-700">
+                              <table className="min-w-full divide-y divide-dark-700">
+                                <thead className="bg-dark-800">
+                                  <tr>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">GRADE</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">POINTS</th>
+                                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">REQUIRED SEE MARKS</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-dark-700 bg-dark-900">
+                                  {gradeTableData.map((req, index) => (
+                                    <tr key={index}>
+                                      <td className="px-4 py-3 text-sm text-white">{req.grade}</td>
+                                      <td className="px-4 py-3 text-sm text-white">{req.points}</td>
+                                      <td className="px-4 py-3 text-sm text-white">{req.marks}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          {/* ACHIEVABLE GRADES TABLE - ENDS HERE */}
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

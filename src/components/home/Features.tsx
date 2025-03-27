@@ -1,7 +1,6 @@
-
 import React from "react";
 import FeatureCard from "@/components/ui/FeatureCard";
-import { Calculator, BookOpen, Clock, Youtube } from "lucide-react";
+import { Calculator, BookOpen, Clock, Youtube, Code } from "lucide-react";
 
 const Features: React.FC = () => {
   return (
@@ -16,12 +15,12 @@ const Features: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard
             title="KTU Calculator"
             description="Calculate your KTU marks and grade based on the examination pattern."
             icon={Calculator}
-            href="/ktu-calculator"
+            href="/internal-marks"
             className="bg-gradient-to-br from-green-500/10 to-green-700/10 hover:from-green-500/20 hover:to-green-700/20"
             style={{ animationDelay: "0.1s" }}
           />
@@ -51,6 +50,15 @@ const Features: React.FC = () => {
             href="/pomodoro"
             className="bg-gradient-to-br from-yellow-500/10 to-yellow-700/10 hover:from-yellow-500/20 hover:to-yellow-700/20"
             style={{ animationDelay: "0.4s" }}
+          />
+          
+          <FeatureCard
+            title="Placement DSA"
+            description="Practice company-specific DSA questions for your placement preparation."
+            icon={Code}
+            href="/placement-dsa"
+            className="bg-gradient-to-br from-purple-500/10 to-purple-700/10 hover:from-purple-500/20 hover:to-purple-700/20"
+            style={{ animationDelay: "0.5s" }}
           />
         </div>
       </div>

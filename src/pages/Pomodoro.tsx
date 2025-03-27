@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -35,9 +34,28 @@ const Pomodoro: React.FC = () => {
       setCompletedPomodoros(stats.completedPomodoros || 0);
       setCompletedBreaks(stats.completedBreaks || 0);
       setTotalFocusTime(stats.totalFocusTime || 0);
-      setTodayPomodoros(stats.todayPomodoros || 0);
+      
+      // Fix streak handling
+      const lastActiveDate = localStorage.getItem('lastActiveDate');
+      const today = new Date().toDateString();
+      
+      if (lastActiveDate !== today) {
+        // If last active was yesterday, maintain streak
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (lastActiveDate === yesterday.toDateString()) {
+          setCurrentStreak(stats.currentStreak || 0);
+        } else {
+          // Reset streak if more than a day has passed
+          setCurrentStreak(0);
+        }
+        setTodayPomodoros(0);
+      } else {
+        setCurrentStreak(stats.currentStreak || 0);
+        setTodayPomodoros(stats.todayPomodoros || 0);
+      }
+      
       setLongestStreak(stats.longestStreak || 0);
-      setCurrentStreak(stats.currentStreak || 0);
     }
     
     // Load timer settings
@@ -47,16 +65,13 @@ const Pomodoro: React.FC = () => {
       setPomodoroTime(settings.pomodoroTime || 25 * 60);
       setShortBreakTime(settings.shortBreakTime || 5 * 60);
       setLongBreakTime(settings.longBreakTime || 15 * 60);
-      setTimeLeft(settings.pomodoroTime || 25 * 60);
+      // Only set timeLeft if timer is not active
+      if (!isActive) {
+        setTimeLeft(settings.pomodoroTime || 25 * 60);
+      }
     }
 
-    // Check if it's a new day
-    const lastActiveDate = localStorage.getItem('lastActiveDate');
-    const today = new Date().toDateString();
-    if (lastActiveDate !== today) {
-      setTodayPomodoros(0);
-      localStorage.setItem('lastActiveDate', today);
-    }
+    localStorage.setItem('lastActiveDate', new Date().toDateString());
   }, []);
 
   // Save stats to localStorage
@@ -181,31 +196,45 @@ const Pomodoro: React.FC = () => {
 
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft(timeLeft - 1);
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prevTime - 1;
+        });
+        
         if (mode === 'pomodoro') {
           setTotalFocusTime(prev => prev + 1);
         }
       }, 1000);
-    } else if (isActive && timeLeft === 0) {
+    } else if (timeLeft === 0) {
       setIsActive(false);
       
-      // Notification when timer completes
+      // Play notification sound
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(() => {
+        console.log('Audio playback failed');
+      });
+      
       if (mode === 'pomodoro') {
-        setCompletedPomodoros(prev => prev + 1);
+        const newCompletedPomodoros = completedPomodoros + 1;
+        setCompletedPomodoros(newCompletedPomodoros);
         setTodayPomodoros(prev => prev + 1);
-        setCurrentStreak(prev => prev + 1);
         
-        // Update longest streak if needed
-        if (currentStreak + 1 > longestStreak) {
-          setLongestStreak(currentStreak + 1);
+        // Update streak only when completing a pomodoro
+        const newStreak = currentStreak + 1;
+        setCurrentStreak(newStreak);
+        if (newStreak > longestStreak) {
+          setLongestStreak(newStreak);
         }
         
         toast("Pomodoro completed!", {
           description: "Time for a break!",
         });
         
-        // Auto switch to break after pomodoro
-        if (completedPomodoros % 4 === 3) { // Every 4th pomodoro
+        // Improved auto-switch logic
+        if (newCompletedPomodoros % 4 === 0) {
           changeMode('longBreak');
         } else {
           changeMode('shortBreak');
@@ -219,8 +248,12 @@ const Pomodoro: React.FC = () => {
       }
     }
 
-    return () => clearInterval(interval);
-  }, [isActive, timeLeft, mode, completedPomodoros, currentStreak, longestStreak]);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isActive, timeLeft, mode, completedPomodoros]);
 
   // Get button color based on mode
   const getButtonColor = (buttonMode: 'pomodoro' | 'shortBreak' | 'longBreak'): string => {
@@ -249,9 +282,9 @@ const Pomodoro: React.FC = () => {
     }
   };
 
-  // Calculate progress percentage
+  // Calculate progress
   const calculateProgress = (): number => {
-    let totalTime: number;
+    let totalTime;
     switch (mode) {
       case 'pomodoro':
         totalTime = pomodoroTime;
@@ -265,7 +298,15 @@ const Pomodoro: React.FC = () => {
       default:
         totalTime = pomodoroTime;
     }
-    return (timeLeft / totalTime) * 100;
+    
+    // Ensure we don't divide by zero
+    if (totalTime === 0) return 0;
+    
+    // Calculate progress percentage
+    const progress = ((totalTime - timeLeft) / totalTime) * 100;
+    
+    // Ensure progress stays between 0 and 100
+    return Math.min(Math.max(progress, 0), 100);
   };
 
   return (
