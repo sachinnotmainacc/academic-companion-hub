@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
-import { useCSVQuestions } from "@/hooks/use-csv-questions";
+import { useCSVQuestions, TimeFrame, QuestionData } from "@/hooks/use-csv-questions";
 import MainLayout from "@/components/layout/MainLayout";
 import {
   BookOpen,
@@ -46,11 +46,29 @@ import {
 const PlacementDSA = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [company, setCompany] = useState("google");
-  const [timeRange, setTimeRange] = useState("alltime");
-  const [filteredQuestions, setFilteredQuestions] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState<string>("alltime");
+  const [filteredQuestions, setFilteredQuestions] = useState<QuestionData[]>([]);
+
+  // Map the UI time range to API time range format
+  const getTimeFrameFromUI = (uiTimeRange: string): TimeFrame => {
+    switch (uiTimeRange) {
+      case "6months":
+        return "6 Months";
+      case "1year":
+        return "1 Year";
+      case "2year":
+        return "2 Years";
+      case "alltime":
+      default:
+        return "All Time";
+    }
+  };
 
   // Fix the timeRange type to match what's expected by useCSVQuestions
-  const { questions, isLoading, error } = useCSVQuestions(company, timeRange as "All Time" | "6 Months" | "1 Year" | "2 Years");
+  const { questions, isLoading, error } = useCSVQuestions(
+    company, 
+    getTimeFrameFromUI(timeRange)
+  );
   
   const companies = [
     { id: "google", name: "Google" },
@@ -74,7 +92,7 @@ const PlacementDSA = () => {
 
   // Update when questions change
   useEffect(() => {
-    if (!questions) {
+    if (!questions || !Array.isArray(questions)) {
       setFilteredQuestions([]);
       return;
     }
@@ -84,7 +102,7 @@ const PlacementDSA = () => {
 
   // Filter questions based on search term
   useEffect(() => {
-    if (!questions) {
+    if (!questions || !Array.isArray(questions)) {
       setFilteredQuestions([]);
       return;
     }
@@ -101,7 +119,7 @@ const PlacementDSA = () => {
   }, [searchTerm, questions]);
 
   // Difficulty badge color
-  const getDifficultyColor = (difficulty) => {
+  const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case "easy":
         return "bg-green-500/20 text-green-500 border-green-500/30";
@@ -128,21 +146,6 @@ const PlacementDSA = () => {
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
-  };
-
-  // Map from UI time ranges to API time ranges
-  const mapTimeRangeToAPI = (uiTimeRange) => {
-    switch (uiTimeRange) {
-      case "6months":
-        return "6 Months";
-      case "1year":
-        return "1 Year";
-      case "2year":
-        return "2 Years";
-      case "alltime":
-      default:
-        return "All Time";
-    }
   };
 
   return (
@@ -179,7 +182,7 @@ const PlacementDSA = () => {
                     <Building className="h-4 w-4 text-blue-500" />
                     Select Company
                   </label>
-                  <Select defaultValue={company} onValueChange={setCompany}>
+                  <Select value={company} onValueChange={setCompany}>
                     <SelectTrigger className="bg-dark-800 border-dark-700 focus:ring-blue-500">
                       <SelectValue placeholder="Select company" />
                     </SelectTrigger>
@@ -198,7 +201,7 @@ const PlacementDSA = () => {
                     <Calendar className="h-4 w-4 text-blue-500" />
                     Time Range
                   </label>
-                  <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+                  <Select value={timeRange} onValueChange={setTimeRange}>
                     <SelectTrigger className="bg-dark-800 border-dark-700 focus:ring-blue-500">
                       <SelectValue placeholder="Select time range" />
                     </SelectTrigger>
@@ -289,7 +292,7 @@ const PlacementDSA = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Total Questions</span>
                   <Badge variant="outline" className="bg-blue-500/10 text-blue-400">
-                    {filteredQuestions?.length || 0}
+                    {Array.isArray(filteredQuestions) ? filteredQuestions.length : 0}
                   </Badge>
                 </div>
               </div>
@@ -304,7 +307,7 @@ const PlacementDSA = () => {
                     <Code className="h-4 w-4 text-blue-500" />
                     {companies.find(c => c.id === company)?.name || "Company"} Questions
                     <Badge variant="outline" className="ml-2 bg-blue-500/10 text-blue-400">
-                      {filteredQuestions?.length || 0}
+                      {Array.isArray(filteredQuestions) ? filteredQuestions.length : 0}
                     </Badge>
                   </CardTitle>
                   <div className="flex items-center gap-2">
@@ -331,7 +334,7 @@ const PlacementDSA = () => {
                       Please wait while we fetch the questions for {companies.find(c => c.id === company)?.name}.
                     </p>
                   </div>
-                ) : error || !filteredQuestions.length ? (
+                ) : error || !Array.isArray(filteredQuestions) || filteredQuestions.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4">
                     <BookOpen className="h-12 w-12 text-blue-500/30 mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No questions found</h3>
