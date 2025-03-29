@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
@@ -10,8 +11,10 @@ import CGPA from "@/pages/CGPA";
 import PlacementDSA from "@/pages/PlacementDSA";
 import NotFound from "@/pages/NotFound";
 
+// Use a function component to wrap the router to ensure React context is properly available
 function App() {
   return (
+    // Ensure Router is the root component
     <Router>
       <Toaster />
       <Routes>
