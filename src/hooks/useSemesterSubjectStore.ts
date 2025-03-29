@@ -3,12 +3,12 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 // Type definitions
-interface Semester {
+export interface Semester {
   id: string;
   name: string;
 }
 
-interface Subject {
+export interface Subject {
   id: string;
   name: string;
   semesterId: string;
@@ -56,39 +56,89 @@ export const useSemesterSubjectStore = () => {
 
   // Add a new semester
   const addSemester = (name: string) => {
+    const semesterExists = semesters.some(
+      sem => sem.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (semesterExists) {
+      toast.error("Semester already exists");
+      return null;
+    }
+
     const newSemester: Semester = {
       id: generateId(),
       name,
     };
     setSemesters([...semesters, newSemester]);
+    toast.success("Semester added successfully");
+    return newSemester;
   };
 
   // Add a new subject
   const addSubject = (name: string, semesterId: string) => {
+    const subjectExists = subjects.some(
+      sub => sub.name.toLowerCase() === name.toLowerCase() && sub.semesterId === semesterId
+    );
+
+    if (subjectExists) {
+      toast.error("Subject already exists in this semester");
+      return null;
+    }
+
     const newSubject: Subject = {
       id: generateId(),
       name,
       semesterId,
     };
     setSubjects([...subjects, newSubject]);
+    toast.success("Subject added successfully");
+    return newSubject;
   };
 
   // Update a semester
   const updateSemester = (id: string, name: string) => {
+    // Check if the updated name already exists in other semesters
+    const semesterExists = semesters.some(
+      sem => sem.name.toLowerCase() === name.toLowerCase() && sem.id !== id
+    );
+
+    if (semesterExists) {
+      toast.error("Semester name already exists");
+      return false;
+    }
+
     setSemesters(
       semesters.map((semester) =>
         semester.id === id ? { ...semester, name } : semester
       )
     );
+    toast.success("Semester updated successfully");
+    return true;
   };
 
   // Update a subject
   const updateSubject = (id: string, data: Partial<Subject>) => {
+    if (data.name && data.semesterId) {
+      // Check if the updated name already exists in the same semester
+      const subjectExists = subjects.some(
+        sub => sub.name.toLowerCase() === data.name!.toLowerCase() && 
+                sub.semesterId === data.semesterId && 
+                sub.id !== id
+      );
+
+      if (subjectExists) {
+        toast.error("Subject name already exists in this semester");
+        return false;
+      }
+    }
+
     setSubjects(
       subjects.map((subject) =>
         subject.id === id ? { ...subject, ...data } : subject
       )
     );
+    toast.success("Subject updated successfully");
+    return true;
   };
 
   // Delete a semester
@@ -101,13 +151,20 @@ export const useSemesterSubjectStore = () => {
     }
 
     setSemesters(semesters.filter((semester) => semester.id !== id));
+    toast.success("Semester deleted successfully");
     return true;
   };
 
   // Delete a subject
   const deleteSubject = (id: string) => {
     setSubjects(subjects.filter((subject) => subject.id !== id));
+    toast.success("Subject deleted successfully");
     return true;
+  };
+
+  // Get subjects by semester
+  const getSubjectsBySemester = (semesterId: string) => {
+    return subjects.filter(subject => subject.semesterId === semesterId);
   };
 
   return {
@@ -119,5 +176,6 @@ export const useSemesterSubjectStore = () => {
     updateSubject,
     deleteSemester,
     deleteSubject,
+    getSubjectsBySemester
   };
 };

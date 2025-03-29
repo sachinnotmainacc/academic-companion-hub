@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 // Type definitions
-interface PDF {
+export interface PDF {
   id: string;
   title: string;
   fileName: string;
@@ -55,6 +56,7 @@ export const usePdfStore = () => {
       createdAt: Date.now(),
     };
     setPdfs([...pdfs, newPdf]);
+    toast.success("PDF added successfully");
     return newPdf;
   };
 
@@ -65,11 +67,23 @@ export const usePdfStore = () => {
         pdf.id === id ? { ...pdf, ...data } : pdf
       )
     );
+    toast.success("PDF updated successfully");
   };
 
   // Delete a PDF
   const deletePdf = (id: string) => {
     setPdfs(pdfs.filter((pdf) => pdf.id !== id));
+    toast.success("PDF deleted successfully");
+  };
+
+  // Get PDFs by subject
+  const getPdfsBySubject = (subjectId: string) => {
+    return pdfs.filter(pdf => pdf.subjectId === subjectId);
+  };
+
+  // Get PDFs by semester
+  const getPdfsBySemester = (semesterId: string) => {
+    return pdfs.filter(pdf => pdf.semesterId === semesterId);
   };
 
   return {
@@ -77,5 +91,7 @@ export const usePdfStore = () => {
     addPdf,
     updatePdf,
     deletePdf,
+    getPdfsBySubject,
+    getPdfsBySemester
   };
 };

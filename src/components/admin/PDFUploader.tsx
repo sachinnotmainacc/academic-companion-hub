@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Temporary data store (will be replaced with backend)
+// Import the data stores
 import { useSemesterSubjectStore } from "@/hooks/useSemesterSubjectStore";
+import { usePdfStore } from "@/hooks/usePdfStore";
 
 export const PDFUploader = () => {
   const { semesters, subjects } = useSemesterSubjectStore();
+  const { addPdf } = usePdfStore();
+  
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -35,7 +38,18 @@ export const PDFUploader = () => {
       toast.error("Only PDF files are allowed");
       return;
     }
+    
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast.error("File size should be less than 10MB");
+      return;
+    }
+    
     setSelectedFile(file);
+    // If title is empty, use the file name without extension
+    if (!title) {
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
+      setTitle(fileName);
+    }
     toast.success("File selected successfully");
   };
 
@@ -83,10 +97,18 @@ export const PDFUploader = () => {
       return;
     }
 
-    // Here you would normally send the file to the backend
-    // For now, we'll just simulate success
+    // In a real app, you would upload the file to a server here
+    // For now, we'll just create a URL for demo purposes
+    const fileUrl = URL.createObjectURL(selectedFile);
     
-    toast.success("PDF uploaded successfully");
+    // Add the PDF to our local store
+    addPdf({
+      title: title,
+      fileName: selectedFile.name,
+      fileUrl: fileUrl,
+      semesterId: selectedSemester,
+      subjectId: selectedSubject
+    });
     
     // Reset form
     setSelectedFile(null);
@@ -102,7 +124,10 @@ export const PDFUploader = () => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="semester">Semester</Label>
-              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+              <Select value={selectedSemester} onValueChange={(value) => {
+                setSelectedSemester(value);
+                setSelectedSubject(""); // Reset subject when semester changes
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select Semester" />
                 </SelectTrigger>
@@ -134,6 +159,11 @@ export const PDFUploader = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedSemester && filteredSubjects.length === 0 && (
+                <p className="text-xs text-amber-500 mt-1">
+                  No subjects found for this semester. Please add subjects first.
+                </p>
+              )}
             </div>
             
             <div className="space-y-2">
