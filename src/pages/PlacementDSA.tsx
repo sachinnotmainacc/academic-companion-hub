@@ -47,9 +47,11 @@ const PlacementDSA = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [company, setCompany] = useState("google");
   const [timeRange, setTimeRange] = useState("alltime");
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [filteredQuestions, setFilteredQuestions] = useState<any[]>([]);
 
-  const allQuestions = useCSVQuestions(company, timeRange);
+  // Fix the timeRange type to match what's expected by useCSVQuestions
+  const { questions, isLoading, error } = useCSVQuestions(company, timeRange as "All Time" | "6 Months" | "1 Year" | "2 Years");
+  
   const companies = [
     { id: "google", name: "Google" },
     { id: "amazon", name: "Amazon" },
@@ -70,23 +72,33 @@ const PlacementDSA = () => {
     { id: "alltime", name: "All Time" },
   ];
 
+  // Update when questions change
+  useEffect(() => {
+    if (!questions) {
+      setFilteredQuestions([]);
+      return;
+    }
+    
+    setFilteredQuestions(questions);
+  }, [questions]);
+
   // Filter questions based on search term
   useEffect(() => {
-    if (!allQuestions) {
+    if (!questions) {
       setFilteredQuestions([]);
       return;
     }
 
     if (!searchTerm.trim()) {
-      setFilteredQuestions(allQuestions);
+      setFilteredQuestions(questions);
       return;
     }
 
-    const filtered = allQuestions.filter((question) =>
-      question.problem_name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filtered = questions.filter((question) =>
+      question.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredQuestions(filtered);
-  }, [searchTerm, allQuestions]);
+  }, [searchTerm, questions]);
 
   // Difficulty badge color
   const getDifficultyColor = (difficulty) => {
@@ -116,6 +128,21 @@ const PlacementDSA = () => {
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
+  };
+
+  // Map from UI time ranges to API time ranges
+  const mapTimeRangeToAPI = (uiTimeRange) => {
+    switch (uiTimeRange) {
+      case "6months":
+        return "6 Months";
+      case "1year":
+        return "1 Year";
+      case "2year":
+        return "2 Years";
+      case "alltime":
+      default:
+        return "All Time";
+    }
   };
 
   return (
@@ -294,12 +321,22 @@ const PlacementDSA = () => {
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {!allQuestions || allQuestions.length === 0 ? (
+                {isLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 px-4">
+                    <div className="animate-spin h-12 w-12 text-blue-500 mb-4">
+                      <RefreshCcw className="h-12 w-12" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2">Loading questions...</h3>
+                    <p className="text-center text-muted-foreground max-w-md">
+                      Please wait while we fetch the questions for {companies.find(c => c.id === company)?.name}.
+                    </p>
+                  </div>
+                ) : error || !filteredQuestions.length ? (
                   <div className="flex flex-col items-center justify-center py-12 px-4">
                     <BookOpen className="h-12 w-12 text-blue-500/30 mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No questions found</h3>
                     <p className="text-center text-muted-foreground max-w-md">
-                      We couldn't find any questions for this company and time range. Try selecting a different company or time range.
+                      {error || "We couldn't find any questions for this company and time range. Try selecting a different company or time range."}
                     </p>
                   </div>
                 ) : (
@@ -328,16 +365,16 @@ const PlacementDSA = () => {
                               <TableCell className="font-medium">
                                 <div className="flex items-center gap-2">
                                   <div className={`h-2 w-2 rounded-full ${
-                                    question.difficulty.toLowerCase() === 'easy' ? 'bg-green-500' :
-                                    question.difficulty.toLowerCase() === 'medium' ? 'bg-amber-500' : 'bg-red-500'
+                                    question.difficulty?.toLowerCase() === 'easy' ? 'bg-green-500' :
+                                    question.difficulty?.toLowerCase() === 'medium' ? 'bg-amber-500' : 'bg-red-500'
                                   }`}></div>
                                   <a 
-                                    href={question.url} 
+                                    href={question.link} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                     className="text-white hover:text-blue-400 transition-colors group-hover:underline flex items-center"
                                   >
-                                    {question.problem_name}
+                                    {question.title}
                                     <ExternalLink className="h-3.5 w-3.5 ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                   </a>
                                 </div>
@@ -353,7 +390,7 @@ const PlacementDSA = () => {
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   <BarChart2 className="h-4 w-4 text-blue-500" />
-                                  <span className="text-blue-400">{question.frequency || 'Low'}</span>
+                                  <span className="text-blue-400">{question.frequency > 0 ? question.frequency.toFixed(2) : 'Low'}</span>
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
@@ -370,7 +407,7 @@ const PlacementDSA = () => {
                                     className="h-8 w-8 bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"
                                     asChild
                                   >
-                                    <a href={question.url} target="_blank" rel="noopener noreferrer">
+                                    <a href={question.link} target="_blank" rel="noopener noreferrer">
                                       <ChevronRight className="h-4 w-4" />
                                     </a>
                                   </Button>
