@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export type QuestionData = {
@@ -10,7 +9,7 @@ export type QuestionData = {
   link: string;
 };
 
-export type TimeFrame = '6 Months' | '1 Year' | '2 Years' | 'All Time';
+type TimeFrame = '6 Months' | '1 Year' | '2 Years' | 'All Time';
 
 const timeFrameToFileName = (companySlug: string, timeFrame: TimeFrame): string => {
   switch (timeFrame) {
