@@ -1,19 +1,20 @@
 
 import React, { useState } from "react";
-import { PlusCircle, Edit, Trash2, AlertCircle } from "lucide-react";
+import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose
+  DialogClose,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { 
   Table, 
@@ -24,6 +25,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 // Import the data stores
 import { useSemesterSubjectStore, Subject, Semester } from "@/hooks/useSemesterSubjectStore";
@@ -70,7 +72,7 @@ export const SubjectManager = () => {
 
   const filteredSubjects = subjects.filter(
     (subject) => 
-      (selectedSemester ? subject.semesterId === selectedSemester : true) &&
+      (selectedSemester && selectedSemester !== "all-semesters" ? subject.semesterId === selectedSemester : true) &&
       (filter ? subject.name.toLowerCase().includes(filter.toLowerCase()) : true)
   );
 
@@ -84,6 +86,9 @@ export const SubjectManager = () => {
     if (result) {
       setNewSemesterName("");
       setIsAddingSemester(false);
+      toast.success("Semester added successfully", {
+        description: `"${newSemesterName}" has been created.`
+      });
     }
   };
 
@@ -102,6 +107,9 @@ export const SubjectManager = () => {
     if (result) {
       setNewSubjectName("");
       setIsAddingSubject(false);
+      toast.success("Subject added successfully", {
+        description: `"${newSubjectName}" has been added to the selected semester.`
+      });
     }
   };
 
@@ -123,6 +131,9 @@ export const SubjectManager = () => {
     if (result) {
       setIsEditingSemester(false);
       setSemesterToEdit(null);
+      toast.success("Semester updated successfully", {
+        description: `The semester has been renamed to "${editSemesterName}".`
+      });
     }
   };
 
@@ -154,6 +165,9 @@ export const SubjectManager = () => {
     if (result) {
       setIsEditingSubject(false);
       setSubjectToEdit(null);
+      toast.success("Subject updated successfully", {
+        description: `The subject has been updated to "${editSubjectName}".`
+      });
     }
   };
 
@@ -161,7 +175,9 @@ export const SubjectManager = () => {
     // Check if PDFs are associated with this subject
     const hasPdfs = pdfs.some(pdf => pdf.subjectId === id);
     if (hasPdfs) {
-      toast.error("Cannot delete subject with associated PDFs");
+      toast.error("Cannot delete subject with associated PDFs", {
+        description: "Remove all PDFs linked to this subject first."
+      });
       return;
     }
 
@@ -171,9 +187,13 @@ export const SubjectManager = () => {
 
   const confirmDeleteSubject = () => {
     if (subjectToDelete) {
+      const subjectName = subjects.find(s => s.id === subjectToDelete)?.name;
       deleteSubject(subjectToDelete);
       setSubjectToDelete(null);
       setIsSubjectDeleteDialogOpen(false);
+      toast.success("Subject deleted successfully", {
+        description: `"${subjectName}" has been removed from the system.`
+      });
     }
   };
 
@@ -181,14 +201,18 @@ export const SubjectManager = () => {
     // Check if subjects are associated with this semester
     const hasSubjects = subjects.some(subject => subject.semesterId === id);
     if (hasSubjects) {
-      toast.error("Cannot delete semester with associated subjects");
+      toast.error("Cannot delete semester with associated subjects", {
+        description: "Remove all subjects linked to this semester first."
+      });
       return;
     }
 
     // Check if PDFs are associated with this semester
     const hasPdfs = pdfs.some(pdf => pdf.semesterId === id);
     if (hasPdfs) {
-      toast.error("Cannot delete semester with associated PDFs");
+      toast.error("Cannot delete semester with associated PDFs", {
+        description: "Remove all PDFs linked to this semester first."
+      });
       return;
     }
 
@@ -198,26 +222,52 @@ export const SubjectManager = () => {
 
   const confirmDeleteSemester = () => {
     if (semesterToDelete) {
+      const semesterName = semesters.find(s => s.id === semesterToDelete)?.name;
       deleteSemester(semesterToDelete);
       setSemesterToDelete(null);
       setIsSemesterDeleteDialogOpen(false);
+      toast.success("Semester deleted successfully", {
+        description: `"${semesterName}" has been removed from the system.`
+      });
     }
   };
 
+  // Get subject name by ID
+  const getSubjectName = (id: string | null) => {
+    if (!id) return null;
+    return subjects.find(sub => sub.id === id)?.name || 'Unknown';
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-semibold">Manage {activeTab === "subjects" ? "Subjects" : "Semesters"}</h2>
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          {activeTab === "subjects" ? (
+            <>
+              <BookOpen className="h-5 w-5 text-blue-500" />
+              <span>Manage Subjects</span>
+              <Badge className="ml-2 bg-blue-500/80">{subjects.length}</Badge>
+            </>
+          ) : (
+            <>
+              <Layers className="h-5 w-5 text-blue-500" />
+              <span>Manage Semesters</span>
+              <Badge className="ml-2 bg-blue-500/80">{semesters.length}</Badge>
+            </>
+          )}
+        </h2>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             variant="outline" 
             onClick={() => setIsAddingSemester(true)}
+            className="bg-dark-800 border-dark-700 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/30 transition-all duration-200"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
             Add Semester
           </Button>
           <Button 
             onClick={() => setIsAddingSubject(true)}
+            className="bg-blue-600 hover:bg-blue-700 transition-colors"
           >
             <PlusCircle className="h-4 w-4 mr-2" />
             Add Subject
@@ -226,64 +276,87 @@ export const SubjectManager = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "subjects" | "semesters")}>
-        <TabsList className="grid grid-cols-2 w-full md:w-60 mb-4">
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="semesters">Semesters</TabsTrigger>
+        <TabsList className="grid grid-cols-2 w-full md:w-60 mb-4 bg-dark-800 border border-dark-700 p-1">
+          <TabsTrigger 
+            value="subjects" 
+            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-none text-gray-300"
+          >
+            Subjects
+          </TabsTrigger>
+          <TabsTrigger 
+            value="semesters" 
+            className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-none text-gray-300"
+          >
+            Semesters
+          </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="subjects">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label htmlFor="filter-semester" className="mb-2 block">Filter by Semester</Label>
-              <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger id="filter-semester">
-                  <SelectValue placeholder="All Semesters" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all-semesters">All Semesters</SelectItem>
-                  {semesters.map((semester) => (
-                    <SelectItem key={semester.id} value={semester.id}>
-                      {semester.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="filter-subject" className="mb-2 block">Search Subject</Label>
-              <Input
-                id="filter-subject"
-                placeholder="Type to search..."
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              />
-            </div>
-          </div>
+        <TabsContent value="subjects" className="animate-fade-in">
+          <Card className="border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
+            <CardHeader className="bg-dark-900 border-b border-dark-800 pb-4">
+              <CardTitle className="text-lg text-white">Filter Subjects</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="filter-semester" className="mb-2 block text-gray-300 text-sm">Filter by Semester</Label>
+                  <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                    <SelectTrigger id="filter-semester" className="bg-dark-800 border-dark-700 focus:ring-blue-500 h-10">
+                      <SelectValue placeholder="All Semesters" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-dark-800 border-dark-700">
+                      <SelectItem value="all-semesters">All Semesters</SelectItem>
+                      {semesters.map((semester) => (
+                        <SelectItem key={semester.id} value={semester.id}>
+                          {semester.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="filter-subject" className="mb-2 block text-gray-300 text-sm">Search Subject</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="filter-subject"
+                      placeholder="Type to search..."
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      className="pl-10 bg-dark-800 border-dark-700 focus-visible:ring-blue-500 h-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <Card className="mt-4">
+          <Card className="mt-4 border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Subject Name</TableHead>
-                    <TableHead>Semester</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableRow className="hover:bg-dark-800/50">
+                    <TableHead className="font-medium text-gray-300">Subject Name</TableHead>
+                    <TableHead className="font-medium text-gray-300">Semester</TableHead>
+                    <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredSubjects.length > 0 ? (
                     filteredSubjects.map((subject) => (
-                      <TableRow key={subject.id}>
-                        <TableCell className="font-medium">{subject.name}</TableCell>
+                      <TableRow key={subject.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
+                        <TableCell className="font-medium text-white">{subject.name}</TableCell>
                         <TableCell>
-                          {semesters.find(sem => sem.id === subject.semesterId)?.name || 'Unknown'}
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                            {semesters.find(sem => sem.id === subject.semesterId)?.name || 'Unknown'}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8"
+                              className="h-8 w-8 hover:bg-blue-500/10 hover:text-blue-400 transition-colors"
                               onClick={() => handleOpenEditSubject(subject)}
                             >
                               <Edit className="h-4 w-4" />
@@ -291,7 +364,7 @@ export const SubjectManager = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-destructive"
+                              className="h-8 w-8 text-destructive hover:bg-red-500/10 transition-colors"
                               onClick={() => handleDeleteSubject(subject.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -302,7 +375,7 @@ export const SubjectManager = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
                         No subjects found. Add some subjects to get started.
                       </TableCell>
                     </TableRow>
@@ -313,16 +386,16 @@ export const SubjectManager = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="semesters">
-          <Card>
+        <TabsContent value="semesters" className="animate-fade-in">
+          <Card className="border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Semester Name</TableHead>
-                    <TableHead>Subjects Count</TableHead>
-                    <TableHead>PDFs Count</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableRow className="hover:bg-dark-800/50">
+                    <TableHead className="font-medium text-gray-300">Semester Name</TableHead>
+                    <TableHead className="font-medium text-gray-300">Subjects Count</TableHead>
+                    <TableHead className="font-medium text-gray-300">PDFs Count</TableHead>
+                    <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -332,16 +405,24 @@ export const SubjectManager = () => {
                       const pdfCount = pdfs.filter(p => p.semesterId === semester.id).length;
                       
                       return (
-                        <TableRow key={semester.id}>
-                          <TableCell className="font-medium">{semester.name}</TableCell>
-                          <TableCell>{subjectCount}</TableCell>
-                          <TableCell>{pdfCount}</TableCell>
+                        <TableRow key={semester.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
+                          <TableCell className="font-medium text-white">{semester.name}</TableCell>
+                          <TableCell>
+                            <Badge className="bg-purple-500/10 text-purple-400 border-none">
+                              {subjectCount}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-500/10 text-blue-400 border-none">
+                              {pdfCount}
+                            </Badge>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8"
+                                className="h-8 w-8 hover:bg-blue-500/10 hover:text-blue-400 transition-colors"
                                 onClick={() => handleOpenEditSemester(semester)}
                               >
                                 <Edit className="h-4 w-4" />
@@ -349,7 +430,7 @@ export const SubjectManager = () => {
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-destructive"
+                                className="h-8 w-8 text-destructive hover:bg-red-500/10 transition-colors"
                                 onClick={() => handleDeleteSemester(semester.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -361,7 +442,7 @@ export const SubjectManager = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
                         No semesters found. Add some semesters to get started.
                       </TableCell>
                     </TableRow>
@@ -375,42 +456,63 @@ export const SubjectManager = () => {
 
       {/* Add Semester Dialog */}
       <Dialog open={isAddingSemester} onOpenChange={setIsAddingSemester}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Semester</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-blue-500" /> Add New Semester
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Create a new semester for organizing subjects and PDFs.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="semester-name" className="mb-2 block">Semester Name</Label>
+            <Label htmlFor="semester-name" className="mb-2 block text-gray-300 text-sm">Semester Name</Label>
             <Input
               id="semester-name"
               placeholder="e.g. Semester 1"
               value={newSemesterName}
               onChange={(e) => setNewSemesterName(e.target.value)}
+              className="bg-dark-800 border-dark-700 focus-visible:ring-blue-500"
             />
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button onClick={handleAddSemester}>Add Semester</Button>
+            <Button 
+              onClick={handleAddSemester}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Add Semester
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Add Subject Dialog */}
       <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Subject</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-blue-500" /> Add New Subject
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Create a new subject and assign it to a semester.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <div>
-              <Label htmlFor="select-semester" className="mb-2 block">Select Semester</Label>
+              <Label htmlFor="select-semester" className="mb-2 block text-gray-300 text-sm">Select Semester</Label>
               <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                <SelectTrigger id="select-semester">
+                <SelectTrigger id="select-semester" className="bg-dark-800 border-dark-700 focus:ring-blue-500">
                   <SelectValue placeholder="Choose a semester" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-dark-800 border-dark-700">
                   {semesters.map((semester) => (
                     <SelectItem key={semester.id} value={semester.id}>
                       {semester.name}
@@ -420,74 +522,102 @@ export const SubjectManager = () => {
               </Select>
             </div>
             <div>
-              <Label htmlFor="subject-name" className="mb-2 block">Subject Name</Label>
+              <Label htmlFor="subject-name" className="mb-2 block text-gray-300 text-sm">Subject Name</Label>
               <Input
                 id="subject-name"
                 placeholder="e.g. Mathematics"
                 value={newSubjectName}
                 onChange={(e) => setNewSubjectName(e.target.value)}
+                className="bg-dark-800 border-dark-700 focus-visible:ring-blue-500"
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button onClick={handleAddSubject}>Add Subject</Button>
+            <Button 
+              onClick={handleAddSubject}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={!selectedSemester}
+            >
+              Add Subject
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Semester Dialog */}
       <Dialog open={isEditingSemester} onOpenChange={setIsEditingSemester}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Semester</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Edit className="h-5 w-5 text-blue-500" /> Edit Semester
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <Label htmlFor="edit-semester-name" className="mb-2 block">Semester Name</Label>
+            <Label htmlFor="edit-semester-name" className="mb-2 block text-gray-300 text-sm">Semester Name</Label>
             <Input
               id="edit-semester-name"
               value={editSemesterName}
               onChange={(e) => setEditSemesterName(e.target.value)}
               placeholder="Enter semester name"
+              className="bg-dark-800 border-dark-700 focus-visible:ring-blue-500"
             />
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button onClick={handleUpdateSemester}>Update Semester</Button>
+            <Button 
+              onClick={handleUpdateSemester}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Update Semester
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Edit Subject Dialog */}
       <Dialog open={isEditingSubject} onOpenChange={setIsEditingSubject}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Subject</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Edit className="h-5 w-5 text-blue-500" /> Edit Subject
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-subject-name" className="mb-2 block">Subject Name</Label>
+              <Label htmlFor="edit-subject-name" className="mb-2 block text-gray-300 text-sm">Subject Name</Label>
               <Input
                 id="edit-subject-name"
                 value={editSubjectName}
                 onChange={(e) => setEditSubjectName(e.target.value)}
                 placeholder="Enter subject name"
+                className="bg-dark-800 border-dark-700 focus-visible:ring-blue-500"
               />
             </div>
             <div>
-              <Label htmlFor="edit-subject-semester" className="mb-2 block">Semester</Label>
+              <Label htmlFor="edit-subject-semester" className="mb-2 block text-gray-300 text-sm">Semester</Label>
               <Select 
                 value={editSubjectSemesterId} 
                 onValueChange={setEditSubjectSemesterId}
               >
-                <SelectTrigger id="edit-subject-semester">
+                <SelectTrigger id="edit-subject-semester" className="bg-dark-800 border-dark-700 focus:ring-blue-500">
                   <SelectValue placeholder="Select semester" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-dark-800 border-dark-700">
                   {semesters.map((semester) => (
                     <SelectItem key={semester.id} value={semester.id}>
                       {semester.name}
@@ -499,51 +629,101 @@ export const SubjectManager = () => {
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button onClick={handleUpdateSubject}>Update Subject</Button>
+            <Button 
+              onClick={handleUpdateSubject}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Update Subject
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Subject Confirmation Dialog */}
       <Dialog open={isSubjectDeleteDialogOpen} onOpenChange={setIsSubjectDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" /> Confirm Deletion
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <div className="flex items-center space-x-2 text-amber-500">
-              <AlertCircle className="h-5 w-5" />
-              <p>Are you sure you want to delete this subject? This action cannot be undone.</p>
+            <div className="flex items-start space-x-3 text-amber-500">
+              <AlertCircle className="h-5 w-5 mt-0.5" />
+              <div>
+                <p>Are you sure you want to delete this subject?</p>
+                {subjectToDelete && (
+                  <p className="mt-2 font-medium text-white">"{getSubjectName(subjectToDelete)}"</p>
+                )}
+                <p className="mt-2 text-sm text-gray-400">This action cannot be undone.</p>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button variant="destructive" onClick={confirmDeleteSubject}>Delete</Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteSubject}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Semester Confirmation Dialog */}
       <Dialog open={isSemesterDeleteDialogOpen} onOpenChange={setIsSemesterDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" /> Confirm Deletion
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <div className="flex items-center space-x-2 text-amber-500">
-              <AlertCircle className="h-5 w-5" />
-              <p>Are you sure you want to delete this semester? This action cannot be undone.</p>
+            <div className="flex items-start space-x-3 text-amber-500">
+              <AlertCircle className="h-5 w-5 mt-0.5" />
+              <div>
+                <p>Are you sure you want to delete this semester?</p>
+                {semesterToDelete && (
+                  <p className="mt-2 font-medium text-white">
+                    "{semesters.find(s => s.id === semesterToDelete)?.name}"
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-gray-400">This action cannot be undone.</p>
+              </div>
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button 
+                variant="outline" 
+                className="border-dark-700 text-gray-400 hover:text-white hover:bg-dark-800"
+              >
+                Cancel
+              </Button>
             </DialogClose>
-            <Button variant="destructive" onClick={confirmDeleteSemester}>Delete</Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteSemester}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
