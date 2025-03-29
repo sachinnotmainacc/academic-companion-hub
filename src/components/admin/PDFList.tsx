@@ -127,7 +127,7 @@ export const PDFList = () => {
               <SelectValue placeholder="All Semesters" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Semesters</SelectItem>
+              <SelectItem value="all-semesters">All Semesters</SelectItem>
               {semesters.map((semester) => (
                 <SelectItem key={semester.id} value={semester.id}>
                   {semester.name}
@@ -148,7 +148,7 @@ export const PDFList = () => {
               <SelectValue placeholder="All Subjects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Subjects</SelectItem>
+              <SelectItem value="all-subjects">All Subjects</SelectItem>
               {filteredSubjects.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>
                   {subject.name}

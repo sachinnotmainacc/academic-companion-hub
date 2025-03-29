@@ -240,7 +240,7 @@ export const SubjectManager = () => {
                   <SelectValue placeholder="All Semesters" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Semesters</SelectItem>
+                  <SelectItem value="all-semesters">All Semesters</SelectItem>
                   {semesters.map((semester) => (
                     <SelectItem key={semester.id} value={semester.id}>
                       {semester.name}
