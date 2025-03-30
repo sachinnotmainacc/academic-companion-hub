@@ -1,70 +1,87 @@
-import React from "react";
-import FeatureCard from "@/components/ui/FeatureCard";
-import { Calculator, BookOpen, Clock, Youtube, Code } from "lucide-react";
 
-const Features: React.FC = () => {
+import React from "react";
+import { BookOpen, Calculator, Clock, Code, BookMarked, Map } from "lucide-react";
+import FeatureCard from "@/components/ui/FeatureCard";
+
+const Features = () => {
+  const features = [
+    {
+      title: "Study Notes",
+      description: "Access comprehensive study notes and resources for your academic subjects.",
+      icon: BookOpen,
+      href: "/notes",
+      style: { background: "linear-gradient(225deg, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.05) 100%)" }
+    },
+    {
+      title: "CGPA Calculator",
+      description: "Calculate your CGPA easily with our intuitive calculator tool.",
+      icon: Calculator,
+      href: "/cgpa",
+      style: { background: "linear-gradient(225deg, rgba(236,72,153,0.1) 0%, rgba(219,39,119,0.05) 100%)" }
+    },
+    {
+      title: "Internal Marks",
+      description: "Track and calculate your internal marks for all your subjects.",
+      icon: Calculator,
+      href: "/internal-marks",
+      style: { background: "linear-gradient(225deg, rgba(168,85,247,0.1) 0%, rgba(139,92,246,0.05) 100%)" }
+    },
+    {
+      title: "Pomodoro Timer",
+      description: "Stay focused with our Pomodoro timer for effective study sessions.",
+      icon: Clock,
+      href: "/pomodoro",
+      style: { background: "linear-gradient(225deg, rgba(245,158,11,0.1) 0%, rgba(234,88,12,0.05) 100%)" }
+    },
+    {
+      title: "Placement DSA",
+      description: "Prepare for technical interviews with our DSA question bank.",
+      icon: Code,
+      href: "/placement-dsa",
+      style: { background: "linear-gradient(225deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.05) 100%)" }
+    },
+    {
+      title: "Online Courses",
+      description: "Explore a variety of online courses to enhance your skills and knowledge.",
+      icon: BookMarked,
+      href: "/courses",
+      style: { background: "linear-gradient(225deg, rgba(14,165,233,0.1) 0%, rgba(6,182,212,0.05) 100%)" }
+    },
+    {
+      title: "Learning Roadmaps",
+      description: "Follow structured learning paths for various technical domains.",
+      icon: Map,
+      href: "/roadmaps",
+      style: { background: "linear-gradient(225deg, rgba(249,115,22,0.1) 0%, rgba(239,68,68,0.05) 100%)" }
+    }
+  ];
+
   return (
-    <section id="features" className="pt-20 pb-20 md:pt-28 md:pb-28 bg-dark-900 relative overflow-hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16 md:mb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Incredible <span className="text-blue-500">Features</span>
+    <section className="py-20 bg-dark-950">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+            Everything You Need To <span className="text-blue-500">Excel</span>
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Tools designed to make your academic life easier and help you excel in your studies.
+            Our platform provides all the tools and resources you need to succeed in your academic journey.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard
-            title="KTU Calculator"
-            description="Calculate your KTU marks and grade based on the examination pattern."
-            icon={Calculator}
-            href="/internal-marks"
-            className="bg-gradient-to-br from-green-500/10 to-green-700/10 hover:from-green-500/20 hover:to-green-700/20"
-            style={{ animationDelay: "0.1s" }}
-          />
-          
-          <FeatureCard
-            title="CGPA Calculator"
-            description="Calculate your CGPA and predict what grades you need to achieve your target."
-            icon={Calculator}
-            href="/cgpa"
-            className="bg-gradient-to-br from-blue-500/10 to-blue-700/10 hover:from-blue-500/20 hover:to-blue-700/20"
-            style={{ animationDelay: "0.2s" }}
-          />
-          
-          <FeatureCard
-            title="Study Notes"
-            description="Access study notes for various subjects and courses."
-            icon={BookOpen}
-            href="/notes"
-            className="bg-gradient-to-br from-red-500/10 to-red-700/10 hover:from-red-500/20 hover:to-red-700/20"
-            style={{ animationDelay: "0.3s" }}
-          />
-          
-          <FeatureCard
-            title="Pomodoro Timer"
-            description="Focus on your studies with this customizable pomodoro timer."
-            icon={Clock}
-            href="/pomodoro"
-            className="bg-gradient-to-br from-yellow-500/10 to-yellow-700/10 hover:from-yellow-500/20 hover:to-yellow-700/20"
-            style={{ animationDelay: "0.4s" }}
-          />
-          
-          <FeatureCard
-            title="Placement DSA"
-            description="Practice company-specific DSA questions for your placement preparation."
-            icon={Code}
-            href="/placement-dsa"
-            className="bg-gradient-to-br from-purple-500/10 to-purple-700/10 hover:from-purple-500/20 hover:to-purple-700/20"
-            style={{ animationDelay: "0.5s" }}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              {...feature}
+              className="animate-fade-in-up"
+              style={{
+                ...feature.style,
+                animationDelay: `${index * 0.1}s`,
+              }}
+            />
+          ))}
         </div>
       </div>
-      
-      {/* Background gradient */}
-      <div className="absolute -bottom-48 left-1/2 transform -translate-x-1/2 w-3/4 h-80 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
     </section>
   );
 };
