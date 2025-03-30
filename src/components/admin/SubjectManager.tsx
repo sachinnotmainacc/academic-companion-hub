@@ -1,6 +1,5 @@
-
 import React, { useState } from "react";
-import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight } from "lucide-react";
+import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +26,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
-// Import the data stores
 import { useSemesterSubjectStore, Subject, Semester } from "@/hooks/useSemesterSubjectStore";
 import { usePdfStore } from "@/hooks/usePdfStore";
 
@@ -44,7 +42,6 @@ export const SubjectManager = () => {
   } = useSemesterSubjectStore();
   const { pdfs } = usePdfStore();
 
-  // State for subject management
   const [isAddingSemester, setIsAddingSemester] = useState(false);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
   const [newSemesterName, setNewSemesterName] = useState("");
@@ -53,18 +50,15 @@ export const SubjectManager = () => {
   const [filter, setFilter] = useState("");
   const [activeTab, setActiveTab] = useState<"subjects" | "semesters">("subjects");
 
-  // State for editing semester
   const [isEditingSemester, setIsEditingSemester] = useState(false);
   const [semesterToEdit, setSemesterToEdit] = useState<Semester | null>(null);
   const [editSemesterName, setEditSemesterName] = useState("");
 
-  // State for editing subject
   const [isEditingSubject, setIsEditingSubject] = useState(false);
   const [subjectToEdit, setSubjectToEdit] = useState<Subject | null>(null);
   const [editSubjectName, setEditSubjectName] = useState("");
   const [editSubjectSemesterId, setEditSubjectSemesterId] = useState("");
 
-  // Confirmation dialogs state
   const [isSubjectDeleteDialogOpen, setIsSubjectDeleteDialogOpen] = useState(false);
   const [subjectToDelete, setSubjectToDelete] = useState<string | null>(null);
   const [isSemesterDeleteDialogOpen, setIsSemesterDeleteDialogOpen] = useState(false);
@@ -172,7 +166,6 @@ export const SubjectManager = () => {
   };
 
   const handleDeleteSubject = (id: string) => {
-    // Check if PDFs are associated with this subject
     const hasPdfs = pdfs.some(pdf => pdf.subjectId === id);
     if (hasPdfs) {
       toast.error("Cannot delete subject with associated PDFs", {
@@ -198,7 +191,6 @@ export const SubjectManager = () => {
   };
 
   const handleDeleteSemester = (id: string) => {
-    // Check if subjects are associated with this semester
     const hasSubjects = subjects.some(subject => subject.semesterId === id);
     if (hasSubjects) {
       toast.error("Cannot delete semester with associated subjects", {
@@ -207,7 +199,6 @@ export const SubjectManager = () => {
       return;
     }
 
-    // Check if PDFs are associated with this semester
     const hasPdfs = pdfs.some(pdf => pdf.semesterId === id);
     if (hasPdfs) {
       toast.error("Cannot delete semester with associated PDFs", {
@@ -232,7 +223,6 @@ export const SubjectManager = () => {
     }
   };
 
-  // Get subject name by ID
   const getSubjectName = (id: string | null) => {
     if (!id) return null;
     return subjects.find(sub => sub.id === id)?.name || 'Unknown';
@@ -454,7 +444,6 @@ export const SubjectManager = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Add Semester Dialog */}
       <Dialog open={isAddingSemester} onOpenChange={setIsAddingSemester}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
@@ -494,7 +483,6 @@ export const SubjectManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Subject Dialog */}
       <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
@@ -552,7 +540,6 @@ export const SubjectManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Semester Dialog */}
       <Dialog open={isEditingSemester} onOpenChange={setIsEditingSemester}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
@@ -589,7 +576,6 @@ export const SubjectManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Subject Dialog */}
       <Dialog open={isEditingSubject} onOpenChange={setIsEditingSubject}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
@@ -646,7 +632,6 @@ export const SubjectManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Subject Confirmation Dialog */}
       <Dialog open={isSubjectDeleteDialogOpen} onOpenChange={setIsSubjectDeleteDialogOpen}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
@@ -686,7 +671,6 @@ export const SubjectManager = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Semester Confirmation Dialog */}
       <Dialog open={isSemesterDeleteDialogOpen} onOpenChange={setIsSemesterDeleteDialogOpen}>
         <DialogContent className="bg-dark-900 border-dark-700 text-white max-w-md">
           <DialogHeader>
