@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight } from "lucide-react";
+import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
