@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, BookOpen, PlusCircle, FileText, LogOut } from "lucide-react";
+import { Shield, Upload, BookOpen, PlusCircle, FileText, LogOut, Database } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,11 @@ import { AuthModal } from "@/components/admin/AuthModal";
 import { PDFUploader } from "@/components/admin/PDFUploader";
 import { SubjectManager } from "@/components/admin/SubjectManager";
 import { PDFList } from "@/components/admin/PDFList";
+import { DatabaseStatus } from "@/components/admin/DatabaseStatus";
+import connectDB from '@/db/connection';
+
+// Initialize database connection
+connectDB();
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -61,6 +66,10 @@ const AdminDashboard = () => {
             Logout
           </Button>
         </header>
+
+        <div className="mb-6">
+          <DatabaseStatus />
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className={`cursor-pointer transition-all ${activeTab === "upload" ? "border-primary bg-primary/5" : ""}`} 
