@@ -9,7 +9,8 @@ const PDFSchema = new mongoose.Schema({
   },
   fileName: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   fileUrl: {
     type: String,
@@ -31,9 +32,18 @@ const PDFSchema = new mongoose.Schema({
   }
 });
 
+// Check if we're in a browser environment (where mongoose.models might be undefined)
+const isBrowser = typeof window !== 'undefined';
+
 // Safely check if models is available before accessing it
-const PDF = mongoose.models ? 
-  (mongoose.models.PDF || mongoose.model('PDF', PDFSchema)) : 
-  (mongoose.model ? mongoose.model('PDF', PDFSchema) : null);
+let PDF;
+
+if (isBrowser) {
+  // Browser environment - create a safe fallback
+  PDF = null;
+} else {
+  // Server environment - create/retrieve the model
+  PDF = mongoose.models?.PDF || mongoose.model('PDF', PDFSchema);
+}
 
 export default PDF;
