@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlusCircle, Edit, Trash2, AlertCircle, Layers, BookOpen, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,25 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-  DialogDescription
-} from "@/components/ui/dialog";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Import the data stores
 import { useSemesterSubjectStore, Subject, Semester } from "@/hooks/useSemesterSubjectStore";
@@ -40,7 +26,9 @@ export const SubjectManager = () => {
     updateSubject, 
     updateSemester,
     deleteSubject,
-    deleteSemester
+    deleteSemester,
+    loading,
+    error
   } = useSemesterSubjectStore();
   const { pdfs } = usePdfStore();
 
@@ -69,6 +57,16 @@ export const SubjectManager = () => {
   const [subjectToDelete, setSubjectToDelete] = useState<string | null>(null);
   const [isSemesterDeleteDialogOpen, setIsSemesterDeleteDialogOpen] = useState(false);
   const [semesterToDelete, setSemesterToDelete] = useState<string | null>(null);
+
+  // Sort semesters by order and then by name
+  const sortedSemesters = [...semesters].sort((a, b) => {
+    // First sort by order if available
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    // Fall back to name
+    return a.name.localeCompare(b.name);
+  });
 
   const filteredSubjects = subjects.filter(
     (subject) => 
@@ -238,6 +236,31 @@ export const SubjectManager = () => {
     return subjects.find(sub => sub.id === id)?.name || 'Unknown';
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-center">
+          <p className="text-lg text-muted-foreground">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-center">
+        <div className="space-y-4">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+          <h3 className="text-xl font-medium">Failed to load data</h3>
+          <p className="text-muted-foreground">{error}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -306,7 +329,7 @@ export const SubjectManager = () => {
                     </SelectTrigger>
                     <SelectContent className="bg-dark-800 border-dark-700">
                       <SelectItem value="all-semesters">All Semesters</SelectItem>
-                      {semesters.map((semester) => (
+                      {sortedSemesters.map((semester) => (
                         <SelectItem key={semester.id} value={semester.id}>
                           {semester.name}
                         </SelectItem>
@@ -333,88 +356,23 @@ export const SubjectManager = () => {
 
           <Card className="mt-4 border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-dark-800/50">
-                    <TableHead className="font-medium text-gray-300">Subject Name</TableHead>
-                    <TableHead className="font-medium text-gray-300">Semester</TableHead>
-                    <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSubjects.length > 0 ? (
-                    filteredSubjects.map((subject) => (
-                      <TableRow key={subject.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
-                        <TableCell className="font-medium text-white">{subject.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                            {semesters.find(sem => sem.id === subject.semesterId)?.name || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 hover:bg-blue-500/10 hover:text-blue-400 transition-colors"
-                              onClick={() => handleOpenEditSubject(subject)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-destructive hover:bg-red-500/10 transition-colors"
-                              onClick={() => handleDeleteSubject(subject.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
-                        No subjects found. Add some subjects to get started.
-                      </TableCell>
+              <ScrollArea className="h-[460px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-dark-800/50">
+                      <TableHead className="font-medium text-gray-300">Subject Name</TableHead>
+                      <TableHead className="font-medium text-gray-300">Semester</TableHead>
+                      <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="semesters" className="animate-fade-in">
-          <Card className="border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-dark-800/50">
-                    <TableHead className="font-medium text-gray-300">Semester Name</TableHead>
-                    <TableHead className="font-medium text-gray-300">Subjects Count</TableHead>
-                    <TableHead className="font-medium text-gray-300">PDFs Count</TableHead>
-                    <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {semesters.length > 0 ? (
-                    semesters.map((semester) => {
-                      const subjectCount = subjects.filter(s => s.semesterId === semester.id).length;
-                      const pdfCount = pdfs.filter(p => p.semesterId === semester.id).length;
-                      
-                      return (
-                        <TableRow key={semester.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
-                          <TableCell className="font-medium text-white">{semester.name}</TableCell>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredSubjects.length > 0 ? (
+                      filteredSubjects.map((subject) => (
+                        <TableRow key={subject.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
+                          <TableCell className="font-medium text-white">{subject.name}</TableCell>
                           <TableCell>
-                            <Badge className="bg-purple-500/10 text-purple-400 border-none">
-                              {subjectCount}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className="bg-blue-500/10 text-blue-400 border-none">
-                              {pdfCount}
+                            <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
+                              {semesters.find(sem => sem.id === subject.semesterId)?.name || 'Unknown'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -423,7 +381,7 @@ export const SubjectManager = () => {
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 hover:bg-blue-500/10 hover:text-blue-400 transition-colors"
-                                onClick={() => handleOpenEditSemester(semester)}
+                                onClick={() => handleOpenEditSubject(subject)}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -431,24 +389,99 @@ export const SubjectManager = () => {
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-8 w-8 text-destructive hover:bg-red-500/10 transition-colors"
-                                onClick={() => handleDeleteSemester(semester.id)}
+                                onClick={() => handleDeleteSubject(subject.id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
-                        No semesters found. Add some semesters to get started.
-                      </TableCell>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
+                          No subjects found. Add some subjects to get started.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="semesters" className="animate-fade-in">
+          <Card className="border-dark-800 overflow-hidden shadow-lg shadow-dark-900/20">
+            <CardContent className="p-0">
+              <ScrollArea className="h-[500px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-dark-800/50">
+                      <TableHead className="font-medium text-gray-300">Semester Name</TableHead>
+                      <TableHead className="font-medium text-gray-300">Order</TableHead>
+                      <TableHead className="font-medium text-gray-300">Subjects Count</TableHead>
+                      <TableHead className="font-medium text-gray-300">PDFs Count</TableHead>
+                      <TableHead className="w-[100px] font-medium text-gray-300">Actions</TableHead>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedSemesters.length > 0 ? (
+                      sortedSemesters.map((semester) => {
+                        const subjectCount = subjects.filter(s => s.semesterId === semester.id).length;
+                        const pdfCount = pdfs.filter(p => p.semesterId === semester.id).length;
+                        
+                        return (
+                          <TableRow key={semester.id} className="hover:bg-dark-800/50 border-dark-800 transition-colors">
+                            <TableCell className="font-medium text-white">{semester.name}</TableCell>
+                            <TableCell>
+                              <Badge className="bg-amber-500/10 text-amber-400 border-none">
+                                {semester.order || '-'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className="bg-purple-500/10 text-purple-400 border-none">
+                                {subjectCount}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className="bg-blue-500/10 text-blue-400 border-none">
+                                {pdfCount}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 hover:bg-blue-500/10 hover:text-blue-400 transition-colors"
+                                  onClick={() => handleOpenEditSemester(semester)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8 text-destructive hover:bg-red-500/10 transition-colors"
+                                  onClick={() => handleDeleteSemester(semester.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
+                          No semesters found. Add some semesters to get started.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
             </CardContent>
           </Card>
         </TabsContent>

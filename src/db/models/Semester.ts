@@ -9,6 +9,11 @@ const SemesterSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
+  order: {
+    type: Number,
+    required: true,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

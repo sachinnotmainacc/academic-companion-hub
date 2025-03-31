@@ -1,3 +1,4 @@
+
 import connectDB from '@/db/connection';
 import Semester from '@/db/models/Semester';
 import Subject from '@/db/models/Subject';
@@ -15,15 +16,57 @@ const generateId = () => Math.random().toString(36).substring(2, 9);
 // Add a fallback mechanism to check MongoDB availability
 const isMongoDB = typeof window === 'undefined' || (mongoose && mongoose.connection?.readyState >= 1);
 
+// Default semesters to create if none exist
+const DEFAULT_SEMESTERS = [
+  { name: 'Semester 1', order: 1 },
+  { name: 'Semester 2', order: 2 },
+  { name: 'Semester 3', order: 3 },
+  { name: 'Semester 4', order: 4 },
+  { name: 'Semester 5', order: 5 },
+  { name: 'Semester 6', order: 6 },
+  { name: 'Semester 7', order: 7 },
+  { name: 'Semester 8', order: 8 }
+];
+
 // Semester API
 export const SemesterAPI = {
   // Get all semesters
   getAll: async (): Promise<SemesterType[]> => {
     try {
-      const semesters = await Semester.find().sort({ name: 1 });
+      // Check if Semester model is available
+      if (!Semester || typeof Semester.find !== 'function') {
+        console.error('Semester model is not properly initialized');
+        return [];
+      }
+
+      let semesters = await Semester.find().sort({ order: 1, name: 1 });
+      
+      // If no semesters exist, create the default ones
+      if (semesters.length === 0) {
+        console.log('No semesters found, creating defaults');
+        
+        // Create default semesters
+        for (const semData of DEFAULT_SEMESTERS) {
+          try {
+            const newSemester = new Semester({
+              name: semData.name,
+              order: semData.order,
+              _id: generateId()
+            });
+            await newSemester.save();
+          } catch (err) {
+            console.error(`Error creating default semester ${semData.name}:`, err);
+          }
+        }
+        
+        // Fetch again after creating defaults
+        semesters = await Semester.find().sort({ order: 1, name: 1 });
+      }
+      
       return semesters.map(sem => ({
         id: sem._id.toString(),
-        name: sem.name
+        name: sem.name,
+        order: sem.order || 0
       }));
     } catch (error) {
       console.error('Error fetching semesters:', error);
@@ -32,16 +75,31 @@ export const SemesterAPI = {
   },
 
   // Add a new semester
-  add: async (name: string): Promise<SemesterType | null> => {
+  add: async (name: string, order?: number): Promise<SemesterType | null> => {
     try {
+      // If Semester model is not available
+      if (!Semester || typeof Semester.find !== 'function') {
+        console.error('Semester model is not properly initialized');
+        return null;
+      }
+      
+      // Find the highest order if not provided
+      let semesterOrder = order;
+      if (!semesterOrder) {
+        const highestSem = await Semester.findOne().sort({ order: -1 });
+        semesterOrder = highestSem ? (highestSem.order + 1) : 1;
+      }
+      
       const newSemester = new Semester({
         name,
+        order: semesterOrder,
         _id: generateId()
       });
       await newSemester.save();
       return {
         id: newSemester._id.toString(),
-        name: newSemester.name
+        name: newSemester.name,
+        order: newSemester.order
       };
     } catch (error) {
       console.error('Error adding semester:', error);
@@ -50,9 +108,15 @@ export const SemesterAPI = {
   },
 
   // Update a semester
-  update: async (id: string, name: string): Promise<boolean> => {
+  update: async (id: string, data: Partial<SemesterType>): Promise<boolean> => {
     try {
-      await Semester.findByIdAndUpdate(id, { name });
+      // If Semester model is not available
+      if (!Semester || typeof Semester.findByIdAndUpdate !== 'function') {
+        console.error('Semester model is not properly initialized');
+        return false;
+      }
+      
+      await Semester.findByIdAndUpdate(id, data);
       return true;
     } catch (error) {
       console.error('Error updating semester:', error);
@@ -63,6 +127,12 @@ export const SemesterAPI = {
   // Delete a semester
   delete: async (id: string): Promise<boolean> => {
     try {
+      // If Semester model is not available
+      if (!Semester || typeof Semester.findByIdAndDelete !== 'function') {
+        console.error('Semester model is not properly initialized');
+        return false;
+      }
+      
       await Semester.findByIdAndDelete(id);
       return true;
     } catch (error) {
@@ -77,6 +147,12 @@ export const SubjectAPI = {
   // Get all subjects
   getAll: async (): Promise<SubjectType[]> => {
     try {
+      // Check if Subject model is available
+      if (!Subject || typeof Subject.find !== 'function') {
+        console.error('Subject model is not properly initialized');
+        return [];
+      }
+      
       const subjects = await Subject.find().sort({ name: 1 });
       return subjects.map(sub => ({
         id: sub._id.toString(),
@@ -152,6 +228,12 @@ export const PDFAPI = {
   // Get all PDFs
   getAll: async (): Promise<PDFType[]> => {
     try {
+      // Check if PDF model is available
+      if (!PDF || typeof PDF.find !== 'function') {
+        console.error('PDF model is not properly initialized');
+        return [];
+      }
+      
       const pdfs = await PDF.find().sort({ createdAt: -1 });
       return pdfs.map(pdf => ({
         id: pdf._id.toString(),

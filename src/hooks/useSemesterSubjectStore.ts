@@ -7,6 +7,7 @@ import { SemesterAPI, SubjectAPI } from '@/services/api';
 export interface Semester {
   id: string;
   name: string;
+  order?: number;
 }
 
 export interface Subject {
@@ -18,19 +19,38 @@ export interface Subject {
 // Create a unique ID
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
+// Default semesters to use if needed
+const DEFAULT_SEMESTERS: Semester[] = [
+  { id: generateId(), name: 'Semester 1', order: 1 },
+  { id: generateId(), name: 'Semester 2', order: 2 },
+  { id: generateId(), name: 'Semester 3', order: 3 },
+  { id: generateId(), name: 'Semester 4', order: 4 },
+  { id: generateId(), name: 'Semester 5', order: 5 },
+  { id: generateId(), name: 'Semester 6', order: 6 },
+  { id: generateId(), name: 'Semester 7', order: 7 },
+  { id: generateId(), name: 'Semester 8', order: 8 }
+];
+
 export const useSemesterSubjectStore = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load data from MongoDB on mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
+      
       try {
         // First try to fetch from MongoDB
+        console.log('Fetching semesters from API...');
         const fetchedSemesters = await SemesterAPI.getAll();
+        console.log('Fetched semesters:', fetchedSemesters);
+        
         const fetchedSubjects = await SubjectAPI.getAll();
+        console.log('Fetched subjects:', fetchedSubjects);
         
         // If we have data from MongoDB, use it
         if (fetchedSemesters.length > 0) {
@@ -44,21 +64,15 @@ export const useSemesterSubjectStore = () => {
             
             // Migrate localStorage data to MongoDB
             parsedSemesters.forEach(async (sem: Semester) => {
-              await SemesterAPI.add(sem.name);
+              await SemesterAPI.add(sem.name, sem.order);
             });
           } else {
             // Add default semesters if none exist
-            const defaultSemesters: Semester[] = [
-              { id: generateId(), name: 'Semester 1' },
-              { id: generateId(), name: 'Semester 2' },
-              { id: generateId(), name: 'Semester 3' },
-              { id: generateId(), name: 'Semester 4' },
-            ];
-            setSemesters(defaultSemesters);
+            setSemesters(DEFAULT_SEMESTERS);
             
             // Save default semesters to MongoDB
-            defaultSemesters.forEach(async (sem) => {
-              await SemesterAPI.add(sem.name);
+            DEFAULT_SEMESTERS.forEach(async (sem) => {
+              await SemesterAPI.add(sem.name, sem.order);
             });
           }
         }
@@ -80,13 +94,20 @@ export const useSemesterSubjectStore = () => {
         }
       } catch (error) {
         console.error('Error loading data:', error);
+        setError('Failed to connect to database');
+        
         // Fallback to localStorage
         const storedSemesters = localStorage.getItem('semesters');
         const storedSubjects = localStorage.getItem('subjects');
 
         if (storedSemesters) {
           setSemesters(JSON.parse(storedSemesters));
+        } else {
+          // Use default semesters if nothing in localStorage
+          setSemesters(DEFAULT_SEMESTERS);
+          localStorage.setItem('semesters', JSON.stringify(DEFAULT_SEMESTERS));
         }
+        
         if (storedSubjects) {
           setSubjects(JSON.parse(storedSubjects));
         }
@@ -328,6 +349,7 @@ export const useSemesterSubjectStore = () => {
     semesters,
     subjects,
     loading,
+    error,
     addSemester,
     addSubject,
     updateSemester,
