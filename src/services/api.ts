@@ -1,16 +1,19 @@
-
 import connectDB from '@/db/connection';
 import Semester from '@/db/models/Semester';
 import Subject from '@/db/models/Subject';
 import PDF from '@/db/models/PDF';
 import { Semester as SemesterType, Subject as SubjectType } from '@/hooks/useSemesterSubjectStore';
 import { PDF as PDFType } from '@/hooks/usePdfStore';
+import mongoose from 'mongoose';
 
 // Connect to MongoDB on service initialization
 connectDB();
 
 // Generate MongoDB-compatible ID
 const generateId = () => Math.random().toString(36).substring(2, 9);
+
+// Add a fallback mechanism to check MongoDB availability
+const isMongoDB = typeof window === 'undefined' || (mongoose && mongoose.connection?.readyState >= 1);
 
 // Semester API
 export const SemesterAPI = {

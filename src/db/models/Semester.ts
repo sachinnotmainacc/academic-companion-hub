@@ -1,6 +1,7 @@
 
 import mongoose from 'mongoose';
 
+// Define the schema
 const SemesterSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -14,7 +15,10 @@ const SemesterSchema = new mongoose.Schema({
   }
 });
 
-// Check if model already exists to prevent overwriting during hot reloads
-const Semester = mongoose.models.Semester || mongoose.model('Semester', SemesterSchema);
+// Safely check if models is available before accessing it
+// This prevents "Cannot read properties of undefined (reading 'Semester')" error
+const Semester = mongoose.models ? 
+  (mongoose.models.Semester || mongoose.model('Semester', SemesterSchema)) : 
+  (mongoose.model ? mongoose.model('Semester', SemesterSchema) : null);
 
 export default Semester;

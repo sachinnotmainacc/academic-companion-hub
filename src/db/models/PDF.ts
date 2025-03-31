@@ -31,7 +31,9 @@ const PDFSchema = new mongoose.Schema({
   }
 });
 
-// Check if model already exists to prevent overwriting during hot reloads
-const PDF = mongoose.models.PDF || mongoose.model('PDF', PDFSchema);
+// Safely check if models is available before accessing it
+const PDF = mongoose.models ? 
+  (mongoose.models.PDF || mongoose.model('PDF', PDFSchema)) : 
+  (mongoose.model ? mongoose.model('PDF', PDFSchema) : null);
 
 export default PDF;
