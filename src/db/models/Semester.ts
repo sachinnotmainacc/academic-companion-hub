@@ -20,10 +20,18 @@ const SemesterSchema = new mongoose.Schema({
   }
 });
 
+// Check if we're in a browser environment (where mongoose.models might be undefined)
+const isBrowser = typeof window !== 'undefined';
+
 // Safely check if models is available before accessing it
-// This prevents "Cannot read properties of undefined (reading 'Semester')" error
-const Semester = mongoose.models ? 
-  (mongoose.models.Semester || mongoose.model('Semester', SemesterSchema)) : 
-  (mongoose.model ? mongoose.model('Semester', SemesterSchema) : null);
+let Semester;
+
+if (isBrowser) {
+  // Browser environment - create a safe fallback
+  Semester = null;
+} else {
+  // Server environment - create/retrieve the model
+  Semester = mongoose.models?.Semester || mongoose.model('Semester', SemesterSchema);
+}
 
 export default Semester;

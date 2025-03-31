@@ -7,14 +7,16 @@ import { Semester as SemesterType, Subject as SubjectType } from '@/hooks/useSem
 import { PDF as PDFType } from '@/hooks/usePdfStore';
 import mongoose from 'mongoose';
 
-// Connect to MongoDB on service initialization
-connectDB();
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Connect to MongoDB on service initialization (only in server environment)
+if (!isBrowser) {
+  connectDB();
+}
 
 // Generate MongoDB-compatible ID
 const generateId = () => Math.random().toString(36).substring(2, 9);
-
-// Add a fallback mechanism to check MongoDB availability
-const isMongoDB = typeof window === 'undefined' || (mongoose && mongoose.connection?.readyState >= 1);
 
 // Default semesters to create if none exist
 const DEFAULT_SEMESTERS = [
@@ -33,12 +35,17 @@ export const SemesterAPI = {
   // Get all semesters
   getAll: async (): Promise<SemesterType[]> => {
     try {
-      // Check if Semester model is available
-      if (!Semester || typeof Semester.find !== 'function') {
-        console.error('Semester model is not properly initialized');
+      // In browser, Semester might be null
+      if (isBrowser || !Semester) {
+        console.log('Using fallback for semesters in browser');
+        // Return semesters from localStorage if available
+        const storedSemesters = localStorage.getItem('semesters');
+        if (storedSemesters) {
+          return JSON.parse(storedSemesters);
+        }
         return [];
       }
-
+      
       let semesters = await Semester.find().sort({ order: 1, name: 1 });
       
       // If no semesters exist, create the default ones
@@ -77,10 +84,23 @@ export const SemesterAPI = {
   // Add a new semester
   add: async (name: string, order?: number): Promise<SemesterType | null> => {
     try {
-      // If Semester model is not available
-      if (!Semester || typeof Semester.find !== 'function') {
-        console.error('Semester model is not properly initialized');
-        return null;
+      // In browser, Semester might be null
+      if (isBrowser || !Semester) {
+        console.log('Using fallback for adding semester in browser');
+        // Generate local semester
+        const newId = generateId();
+        const newSemester = {
+          id: newId,
+          name,
+          order: order || 0
+        };
+        
+        // Store in localStorage
+        const storedSemesters = localStorage.getItem('semesters');
+        const semesters = storedSemesters ? JSON.parse(storedSemesters) : [];
+        localStorage.setItem('semesters', JSON.stringify([...semesters, newSemester]));
+        
+        return newSemester;
       }
       
       // Find the highest order if not provided
@@ -110,10 +130,21 @@ export const SemesterAPI = {
   // Update a semester
   update: async (id: string, data: Partial<SemesterType>): Promise<boolean> => {
     try {
-      // If Semester model is not available
-      if (!Semester || typeof Semester.findByIdAndUpdate !== 'function') {
-        console.error('Semester model is not properly initialized');
-        return false;
+      // In browser, Semester might be null
+      if (isBrowser || !Semester) {
+        console.log('Using fallback for updating semester in browser');
+        
+        // Update in localStorage
+        const storedSemesters = localStorage.getItem('semesters');
+        if (storedSemesters) {
+          const semesters = JSON.parse(storedSemesters);
+          const updatedSemesters = semesters.map((sem: SemesterType) => 
+            sem.id === id ? { ...sem, ...data } : sem
+          );
+          localStorage.setItem('semesters', JSON.stringify(updatedSemesters));
+        }
+        
+        return true;
       }
       
       await Semester.findByIdAndUpdate(id, data);
@@ -127,10 +158,19 @@ export const SemesterAPI = {
   // Delete a semester
   delete: async (id: string): Promise<boolean> => {
     try {
-      // If Semester model is not available
-      if (!Semester || typeof Semester.findByIdAndDelete !== 'function') {
-        console.error('Semester model is not properly initialized');
-        return false;
+      // In browser, Semester might be null
+      if (isBrowser || !Semester) {
+        console.log('Using fallback for deleting semester in browser');
+        
+        // Delete from localStorage
+        const storedSemesters = localStorage.getItem('semesters');
+        if (storedSemesters) {
+          const semesters = JSON.parse(storedSemesters);
+          const filteredSemesters = semesters.filter((sem: SemesterType) => sem.id !== id);
+          localStorage.setItem('semesters', JSON.stringify(filteredSemesters));
+        }
+        
+        return true;
       }
       
       await Semester.findByIdAndDelete(id);
@@ -147,9 +187,14 @@ export const SubjectAPI = {
   // Get all subjects
   getAll: async (): Promise<SubjectType[]> => {
     try {
-      // Check if Subject model is available
-      if (!Subject || typeof Subject.find !== 'function') {
-        console.error('Subject model is not properly initialized');
+      // In browser, Subject might be null
+      if (isBrowser || !Subject) {
+        console.log('Using fallback for subjects in browser');
+        // Return subjects from localStorage if available
+        const storedSubjects = localStorage.getItem('subjects');
+        if (storedSubjects) {
+          return JSON.parse(storedSubjects);
+        }
         return [];
       }
       
@@ -168,6 +213,25 @@ export const SubjectAPI = {
   // Add a new subject
   add: async (name: string, semesterId: string): Promise<SubjectType | null> => {
     try {
+      // In browser, Subject might be null
+      if (isBrowser || !Subject) {
+        console.log('Using fallback for adding subject in browser');
+        // Generate local subject
+        const newId = generateId();
+        const newSubject = {
+          id: newId,
+          name,
+          semesterId
+        };
+        
+        // Store in localStorage
+        const storedSubjects = localStorage.getItem('subjects');
+        const subjects = storedSubjects ? JSON.parse(storedSubjects) : [];
+        localStorage.setItem('subjects', JSON.stringify([...subjects, newSubject]));
+        
+        return newSubject;
+      }
+      
       const newSubject = new Subject({
         name,
         semesterId,
@@ -188,6 +252,23 @@ export const SubjectAPI = {
   // Update a subject
   update: async (id: string, data: Partial<SubjectType>): Promise<boolean> => {
     try {
+      // In browser, Subject might be null
+      if (isBrowser || !Subject) {
+        console.log('Using fallback for updating subject in browser');
+        
+        // Update in localStorage
+        const storedSubjects = localStorage.getItem('subjects');
+        if (storedSubjects) {
+          const subjects = JSON.parse(storedSubjects);
+          const updatedSubjects = subjects.map((sub: SubjectType) => 
+            sub.id === id ? { ...sub, ...data } : sub
+          );
+          localStorage.setItem('subjects', JSON.stringify(updatedSubjects));
+        }
+        
+        return true;
+      }
+      
       await Subject.findByIdAndUpdate(id, data);
       return true;
     } catch (error) {
@@ -199,6 +280,21 @@ export const SubjectAPI = {
   // Delete a subject
   delete: async (id: string): Promise<boolean> => {
     try {
+      // In browser, Subject might be null
+      if (isBrowser || !Subject) {
+        console.log('Using fallback for deleting subject in browser');
+        
+        // Delete from localStorage
+        const storedSubjects = localStorage.getItem('subjects');
+        if (storedSubjects) {
+          const subjects = JSON.parse(storedSubjects);
+          const filteredSubjects = subjects.filter((sub: SubjectType) => sub.id !== id);
+          localStorage.setItem('subjects', JSON.stringify(filteredSubjects));
+        }
+        
+        return true;
+      }
+      
       await Subject.findByIdAndDelete(id);
       return true;
     } catch (error) {
@@ -210,6 +306,19 @@ export const SubjectAPI = {
   // Get subjects by semester
   getBySemester: async (semesterId: string): Promise<SubjectType[]> => {
     try {
+      // In browser, Subject might be null
+      if (isBrowser || !Subject) {
+        console.log('Using fallback for getting subjects by semester in browser');
+        
+        // Filter subjects from localStorage
+        const storedSubjects = localStorage.getItem('subjects');
+        if (storedSubjects) {
+          const subjects = JSON.parse(storedSubjects);
+          return subjects.filter((sub: SubjectType) => sub.semesterId === semesterId);
+        }
+        return [];
+      }
+      
       const subjects = await Subject.find({ semesterId }).sort({ name: 1 });
       return subjects.map(sub => ({
         id: sub._id.toString(),
