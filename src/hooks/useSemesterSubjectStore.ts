@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { SemesterAPI, SubjectAPI } from '@/services/api';
@@ -206,24 +205,26 @@ export const useSemesterSubjectStore = () => {
   };
 
   // Update a semester
-  const updateSemester = async (id: string, name: string) => {
-    // Check if the updated name already exists in other semesters
-    const semesterExists = semesters.some(
-      sem => sem.name.toLowerCase() === name.toLowerCase() && sem.id !== id
-    );
+  const updateSemester = async (id: string, data: Partial<Semester>) => {
+    if (data.name) {
+      // Check if the updated name already exists in other semesters
+      const semesterExists = semesters.some(
+        sem => sem.name.toLowerCase() === data.name!.toLowerCase() && sem.id !== id
+      );
 
-    if (semesterExists) {
-      toast.error("Semester name already exists");
-      return false;
+      if (semesterExists) {
+        toast.error("Semester name already exists");
+        return false;
+      }
     }
 
     try {
-      const success = await SemesterAPI.update(id, name);
+      const success = await SemesterAPI.update(id, data);
       
       if (success) {
         setSemesters(
           semesters.map((semester) =>
-            semester.id === id ? { ...semester, name } : semester
+            semester.id === id ? { ...semester, ...data } : semester
           )
         );
         toast.success("Semester updated successfully");
@@ -232,7 +233,7 @@ export const useSemesterSubjectStore = () => {
         // Fallback to local update
         setSemesters(
           semesters.map((semester) =>
-            semester.id === id ? { ...semester, name } : semester
+            semester.id === id ? { ...semester, ...data } : semester
           )
         );
         toast.success("Semester updated successfully (local only)");
