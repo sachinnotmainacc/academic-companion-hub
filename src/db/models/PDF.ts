@@ -25,6 +25,19 @@ const PDFSchema = new mongoose.Schema({
     required: true,
     ref: 'Subject'
   },
+  description: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  keywords: {
+    type: [String],
+    default: []
+  },
+  size: {
+    type: String,
+    default: 'Unknown'
+  },
   createdAt: {
     type: Date,
     default: Date.now
