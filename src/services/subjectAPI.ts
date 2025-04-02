@@ -1,6 +1,6 @@
 
 import Subject from '@/db/models/Subject';
-import { Subject as SubjectType } from '@/hooks/useSemesterSubjectStore';
+import type { Subject as SubjectType } from '@/hooks/useSemesterSubjectStore';
 import { isBrowser, generateId } from './utils/apiUtils';
 
 export const SubjectAPI = {

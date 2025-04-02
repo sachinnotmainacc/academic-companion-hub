@@ -1,6 +1,6 @@
 
 import Semester from '@/db/models/Semester';
-import { Semester as SemesterType } from '@/hooks/useSemesterSubjectStore';
+import type { Semester as SemesterType } from '@/hooks/useSemesterSubjectStore';
 import { isBrowser, generateId, DEFAULT_SEMESTERS } from './utils/apiUtils';
 
 export const SemesterAPI = {

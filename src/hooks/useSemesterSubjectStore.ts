@@ -4,17 +4,17 @@ import { toast } from 'sonner';
 import { SemesterAPI, SubjectAPI } from '@/services/api';
 
 // Type definitions
-export interface Semester {
+export type Semester = {
   id: string;
   name: string;
   order?: number;
-}
+};
 
-export interface Subject {
+export type Subject = {
   id: string;
   name: string;
   semesterId: string;
-}
+};
 
 // Create a unique ID
 const generateId = () => Math.random().toString(36).substring(2, 9);
