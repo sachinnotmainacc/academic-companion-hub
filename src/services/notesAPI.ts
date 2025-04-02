@@ -1,6 +1,6 @@
 
 // We need to avoid using Node.js modules on the client side
-import { isBrowser } from './utils/apiUtils';
+import { isBrowser, generateId, DEFAULT_SEMESTERS } from './utils/apiUtils';
 
 // Define interfaces
 export interface Material {

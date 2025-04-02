@@ -1,14 +1,17 @@
 
-import mongoose from 'mongoose';
+import { isBrowser } from '../services/utils/apiUtils';
 
 const connectDB = async () => {
   // Check if we're in a browser environment
-  if (typeof window !== 'undefined') {
+  if (isBrowser) {
     console.log('Running in browser environment, MongoDB connection will be simulated');
     return null; // Return null for browser environment
   }
   
   try {
+    // This code will only run on the server, not in the browser
+    const mongoose = await import('mongoose');
+    
     // For demo purposes - using a free MongoDB Atlas cluster
     // In production, this would be an environment variable
     const MONGO_URI = 'mongodb+srv://demo:demo1234@studycluster.mongodb.net/studyportal?retryWrites=true&w=majority';
