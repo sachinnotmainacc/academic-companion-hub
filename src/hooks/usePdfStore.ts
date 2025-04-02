@@ -12,6 +12,9 @@ export interface PDF {
   semesterId: string;
   subjectId: string;
   createdAt: number;
+  description?: string;
+  keywords?: string[];
+  size?: string;
 }
 
 // Create a unique ID

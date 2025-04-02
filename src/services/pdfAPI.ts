@@ -21,6 +21,9 @@ export const PDFAPI = {
         fileUrl: pdf.fileUrl,
         semesterId: pdf.semesterId,
         subjectId: pdf.subjectId,
+        description: pdf.description,
+        keywords: pdf.keywords,
+        size: pdf.size,
         createdAt: pdf.createdAt.getTime()
       }));
     } catch (error) {
@@ -45,6 +48,9 @@ export const PDFAPI = {
         fileUrl: newPDF.fileUrl,
         semesterId: newPDF.semesterId,
         subjectId: newPDF.subjectId,
+        description: newPDF.description,
+        keywords: newPDF.keywords,
+        size: newPDF.size,
         createdAt: newPDF.createdAt.getTime()
       };
     } catch (error) {
