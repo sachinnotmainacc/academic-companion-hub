@@ -7,13 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
 import { useSemesterSubjectStore } from "@/hooks/useSemesterSubjectStore";
-import { PDFAPI } from "@/services/api";
-import { NotesAPI } from "@/services/api";
+import { usePdfStore } from "@/hooks/usePdfStore"; // Import the PDF store hook
 
 export const PDFUploader = () => {
   const { semesters, subjects, loading } = useSemesterSubjectStore();
+  const { addPdf } = usePdfStore(); // Use the PDF store hook for adding PDFs
   const [title, setTitle] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedSemester, setSelectedSemester] = useState("");
@@ -85,9 +84,6 @@ export const PDFUploader = () => {
 
     setUploading(true);
     try {
-      // For now, we'll simulate file upload and just store metadata
-      // In a real application, you'd upload to a storage service
-      
       // Simulated file URL - in a real app, this would come from your storage service
       const fileUrl = `/uploads/${selectedFile.name}`;
       
@@ -97,8 +93,8 @@ export const PDFUploader = () => {
         .map(k => k.trim())
         .filter(k => k.length > 0);
       
-      // Add PDF to database
-      const newPDF = await PDFAPI.add({
+      // Use the PDF store hook to add the PDF
+      const newPDF = await addPdf({
         title,
         fileName: selectedFile.name,
         fileUrl,
@@ -110,85 +106,7 @@ export const PDFUploader = () => {
       });
       
       if (newPDF) {
-        // Find semester and subject names for notes structure
-        const semester = semesters.find(s => s.id === selectedSemester);
-        const subject = subjects.find(s => s.id === selectedSubject);
-        
-        if (semester && subject) {
-          // Get semester number
-          const semesterNum = parseInt(semester.name.match(/\d+/)?.[0] || '1', 10);
-          
-          try {
-            // Get existing notes data
-            const notesData = await NotesAPI.getAll();
-            
-            // Find or create semester
-            let semesterEntry = notesData.semesters.find(s => s.id === semesterNum);
-            if (!semesterEntry) {
-              semesterEntry = {
-                id: semesterNum,
-                name: `Semester ${semesterNum}`,
-                branches: []
-              };
-              notesData.semesters.push(semesterEntry);
-              notesData.semesters.sort((a, b) => a.id - b.id);
-            }
-            
-            // Find or create CSE branch
-            let branch = semesterEntry.branches.find(b => b.id === 'cse');
-            if (!branch) {
-              branch = {
-                id: 'cse',
-                name: 'Computer Science and Engineering',
-                subjects: []
-              };
-              semesterEntry.branches.push(branch);
-            }
-            
-            // Find or create subject
-            let subjectEntry = branch.subjects.find(s => s.name.toLowerCase() === subject.name.toLowerCase());
-            if (!subjectEntry) {
-              const subjectId = subject.name.toLowerCase().replace(/\s+/g, '') + semesterNum;
-              subjectEntry = {
-                id: subjectId,
-                name: subject.name,
-                materials: []
-              };
-              branch.subjects.push(subjectEntry);
-              
-              // Update search index
-              if (!notesData.searchIndex.subjects[subject.name.toLowerCase()]) {
-                notesData.searchIndex.subjects[subject.name.toLowerCase()] = [];
-              }
-              notesData.searchIndex.subjects[subject.name.toLowerCase()].push(subjectId);
-            }
-            
-            // Create material
-            const material = {
-              title,
-              description: description || `${title} for ${subject.name}`,
-              path: `/data/notes/semester-${semesterNum}/cse/${subject.name.toLowerCase().replace(/\s+/g, '-')}/${selectedFile.name}`,
-              type: 'pdf',
-              size: `${(selectedFile.size / (1024 * 1024)).toFixed(2)}MB`,
-              uploadDate: new Date().toISOString().split('T')[0],
-              downloadUrl: fileUrl,
-              keywords: keywordsArray.length > 0 ? keywordsArray : [subject.name.toLowerCase(), title.toLowerCase()]
-            };
-            
-            subjectEntry.materials.push(material);
-            
-            // Save updated notes data
-            await NotesAPI.saveAll(notesData);
-            
-            toast.success("PDF uploaded and notes updated successfully!");
-          } catch (error) {
-            console.error("Error updating notes structure:", error);
-            toast.error("PDF uploaded but notes structure update failed");
-          }
-        } else {
-          toast.warning("PDF uploaded but couldn't find semester/subject for notes structure");
-        }
-        
+        toast.success("PDF uploaded successfully!");
         resetForm();
       }
     } catch (error) {
