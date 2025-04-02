@@ -1,22 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import Notes from '@/db/models/Notes';
+
+// We need to avoid using Node.js modules on the client side
 import { isBrowser } from './utils/apiUtils';
 
-// Define the path for the notes JSON file
-const notesFilePath = path.join(process.cwd(), 'data', 'notes.json');
-
-// Ensure the directory exists
-const ensureDirectoryExists = () => {
-  if (!isBrowser) {
-    const dir = path.dirname(notesFilePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  }
-};
-
-// Interface definitions
+// Define interfaces
 export interface Material {
   title: string;
   description?: string;
@@ -65,55 +51,36 @@ const defaultNotesData: NotesData = {
   }
 };
 
+// Path for API endpoints
+const API_BASE_URL = '/api'; // Use relative URL for API endpoints
+
 export const NotesAPI = {
   // Get all notes data
   getAll: async (): Promise<NotesData> => {
     try {
-      // In browser or if Notes model is unavailable
-      if (isBrowser || !Notes) {
-        console.log('Using fallback for notes in browser');
-        
-        // Check localStorage first
-        const storedNotes = localStorage.getItem('notes');
-        if (storedNotes) {
-          return JSON.parse(storedNotes);
-        }
-        
-        // Otherwise, check if the JSON file exists
-        if (!isBrowser && fs.existsSync(notesFilePath)) {
-          const fileData = fs.readFileSync(notesFilePath, 'utf8');
-          return JSON.parse(fileData);
-        }
-        
-        return defaultNotesData;
+      // In browser, we use the fetch API to get notes data
+      const response = await fetch(`${API_BASE_URL}/notes`);
+      if (!response.ok) {
+        throw new Error(`Error fetching notes: ${response.status}`);
       }
       
-      // Try to get from MongoDB
-      let notesData = await Notes.findOne();
-      
-      if (!notesData) {
-        // If no notes data exists in MongoDB, check if the JSON file exists
-        if (fs.existsSync(notesFilePath)) {
-          const fileData = fs.readFileSync(notesFilePath, 'utf8');
-          const parsedData = JSON.parse(fileData);
-          
-          // Save to MongoDB
-          notesData = new Notes(parsedData);
-          await notesData.save();
-        } else {
-          // Create with default structure
-          notesData = new Notes(defaultNotesData);
-          await notesData.save();
-          
-          // Also initialize the JSON file
-          ensureDirectoryExists();
-          fs.writeFileSync(notesFilePath, JSON.stringify(defaultNotesData, null, 2));
-        }
-      }
-      
-      return notesData.toObject();
+      const notesData = await response.json();
+      return notesData;
     } catch (error) {
       console.error('Error fetching notes data:', error);
+      
+      // Use localStorage as fallback
+      if (isBrowser) {
+        const storedNotes = localStorage.getItem('notes');
+        if (storedNotes) {
+          try {
+            return JSON.parse(storedNotes);
+          } catch (e) {
+            console.error('Error parsing stored notes:', e);
+          }
+        }
+      }
+      
       return defaultNotesData;
     }
   },
@@ -121,23 +88,38 @@ export const NotesAPI = {
   // Save all notes data
   saveAll: async (notesData: NotesData): Promise<boolean> => {
     try {
-      // In browser or if Notes model is unavailable
-      if (isBrowser || !Notes) {
-        console.log('Using fallback for saving notes in browser');
-        localStorage.setItem('notes', JSON.stringify(notesData));
-        return true;
+      // In browser, we use the fetch API to save notes data
+      const response = await fetch(`${API_BASE_URL}/notes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(notesData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error saving notes: ${response.status}`);
       }
       
-      // Save to MongoDB
-      await Notes.findOneAndUpdate({}, notesData, { upsert: true, new: true });
-      
-      // Also update the JSON file
-      ensureDirectoryExists();
-      fs.writeFileSync(notesFilePath, JSON.stringify(notesData, null, 2));
+      // Also store in localStorage as fallback
+      if (isBrowser) {
+        localStorage.setItem('notes', JSON.stringify(notesData));
+      }
       
       return true;
     } catch (error) {
       console.error('Error saving notes data:', error);
+      
+      // Save to localStorage as fallback
+      if (isBrowser) {
+        try {
+          localStorage.setItem('notes', JSON.stringify(notesData));
+          return true;
+        } catch (e) {
+          console.error('Error saving to localStorage:', e);
+        }
+      }
+      
       return false;
     }
   },
