@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Award, Book, Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import PerkDetails from "@/components/email-perks/PerkDetails";
 
 const perks = [
   {
@@ -55,8 +55,8 @@ const EmailPerks = () => {
             <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-600 bg-clip-text text-transparent">
               Student Email Perks
             </h1>
-            <p className="text-xl text-muted-foreground">
-              Unlock amazing benefits with your student email address
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Unlock amazing benefits with your student email address. Get access to premium tools, resources, and services.
             </p>
           </div>
 
@@ -64,10 +64,11 @@ const EmailPerks = () => {
             {perks.map((perk, index) => (
               <Card 
                 key={index} 
-                className="border-dark-800 bg-dark-900/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group"
+                className="group relative overflow-hidden border-dark-800 bg-gradient-to-br from-dark-900/90 to-dark-800/50 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-500"
               >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="p-2 rounded-xl bg-dark-800/50 group-hover:scale-110 transition-transform">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-dark-800 to-dark-700 group-hover:scale-110 transition-transform duration-500 shadow-lg">
                     {perk.icon}
                   </div>
                   <div>
@@ -79,39 +80,28 @@ const EmailPerks = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="grid gap-2">
-                    {perk.offers.map((offer, i) => (
+                    {perk.offers.slice(0, 2).map((offer, i) => (
                       <li key={i} className="flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                         <span className="text-sm text-gray-300">{offer}</span>
                       </li>
                     ))}
+                    {perk.offers.length > 2 && (
+                      <li className="text-sm text-blue-400">And {perk.offers.length - 2} more benefits...</li>
+                    )}
                   </ul>
                 </CardContent>
                 <CardFooter className="flex gap-4">
-                  <Popover>
-                    <PopoverTrigger asChild>
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button variant="outline" className="w-full hover:bg-dark-800 hover:text-white transition-colors">
                         View Details
                       </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 bg-dark-900/95 backdrop-blur-lg border-dark-800">
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-lg text-white">{perk.title} Details</h4>
-                        <p className="text-sm text-gray-400">{perk.description}</p>
-                        <div className="space-y-2">
-                          <h5 className="text-sm font-medium text-gray-300">What's included:</h5>
-                          <ul className="text-sm text-gray-400 space-y-1">
-                            {perk.offers.map((offer, i) => (
-                              <li key={i} className="flex items-center gap-2">
-                                <div className="h-1 w-1 rounded-full bg-blue-500" />
-                                {offer}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                    </DialogTrigger>
+                    <DialogContent className="w-full max-w-2xl bg-dark-950/95 backdrop-blur-lg border-dark-800">
+                      <PerkDetails {...perk} />
+                    </DialogContent>
+                  </Dialog>
                   <Button 
                     className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/25" 
                     onClick={() => window.open(perk.link, '_blank')}
