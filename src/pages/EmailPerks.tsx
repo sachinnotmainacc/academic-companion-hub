@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Award, Book, Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const perks = [
   {
@@ -46,12 +47,12 @@ const perks = [
 
 const EmailPerks = () => {
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-gradient-to-b from-dark-950 to-dark-900">
       <Navbar />
       <div className="container mx-auto py-20 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-600 bg-clip-text text-transparent">
               Student Email Perks
             </h1>
             <p className="text-xl text-muted-foreground">
@@ -61,9 +62,14 @@ const EmailPerks = () => {
 
           <div className="grid gap-6">
             {perks.map((perk, index) => (
-              <Card key={index} className="border-dark-800 bg-dark-900/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card 
+                key={index} 
+                className="border-dark-800 bg-dark-900/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
                 <CardHeader className="flex flex-row items-center gap-4">
-                  {perk.icon}
+                  <div className="p-2 rounded-xl bg-dark-800/50 group-hover:scale-110 transition-transform">
+                    {perk.icon}
+                  </div>
                   <div>
                     <CardTitle className="text-2xl bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                       {perk.title}
@@ -82,10 +88,34 @@ const EmailPerks = () => {
                   </ul>
                 </CardContent>
                 <CardFooter className="flex gap-4">
-                  <Button variant="outline" className="w-full">
-                    View Details
-                  </Button>
-                  <Button className="w-full" onClick={() => window.open(perk.link, '_blank')}>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full hover:bg-dark-800 hover:text-white transition-colors">
+                        View Details
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 bg-dark-900/95 backdrop-blur-lg border-dark-800">
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-lg text-white">{perk.title} Details</h4>
+                        <p className="text-sm text-gray-400">{perk.description}</p>
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-gray-300">What's included:</h5>
+                          <ul className="text-sm text-gray-400 space-y-1">
+                            {perk.offers.map((offer, i) => (
+                              <li key={i} className="flex items-center gap-2">
+                                <div className="h-1 w-1 rounded-full bg-blue-500" />
+                                {offer}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/25" 
+                    onClick={() => window.open(perk.link, '_blank')}
+                  >
                     Get Access <ExternalLink className="ml-2 h-4 w-4" />
                   </Button>
                 </CardFooter>
