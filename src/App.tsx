@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -12,17 +11,15 @@ import PlacementDSA from "@/pages/PlacementDSA";
 import Courses from "@/pages/Courses";
 import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
+import EmailPerks from "@/pages/EmailPerks";
 
-// Use a function component to wrap the router to ensure React context is properly available
 function App() {
   return (
-    // Ensure Router is the root component
     <Router>
       <Toaster />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/internal-marks" element={<InternalMarks />} />
-        {/* Redirect legacy URLs to the new internal-marks page */}
         <Route path="/ktu-calculator" element={<Navigate to="/internal-marks" replace />} />
         <Route path="/ktu-internal" element={<Navigate to="/internal-marks" replace />} />
         <Route path="/notes" element={<Notes />} />
@@ -31,6 +28,7 @@ function App() {
         <Route path="/placement-dsa" element={<PlacementDSA />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/email-perks" element={<EmailPerks />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
