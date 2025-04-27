@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Award, Book, Star, ExternalLink } from "lucide-react";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import PerkDetails from "@/components/email-perks/PerkDetails";
+import { toast } from "sonner";
 
 const perks = [
   {
@@ -46,6 +48,13 @@ const perks = [
 ];
 
 const EmailPerks = () => {
+  const handleAccessClick = (link: string, title: string) => {
+    window.open(link, '_blank');
+    toast.success(`Accessing ${title} benefits`, {
+      description: "You're being redirected to the provider's website"
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-dark-950 to-dark-900">
       <Navbar />
@@ -103,8 +112,8 @@ const EmailPerks = () => {
                     </DialogContent>
                   </Dialog>
                   <Button 
-                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-blue-500/25" 
-                    onClick={() => window.open(perk.link, '_blank')}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-blue-500/25" 
+                    onClick={() => handleAccessClick(perk.link, perk.title)}
                   >
                     Get Access <ExternalLink className="ml-2 h-4 w-4" />
                   </Button>
