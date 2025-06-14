@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -7,6 +8,7 @@ import Notes from "@/pages/Notes";
 import Pomodoro from "@/pages/Pomodoro";
 import CGPA from "@/pages/CGPA";
 import PlacementDSA from "@/pages/PlacementDSA";
+import Projects from "@/pages/Projects";
 import Courses from "@/pages/Courses";
 import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -23,6 +25,7 @@ function App() {
         <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/cgpa" element={<CGPA />} />
         <Route path="/placement-dsa" element={<PlacementDSA />} />
+        <Route path="/projects" element={<Projects />} />
         <Route path="/typing" element={<Typing />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/admin" element={<AdminDashboard />} />
