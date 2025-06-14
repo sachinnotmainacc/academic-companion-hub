@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -12,6 +11,7 @@ import Courses from "@/pages/Courses";
 import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
 import EmailPerks from "@/pages/EmailPerks";
+import Typing from "@/pages/Typing";
 
 function App() {
   return (
@@ -23,6 +23,7 @@ function App() {
         <Route path="/pomodoro" element={<Pomodoro />} />
         <Route path="/cgpa" element={<CGPA />} />
         <Route path="/placement-dsa" element={<PlacementDSA />} />
+        <Route path="/typing" element={<Typing />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/email-perks" element={<EmailPerks />} />
