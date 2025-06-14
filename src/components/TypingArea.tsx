@@ -246,14 +246,14 @@ export default function TypingArea({
   return (
     <div className="relative">
       {/* Enhanced Header */}
-      <div className="flex justify-between items-center mb-8 p-6 bg-gradient-to-r from-slate-700/80 to-gray-700/80 rounded-xl border border-slate-600/50 backdrop-blur-sm">
+      <div className="flex justify-between items-center mb-8 p-6 bg-gray-800 rounded-xl border border-gray-700 backdrop-blur-sm">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/30"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full shadow-lg shadow-yellow-500/30"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-500/30"></div>
           </div>
-          <div className="text-sm px-4 py-2 bg-gradient-to-r from-blue-600/80 to-purple-600/80 rounded-lg text-white font-semibold capitalize shadow-lg">
+          <div className="text-sm px-4 py-2 bg-white text-black rounded-lg font-semibold capitalize shadow-lg">
             {snippet.language}
           </div>
         </div>
@@ -292,8 +292,8 @@ export default function TypingArea({
       {/* Enhanced Code Display */}
       <div 
         ref={containerRef}
-        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-gradient-to-br from-slate-800/95 to-gray-800/95 p-8 rounded-xl border transition-all duration-300 min-h-[350px] backdrop-blur-sm ${
-          isStarted ? 'focus:border-blue-500/60 cursor-text border-slate-600/60 shadow-inner' : 'cursor-pointer border-slate-600/80 hover:border-slate-500/90'
+        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-gray-900 p-8 rounded-xl border transition-all duration-300 min-h-[350px] backdrop-blur-sm ${
+          isStarted ? 'focus:border-white cursor-text border-gray-700 shadow-inner' : 'cursor-pointer border-gray-700 hover:border-gray-600'
         }`}
         tabIndex={0}
         onBlur={handleBlur}
@@ -305,7 +305,7 @@ export default function TypingArea({
         style={{ lineHeight: '1.8' }}
       >
         {!isStarted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-800/90 rounded-xl backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90 rounded-xl backdrop-blur-sm">
             <div className="text-center p-8">
               <p className="text-gray-300 text-xl mb-3 font-medium">Click here or press any key to start typing</p>
               <p className="text-gray-500 text-base">Make sure to click "Start Test" first</p>
@@ -326,7 +326,7 @@ export default function TypingArea({
               className={`relative transition-all duration-150 ${
                 isTyped
                   ? isCorrect
-                    ? 'text-emerald-400 bg-emerald-400/10 shadow-sm'
+                    ? 'text-green-400 bg-green-400/10 shadow-sm'
                     : isWrong
                     ? 'text-red-400 bg-red-400/20 rounded-sm'
                     : ''
@@ -335,7 +335,7 @@ export default function TypingArea({
             >
               {isCursor && isCursorVisible && (
                 <span
-                  className="absolute w-0.5 -ml-0.5 bg-blue-400 animate-pulse shadow-lg shadow-blue-400/50"
+                  className="absolute w-0.5 -ml-0.5 bg-white animate-pulse shadow-lg shadow-white/50"
                   style={{ height: '1.6em' }}
                   data-cursor
                 />
@@ -352,9 +352,9 @@ export default function TypingArea({
           <span className="font-medium">Progress</span>
           <span className="font-mono">{Math.round((currentText.length / snippet.code.length) * 100)}%</span>
         </div>
-        <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden shadow-inner">
+        <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden shadow-inner">
           <div 
-            className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
+            className="bg-white h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
             style={{ width: `${Math.min(100, (currentText.length / snippet.code.length) * 100)}%` }}
           ></div>
         </div>
