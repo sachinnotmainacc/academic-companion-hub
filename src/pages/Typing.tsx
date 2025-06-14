@@ -57,81 +57,83 @@ const Typing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-950 to-slate-900 text-white">
       <Navbar />
       <div className="container mx-auto px-4 py-24">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-200 via-white to-slate-300 bg-clip-text text-transparent drop-shadow-lg">
             Code Typing Master
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Improve your coding speed and accuracy with real-time performance tracking
+          <p className="text-slate-400 text-xl max-w-3xl mx-auto leading-relaxed">
+            Elevate your coding speed and precision with advanced performance analytics
           </p>
         </div>
 
         {!showResults ? (
           <>
             {/* Control Bar */}
-            <div className="max-w-4xl mx-auto mb-8">
-              <div className="bg-dark-900 rounded-xl p-4 border border-dark-700 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    onClick={handleReset}
-                    variant="outline"
-                    className="border-dark-600 hover:bg-dark-700"
-                    disabled={isStarted && timeLeft > 0}
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleStart}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={isStarted}
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    {isStarted ? 'Started' : 'Start Test'}
-                  </Button>
-                </div>
-
-                <div className="flex items-center space-x-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-400 mb-1">Language</div>
-                    <LanguageSelector 
-                      currentLanguage={currentSnippet.language}
-                      onLanguageChange={handleLanguageChange}
-                      disabled={isStarted}
-                    />
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-sm text-gray-400 mb-1">Duration</div>
-                    <select 
-                      value={testDuration}
-                      onChange={(e) => handleDurationChange(Number(e.target.value))}
-                      disabled={isStarted}
-                      className="bg-dark-800 border border-dark-600 rounded px-3 py-2 text-white text-sm min-w-[80px]"
+            <div className="max-w-5xl mx-auto mb-10">
+              <div className="bg-gradient-to-r from-slate-900/90 to-gray-900/90 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50 shadow-2xl shadow-black/20">
+                <div className="flex flex-wrap items-center justify-between gap-6">
+                  <div className="flex items-center space-x-6">
+                    <Button 
+                      onClick={handleReset}
+                      variant="outline"
+                      className="border-slate-600 hover:bg-slate-800 hover:border-slate-500 bg-slate-800/50 text-slate-200 transition-all duration-300"
+                      disabled={isStarted && timeLeft > 0}
                     >
-                      <option value={15}>15s</option>
-                      <option value={30}>30s</option>
-                      <option value={60}>60s</option>
-                      <option value={120}>120s</option>
-                    </select>
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Reset
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleStart}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25 transition-all duration-300"
+                      disabled={isStarted}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      {isStarted ? 'Started' : 'Start Test'}
+                    </Button>
                   </div>
-                  
-                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
-                    <Settings className="w-4 h-4" />
-                  </Button>
+
+                  <div className="flex items-center space-x-8">
+                    <div className="text-center">
+                      <div className="text-sm text-slate-400 mb-2 font-medium tracking-wide">Language</div>
+                      <LanguageSelector 
+                        currentLanguage={currentSnippet.language}
+                        onLanguageChange={handleLanguageChange}
+                        disabled={isStarted}
+                      />
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="text-sm text-slate-400 mb-2 font-medium tracking-wide">Duration</div>
+                      <select 
+                        value={testDuration}
+                        onChange={(e) => handleDurationChange(Number(e.target.value))}
+                        disabled={isStarted}
+                        className="bg-slate-800/70 border border-slate-600 rounded-lg px-4 py-2 text-white text-sm min-w-[90px] focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                      >
+                        <option value={15}>15s</option>
+                        <option value={30}>30s</option>
+                        <option value={60}>60s</option>
+                        <option value={120}>120s</option>
+                      </select>
+                    </div>
+                    
+                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-300">
+                      <Settings className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Main Typing Area */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-dark-900 rounded-xl shadow-2xl border border-dark-700 overflow-hidden">
-                <div className="p-8">
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-gradient-to-br from-slate-900/95 to-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/30 overflow-hidden">
+                <div className="p-10">
                   <TypingArea
                     snippet={currentSnippet}
                     timeLeft={timeLeft}
@@ -153,7 +155,7 @@ const Typing = () => {
           </>
         ) : (
           /* Show final test results */
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <TypingTestResults onRestart={handleReset} />
           </div>
         )}

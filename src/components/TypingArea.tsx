@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTypingStore } from '../store/typingStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -222,30 +223,30 @@ export default function TypingArea({
   return (
     <div className="relative">
       {/* Enhanced Header */}
-      <div className="flex justify-between items-center mb-6 p-4 bg-dark-800 rounded-lg border border-dark-600">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+      <div className="flex justify-between items-center mb-8 p-6 bg-gradient-to-r from-slate-800/60 to-gray-800/60 rounded-xl border border-slate-600/30 backdrop-blur-sm">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/30"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full shadow-lg shadow-yellow-500/30"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-500/30"></div>
           </div>
-          <div className="text-sm px-3 py-1 bg-blue-600 rounded-md text-white font-medium capitalize">
+          <div className="text-sm px-4 py-2 bg-gradient-to-r from-blue-600/80 to-purple-600/80 rounded-lg text-white font-semibold capitalize shadow-lg">
             {snippet.language}
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           <div className="text-right">
-            <div className="text-xs text-gray-400 uppercase tracking-wide">Time Left</div>
-            <div className={`text-2xl font-mono font-bold ${
-              timeLeft <= 10 ? 'text-red-400' : 
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-medium mb-1">Time Left</div>
+            <div className={`text-3xl font-mono font-bold transition-all duration-300 ${
+              timeLeft <= 10 ? 'text-red-400 animate-pulse' : 
               timeLeft <= 20 ? 'text-yellow-400' : 'text-green-400'
             }`}>
               {timeLeft}s
             </div>
           </div>
-          <div className="w-12 h-12 relative">
-            <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+          <div className="w-14 h-14 relative">
+            <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
@@ -258,7 +259,7 @@ export default function TypingArea({
                 stroke={timeLeft <= 10 ? '#F87171' : timeLeft <= 20 ? '#FBBF24' : '#10B981'}
                 strokeWidth="2"
                 strokeDasharray={`${(timeLeft / testDuration) * 100}, 100`}
-                className="transition-all duration-1000 ease-linear"
+                className="transition-all duration-1000 ease-linear drop-shadow-lg"
               />
             </svg>
           </div>
@@ -268,8 +269,8 @@ export default function TypingArea({
       {/* Enhanced Code Display */}
       <div 
         ref={containerRef}
-        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-dark-850 p-6 rounded-lg border border-dark-600 transition-colors min-h-[300px] ${
-          isStarted ? 'focus:border-blue-500 cursor-text' : 'cursor-pointer border-gray-600'
+        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-gradient-to-br from-slate-900/90 to-gray-900/90 p-8 rounded-xl border transition-all duration-300 min-h-[350px] backdrop-blur-sm ${
+          isStarted ? 'focus:border-blue-500/60 cursor-text border-slate-600/40 shadow-inner' : 'cursor-pointer border-slate-600/60 hover:border-slate-500/80'
         }`}
         tabIndex={0}
         onBlur={handleBlur}
@@ -281,10 +282,10 @@ export default function TypingArea({
         style={{ lineHeight: '1.8' }}
       >
         {!isStarted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-dark-850/80 rounded-lg">
-            <div className="text-center">
-              <p className="text-gray-400 text-lg mb-2">Click here or press any key to start typing</p>
-              <p className="text-gray-500 text-sm">Make sure to click "Start Test" first</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/85 rounded-xl backdrop-blur-sm">
+            <div className="text-center p-8">
+              <p className="text-slate-300 text-xl mb-3 font-medium">Click here or press any key to start typing</p>
+              <p className="text-slate-500 text-base">Make sure to click "Start Test" first</p>
             </div>
           </div>
         )}
@@ -299,19 +300,19 @@ export default function TypingArea({
           return (
             <span
               key={index}
-              className={`relative ${
+              className={`relative transition-all duration-150 ${
                 isTyped
                   ? isCorrect
-                    ? 'text-green-400 bg-green-400/10'
+                    ? 'text-emerald-400 bg-emerald-400/10 shadow-sm'
                     : isWrong
-                    ? 'text-red-400 bg-red-400/20 rounded'
+                    ? 'text-red-400 bg-red-400/20 rounded-sm'
                     : ''
-                  : 'text-gray-500'
-              } transition-colors duration-150`}
+                  : 'text-slate-500'
+              }`}
             >
               {isCursor && isCursorVisible && (
                 <span
-                  className="absolute w-0.5 -ml-0.5 bg-blue-400 animate-pulse"
+                  className="absolute w-0.5 -ml-0.5 bg-blue-400 animate-pulse shadow-lg shadow-blue-400/50"
                   style={{ height: '1.6em' }}
                   data-cursor
                 />
@@ -323,14 +324,14 @@ export default function TypingArea({
       </div>
 
       {/* Progress Bar */}
-      <div className="mt-4">
-        <div className="flex justify-between text-xs text-gray-400 mb-1">
-          <span>Progress</span>
-          <span>{Math.round((currentText.length / snippet.code.length) * 100)}%</span>
+      <div className="mt-6">
+        <div className="flex justify-between text-sm text-slate-400 mb-2">
+          <span className="font-medium">Progress</span>
+          <span className="font-mono">{Math.round((currentText.length / snippet.code.length) * 100)}%</span>
         </div>
-        <div className="w-full bg-dark-700 rounded-full h-2">
+        <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
           <div 
-            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+            className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
             style={{ width: `${Math.min(100, (currentText.length / snippet.code.length) * 100)}%` }}
           ></div>
         </div>
