@@ -1,330 +1,276 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Search, Layers, BookOpen, Code, Globe, Brush, Database, Server, PenTool, Lightbulb } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, Clock, Users, Star, BookOpen, Zap, Trophy, Code } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 
-interface Course {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  link: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  duration: string;
-  icon: React.ElementType;
-  tags: string[];
-}
-
-const coursesData: Course[] = [
+const courses = [
   {
-    id: "web-dev",
-    title: "Web Development Fundamentals",
-    category: "Web Development",
-    description: "Learn the foundations of modern web development including HTML, CSS, and JavaScript. This course covers responsive design, DOM manipulation, and building interactive websites.",
-    link: "https://www.freecodecamp.org/learn/responsive-web-design/",
-    difficulty: "Beginner",
-    duration: "8 weeks",
-    icon: Globe,
-    tags: ["HTML", "CSS", "JavaScript"]
+    title: "Complete Web Development Bootcamp",
+    provider: "The Odin Project",
+    duration: "6-9 months",
+    level: "Beginner",
+    rating: 4.8,
+    students: "50k+",
+    description: "Learn full-stack web development from scratch with HTML, CSS, JavaScript, React, and Node.js",
+    topics: ["HTML/CSS", "JavaScript", "React", "Node.js", "Databases"],
+    link: "https://www.theodinproject.com/",
+    price: "Free",
+    icon: <Code className="h-6 w-6 text-blue-400" />,
+    gradient: "from-blue-600/20 to-indigo-600/20",
+    borderColor: "border-blue-500/30",
   },
   {
-    id: "react",
-    title: "React.js - Frontend Framework",
-    category: "Web Development",
-    description: "Master React.js and build dynamic single-page applications. Learn about components, props, state, hooks, and context API for modern frontend development.",
-    link: "https://react.dev/learn",
-    difficulty: "Intermediate",
-    duration: "10 weeks",
-    icon: Code,
-    tags: ["React", "JavaScript", "Frontend"]
+    title: "CS50: Introduction to Computer Science",
+    provider: "Harvard University",
+    duration: "10-20 hours/week",
+    level: "Beginner",
+    rating: 4.9,
+    students: "100k+",
+    description: "Harvard's introduction to computer science and programming, covering algorithms, data structures, and more",
+    topics: ["C", "Python", "SQL", "JavaScript", "Algorithms", "Data Structures"],
+    link: "https://cs50.harvard.edu/x/",
+    price: "Free",
+    icon: <Trophy className="h-6 w-6 text-yellow-400" />,
+    gradient: "from-yellow-600/20 to-orange-600/20",
+    borderColor: "border-yellow-500/30",
   },
   {
-    id: "python",
-    title: "Python Programming",
-    category: "Programming Languages",
-    description: "Comprehensive Python programming course covering basic to advanced concepts including data structures, algorithms, file handling, and object-oriented programming.",
-    link: "https://www.learnpython.org/",
-    difficulty: "Beginner",
-    duration: "12 weeks",
-    icon: Code,
-    tags: ["Python", "Programming", "OOP"]
+    title: "freeCodeCamp",
+    provider: "freeCodeCamp",
+    duration: "300+ hours",
+    level: "All Levels",
+    rating: 4.7,
+    students: "400k+",
+    description: "Comprehensive curriculum covering web development, data science, and machine learning",
+    topics: ["Web Development", "Data Science", "APIs", "Microservices", "Machine Learning"],
+    link: "https://www.freecodecamp.org/",
+    price: "Free",
+    icon: <Zap className="h-6 w-6 text-green-400" />,
+    gradient: "from-green-600/20 to-emerald-600/20",
+    borderColor: "border-green-500/30",
   },
   {
-    id: "data-science",
-    title: "Data Science Essentials",
-    category: "Data Science",
-    description: "Introduction to data science using Python. Learn data analysis, visualization techniques, statistics, and machine learning fundamentals.",
-    link: "https://www.datacamp.com/tracks/data-scientist-with-python",
-    difficulty: "Intermediate",
-    duration: "16 weeks",
-    icon: Database,
-    tags: ["Python", "Data Analysis", "Machine Learning"]
+    title: "JavaScript30",
+    provider: "Wes Bos",
+    duration: "30 days",
+    level: "Intermediate",
+    rating: 4.8,
+    students: "200k+",
+    description: "Build 30 things in 30 days with vanilla JavaScript. No frameworks, libraries, or compilers",
+    topics: ["Vanilla JavaScript", "DOM Manipulation", "CSS", "APIs", "Local Storage"],
+    link: "https://javascript30.com/",
+    price: "Free",
+    icon: <BookOpen className="h-6 w-6 text-purple-400" />,
+    gradient: "from-purple-600/20 to-violet-600/20",
+    borderColor: "border-purple-500/30",
   },
   {
-    id: "ui-design",
-    title: "UI/UX Design Principles",
-    category: "Design",
-    description: "Learn the principles of effective user interface and user experience design. This course covers design thinking, wireframing, prototyping, and user testing.",
-    link: "https://www.coursera.org/specializations/ui-ux-design",
-    difficulty: "Beginner",
-    duration: "8 weeks",
-    icon: Brush,
-    tags: ["UI", "UX", "Design", "Figma"]
+    title: "Coursera Computer Science Courses",
+    provider: "Various Universities",
+    duration: "4-12 weeks",
+    level: "All Levels",
+    rating: 4.6,
+    students: "1M+",
+    description: "University-level computer science courses from top institutions worldwide",
+    topics: ["Algorithms", "Machine Learning", "Data Science", "Software Engineering"],
+    link: "https://www.coursera.org/browse/computer-science",
+    price: "Free/Paid",
+    icon: <Star className="h-6 w-6 text-indigo-400" />,
+    gradient: "from-indigo-600/20 to-blue-600/20",
+    borderColor: "border-indigo-500/30",
   },
   {
-    id: "node-js",
-    title: "Node.js Backend Development",
-    category: "Backend Development",
-    description: "Build scalable server-side applications with Node.js. Learn Express.js, REST APIs, authentication, database integration, and deployment.",
-    link: "https://nodejs.dev/learn",
-    difficulty: "Intermediate",
-    duration: "10 weeks",
-    icon: Server,
-    tags: ["Node.js", "Express", "Backend", "API"]
-  },
-  {
-    id: "mobile-dev",
-    title: "Mobile App Development with React Native",
-    category: "Mobile Development",
-    description: "Build cross-platform mobile applications using React Native. Learn component styling, navigation, state management, and API integration.",
-    link: "https://reactnative.dev/docs/getting-started",
-    difficulty: "Intermediate",
-    duration: "12 weeks",
-    icon: PenTool,
-    tags: ["React Native", "Mobile", "JavaScript"]
-  },
-  {
-    id: "machine-learning",
-    title: "Machine Learning Fundamentals",
-    category: "Artificial Intelligence",
-    description: "Introduction to machine learning algorithms and techniques. Learn supervised and unsupervised learning, neural networks, and model evaluation.",
-    link: "https://www.coursera.org/learn/machine-learning",
-    difficulty: "Advanced",
-    duration: "14 weeks",
-    icon: Lightbulb,
-    tags: ["Machine Learning", "AI", "Python", "TensorFlow"]
-  },
-  {
-    id: "blockchain",
-    title: "Blockchain Development",
-    category: "Blockchain",
-    description: "Learn blockchain fundamentals and smart contract development. This course covers Ethereum, Solidity, Web3.js, and dApp development.",
-    link: "https://cryptozombies.io/",
-    difficulty: "Advanced",
-    duration: "10 weeks",
-    icon: Database,
-    tags: ["Blockchain", "Ethereum", "Solidity", "Web3"]
+    title: "MIT OpenCourseWare",
+    provider: "Massachusetts Institute of Technology",
+    duration: "Self-paced",
+    level: "Advanced",
+    rating: 4.9,
+    students: "Unlimited",
+    description: "Free access to MIT's course materials including lectures, assignments, and exams",
+    topics: ["Computer Science", "Mathematics", "Engineering", "Economics"],
+    link: "https://ocw.mit.edu/",
+    price: "Free",
+    icon: <Trophy className="h-6 w-6 text-red-400" />,
+    gradient: "from-red-600/20 to-pink-600/20",
+    borderColor: "border-red-500/30",
   }
 ];
 
+const levelColors = {
+  Beginner: "bg-green-500/20 text-green-300 border-green-500/30",
+  Intermediate: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+  Advanced: "bg-red-500/20 text-red-300 border-red-500/30",
+  "All Levels": "bg-blue-500/20 text-blue-300 border-blue-500/30"
+};
+
 const Courses = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-
-  const categories = Array.from(new Set(coursesData.map(course => course.category)));
-
-  const filteredCourses = coursesData.filter(course => {
-    const matchesSearch = 
-      course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesCategory = !selectedCategory || course.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleCourseClick = (course: Course) => {
-    setSelectedCourse(course);
-  };
-
-  const handleBackClick = () => {
-    setSelectedCourse(null);
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "success";
-      case "Intermediate":
-        return "warning";
-      case "Advanced":
-        return "destructive";
-      default:
-        return "default";
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-dark-950 text-white">
+    <div className="min-h-screen bg-black">
       <Navbar />
-      <div className="container mx-auto px-4 pt-28 pb-16">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gradient">
-          Online Learning Courses
-        </h1>
-        <p className="text-gray-400 mb-8">
-          Discover high-quality courses to enhance your skills and advance your career
-        </p>
+      
+      {/* Hero Section */}
+      <div className="container mx-auto pt-20 pb-12 px-4">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/20 to-blue-500/20 border border-purple-500/30 text-purple-300 text-sm font-semibold mb-4 backdrop-blur-sm">
+            <BookOpen className="h-4 w-4" />
+            Free Learning Resources
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            Master Your
+            <br />
+            <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
+              Technical Skills
+            </span>
+          </h1>
+          
+          <p className="text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed font-medium">
+            Curated collection of the best free courses and resources to advance your 
+            programming and computer science knowledge.
+          </p>
+          
+          <div className="flex items-center justify-center gap-8 pt-6">
+            <div className="flex items-center gap-2 text-green-400">
+              <Zap className="h-5 w-5" />
+              <span className="text-sm font-semibold text-white">100% Free</span>
+            </div>
+            <div className="flex items-center gap-2 text-blue-400">
+              <Users className="h-5 w-5" />
+              <span className="text-sm font-semibold text-white">Self-Paced</span>
+            </div>
+            <div className="flex items-center gap-2 text-purple-400">
+              <Trophy className="h-5 w-5" />
+              <span className="text-sm font-semibold text-white">High Quality</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {selectedCourse ? (
-          <div className="animate-fade-in">
-            <button 
-              onClick={handleBackClick}
-              className="mb-4 flex items-center text-blue-500 hover:text-blue-400 transition-colors"
-            >
-              ← Back to all courses
-            </button>
-            
-            <div className="glass-card p-8 rounded-xl shadow-xl">
-              <div className="flex flex-col md:flex-row md:items-start gap-6">
-                <div className="flex-shrink-0 w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
-                  <selectedCourse.icon className="h-8 w-8 text-blue-500" />
-                </div>
+      {/* Courses Grid */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {courses.map((course, index) => (
+              <Card 
+                key={index} 
+                className={`group bg-gray-900/60 border border-gray-800/50 hover:border-gray-600/60 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col`}
+                style={{
+                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${course.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />
                 
-                <div className="flex-grow">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-2">{selectedCourse.title}</h2>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant={getDifficultyColor(selectedCourse.difficulty) as any}>
-                          {selectedCourse.difficulty}
+                <div className="relative z-10 flex flex-col h-full">
+                  <CardHeader className="pb-4 p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
+                        {course.icon}
+                      </div>
+                      
+                      <div className="flex flex-col gap-2">
+                        <Badge className={`text-xs font-semibold border ${levelColors[course.level as keyof typeof levelColors]}`}>
+                          {course.level}
                         </Badge>
-                        <Badge variant="secondary">{selectedCourse.duration}</Badge>
-                        <Badge variant="outline">{selectedCourse.category}</Badge>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-green-400">
+                            {course.price}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <a 
-                      href={selectedCourse.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center gap-2 w-fit"
-                    >
-                      <BookOpen className="h-4 w-4" />
-                      Enroll Now
-                    </a>
-                  </div>
-                  
-                  <div className="bg-dark-900/50 rounded-lg p-5 mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Course Description</h3>
-                    <p className="text-gray-300 leading-relaxed">
-                      {selectedCourse.description}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Topics Covered</h3>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selectedCourse.tags.map(tag => (
-                        <Badge key={tag} variant="info" className="text-sm">
-                          {tag}
-                        </Badge>
-                      ))}
+                    <CardTitle className="text-lg font-bold text-white tracking-tight leading-tight mb-2">
+                      {course.title}
+                    </CardTitle>
+                    
+                    <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {course.students}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {course.duration}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {course.rating}
+                      </span>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="mb-8 flex flex-col md:flex-row gap-4">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search courses by name, description or tag..."
-                  className="pl-10 bg-dark-900 border-dark-800 text-white"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-                <button
-                  className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                    selectedCategory === null
-                      ? "bg-blue-600 text-white"
-                      : "bg-dark-800 text-gray-300 hover:bg-dark-700"
-                  }`}
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  All Categories
-                </button>
-                
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                      selectedCategory === category
-                        ? "bg-blue-600 text-white"
-                        : "bg-dark-800 text-gray-300 hover:bg-dark-700"
-                    }`}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    
+                    <p className="text-gray-300 text-sm leading-relaxed font-medium">
+                      {course.description}
+                    </p>
+                  </CardHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
-                  <Card
-                    key={course.id}
-                    className="hover:shadow-[0_0_20px_rgba(0,157,255,0.15)] transition-all duration-300 bg-dark-900/80 border border-dark-800 hover:border-blue-500/20 cursor-pointer overflow-hidden"
-                    onClick={() => handleCourseClick(course)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <course.icon className="h-6 w-6 text-blue-500" />
-                        </div>
-                        <div className="flex-grow">
-                          <h3 className="font-semibold text-lg text-white mb-1">{course.title}</h3>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            <Badge variant={getDifficultyColor(course.difficulty) as any} className="text-xs">
-                              {course.difficulty}
+                  <CardContent className="pt-0 px-6 flex-grow">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm font-semibold text-white mb-2">What you'll learn:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {course.topics.map((topic, i) => (
+                            <Badge 
+                              key={i} 
+                              variant="outline" 
+                              className="text-xs text-gray-300 border-gray-700/60 bg-gray-800/40 hover:bg-gray-800/60 transition-colors"
+                            >
+                              {topic}
                             </Badge>
-                            <Badge variant="secondary" className="text-xs">{course.duration}</Badge>
-                          </div>
-                          <p className="text-gray-400 text-sm line-clamp-2 mb-3">
-                            {course.description}
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {course.tags.slice(0, 3).map(tag => (
-                              <span key={tag} className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded">
-                                {tag}
-                              </span>
-                            ))}
-                            {course.tags.length > 3 && (
-                              <span className="text-xs text-gray-400">+{course.tags.length - 3} more</span>
-                            )}
-                          </div>
+                          ))}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                  <Layers className="h-16 w-16 text-gray-600 mb-4" />
-                  <h3 className="text-xl text-gray-400 mb-2">No courses found</h3>
-                  <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+                      
+                      <div className="pt-2 border-t border-gray-800/60">
+                        <p className="text-xs text-gray-400 font-medium">
+                          <span className="text-blue-400 font-semibold">Provider:</span> {course.provider}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+
+                  <div className="p-6 pt-4 mt-auto">
+                    <Button 
+                      className="w-full h-10 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 rounded-xl text-sm" 
+                      onClick={() => window.open(course.link, '_blank')}
+                    >
+                      Start Learning
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              )}
+              </Card>
+            ))}
+          </div>
+          
+          {/* Call to Action */}
+          <div className="mt-20 text-center p-10 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800/60 backdrop-blur-xl shadow-2xl">
+            <h3 className="text-3xl font-bold text-white mb-6">
+              Ready to start your learning journey?
+            </h3>
+            <p className="text-gray-200 mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-lg">
+              These courses are carefully selected to provide you with the best free education available online. 
+              Start with any course that matches your current skill level.
+            </p>
+            <div className="flex items-center justify-center gap-8 text-gray-300 flex-wrap">
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"></div>
+                Self-paced learning
+              </span>
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></div>
+                Industry-relevant skills
+              </span>
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400/50"></div>
+                Lifetime access
+              </span>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
-      <Footer />
     </div>
   );
 };
