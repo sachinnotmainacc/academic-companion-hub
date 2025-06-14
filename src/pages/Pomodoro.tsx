@@ -3,10 +3,11 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Play, Pause, RotateCcw, CheckCircle, Settings, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle, Settings } from 'lucide-react';
 import PomodoroSettings from '@/components/pomodoro/PomodoroSettings';
 import YouTubePlayer from '@/components/pomodoro/YouTubePlayer';
 import PomodoroStats from '@/components/pomodoro/PomodoroStats';
+import HowItWorksDialog from '@/components/pomodoro/HowItWorksDialog';
 
 const Pomodoro: React.FC = () => {
   // Timer durations (customizable now)
@@ -313,186 +314,130 @@ const Pomodoro: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-dark-950 via-dark-950 to-dark-900 text-white">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-24">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">
-              <span className="text-gradient bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Pomodoro Timer</span>
-            </h1>
+      <main className="container mx-auto px-4 py-16">
+        <div className="max-w-6xl mx-auto">
+          {/* Header with Help Button */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <h1 className="text-4xl md:text-5xl font-bold">
+                <span className="text-gradient bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Pomodoro Timer</span>
+              </h1>
+              <HowItWorksDialog />
+            </div>
             <p className="text-lg text-gray-400 max-w-xl mx-auto">
               Boost your productivity with focused work sessions and structured breaks
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Main Timer Section */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="glass-card rounded-2xl border border-dark-800/50 shadow-xl overflow-hidden">
-                {/* Mode selector */}
-                <div className="grid grid-cols-3 gap-2 p-4 bg-dark-900/80 border-b border-dark-800 relative">
-                  <Button 
-                    className={`${getButtonColor('pomodoro')} text-white font-medium shadow-md`}
-                    onClick={() => changeMode('pomodoro')}
-                  >
-                    Focus
-                  </Button>
-                  <Button 
-                    className={`${getButtonColor('shortBreak')} text-white font-medium shadow-md`}
-                    onClick={() => changeMode('shortBreak')}
-                  >
-                    Short Break
-                  </Button>
-                  <Button 
-                    className={`${getButtonColor('longBreak')} text-white font-medium shadow-md`}
-                    onClick={() => changeMode('longBreak')}
-                  >
-                    Long Break
-                  </Button>
-                  
+          {/* Main Timer Section - Centered and Larger */}
+          <div className="max-w-2xl mx-auto mb-12">
+            <div className="glass-card rounded-3xl border border-dark-800/50 shadow-2xl overflow-hidden">
+              {/* Mode selector */}
+              <div className="grid grid-cols-3 gap-3 p-6 bg-dark-900/80 border-b border-dark-800 relative">
+                <Button 
+                  className={`${getButtonColor('pomodoro')} text-white font-medium shadow-md h-12 text-base`}
+                  onClick={() => changeMode('pomodoro')}
+                >
+                  Focus
+                </Button>
+                <Button 
+                  className={`${getButtonColor('shortBreak')} text-white font-medium shadow-md h-12 text-base`}
+                  onClick={() => changeMode('shortBreak')}
+                >
+                  Short Break
+                </Button>
+                <Button 
+                  className={`${getButtonColor('longBreak')} text-white font-medium shadow-md h-12 text-base`}
+                  onClick={() => changeMode('longBreak')}
+                >
+                  Long Break
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 top-4 text-gray-400 hover:text-white hover:bg-dark-800/50"
+                  onClick={() => setShowSettings(true)}
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              {/* Timer display - Much Larger */}
+              <div className="p-12 md:p-16 flex flex-col items-center">
+                <div className="w-80 h-80 md:w-96 md:h-96 rounded-full border-8 border-dark-800/50 flex items-center justify-center mb-12 relative">
+                  <div 
+                    className="absolute inset-0 rounded-full overflow-hidden"
+                    style={{ 
+                      background: `conic-gradient(${getProgressColor()} ${calculateProgress()}%, transparent 0)`,
+                      transform: 'rotate(-90deg)',
+                      transformOrigin: 'center'
+                    }}
+                  ></div>
+                  <div className="absolute inset-[0.5rem] bg-dark-900/80 rounded-full backdrop-blur-sm border border-dark-800/30"></div>
+                  <div className="text-8xl md:text-9xl font-bold tracking-tighter z-10 text-white">
+                    {formatTime(timeLeft)}
+                  </div>
+                </div>
+                
+                {/* Controls - Larger */}
+                <div className="flex gap-6 mt-6">
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-2 top-2 text-gray-400 hover:text-white hover:bg-dark-800/50"
-                    onClick={() => setShowSettings(true)}
+                    size="lg"
+                    className={`${isActive ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white px-12 py-4 text-lg shadow-lg shadow-[rgba(0,0,0,0.1)]`}
+                    onClick={toggleTimer}
                   >
-                    <Settings className="h-5 w-5" />
+                    {isActive ? <Pause className="mr-3 h-6 w-6" /> : <Play className="mr-3 h-6 w-6" />}
+                    {isActive ? 'Pause' : 'Start'}
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 px-8 py-4 text-lg"
+                    onClick={resetTimer}
+                  >
+                    <RotateCcw className="mr-3 h-6 w-6" />
+                    Reset
                   </Button>
                 </div>
-                
-                {/* Timer display */}
-                <div className="p-8 md:p-12 flex flex-col items-center">
-                  <div className="w-52 h-52 md:w-64 md:h-64 rounded-full border-8 border-dark-800/50 flex items-center justify-center mb-8 relative">
-                    <div 
-                      className="absolute inset-0 rounded-full overflow-hidden"
-                      style={{ 
-                        background: `conic-gradient(${getProgressColor()} ${calculateProgress()}%, transparent 0)`,
-                        transform: 'rotate(-90deg)',
-                        transformOrigin: 'center'
-                      }}
-                    ></div>
-                    <div className="absolute inset-[0.5rem] bg-dark-900/80 rounded-full backdrop-blur-sm border border-dark-800/30"></div>
-                    <div className="text-7xl md:text-8xl font-bold tracking-tighter z-10 text-white">
-                      {formatTime(timeLeft)}
-                    </div>
-                  </div>
-                  
-                  {/* Controls */}
-                  <div className="flex gap-4 mt-4">
-                    <Button
-                      size="lg"
-                      className={`${isActive ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'} text-white px-8 shadow-lg shadow-[rgba(0,0,0,0.1)]`}
-                      onClick={toggleTimer}
-                    >
-                      {isActive ? <Pause className="mr-2 h-5 w-5" /> : <Play className="mr-2 h-5 w-5" />}
-                      {isActive ? 'Pause' : 'Start'}
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-600"
-                      onClick={resetTimer}
-                    >
-                      <RotateCcw className="mr-2 h-5 w-5" />
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Session counter */}
-                <div className="p-4 bg-dark-900/80 border-t border-dark-800 flex justify-center">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-dark-800/50 backdrop-blur-sm">
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <span className="text-gray-300">Today: </span>
-                    <span className="font-semibold text-white">{todayPomodoros} sessions completed</span>
-                  </div>
-                </div>
               </div>
               
-              {/* Stats Card */}
-              <div className="glass-card rounded-2xl border border-dark-800/50 shadow-lg p-6">
-                <PomodoroStats 
-                  completedPomodoros={completedPomodoros}
-                  completedBreaks={completedBreaks}
-                  totalFocusTime={totalFocusTime}
-                  todayPomodoros={todayPomodoros}
-                  longestStreak={longestStreak}
-                />
-              </div>
-              
-              {/* YouTube Player */}
-              <div className="glass-card rounded-2xl border border-dark-800/50 shadow-lg overflow-hidden">
-                <div className="p-4 bg-dark-900/80 border-b border-dark-800">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <span className="p-1.5 rounded-full bg-dark-800">
-                      <Clock className="h-4 w-4 text-blue-400" />
-                    </span>
-                    Background Music
-                  </h3>
-                </div>
-                <div className="p-1">
-                  <YouTubePlayer />
+              {/* Session counter */}
+              <div className="p-6 bg-dark-900/80 border-t border-dark-800 flex justify-center">
+                <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-dark-800/50 backdrop-blur-sm">
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                  <span className="text-gray-300 text-lg">Today: </span>
+                  <span className="font-semibold text-white text-lg">{todayPomodoros} sessions completed</span>
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Secondary Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Stats Card */}
+            <div className="glass-card rounded-2xl border border-dark-800/50 shadow-lg p-6">
+              <PomodoroStats 
+                completedPomodoros={completedPomodoros}
+                completedBreaks={completedBreaks}
+                totalFocusTime={totalFocusTime}
+                todayPomodoros={todayPomodoros}
+                longestStreak={longestStreak}
+              />
+            </div>
             
-            {/* Information Panel */}
-            <div className="lg:col-span-4 space-y-6">
-              <div className="glass-card rounded-2xl border border-dark-800/50 shadow-lg p-6">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                  <span className="mr-2 w-1.5 h-6 bg-blue-500 rounded-full"></span>
-                  How it works
+            {/* YouTube Player */}
+            <div className="glass-card rounded-2xl border border-dark-800/50 shadow-lg overflow-hidden">
+              <div className="p-4 bg-dark-900/80 border-b border-dark-800">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <span className="p-1.5 rounded-full bg-dark-800">
+                    <CheckCircle className="h-4 w-4 text-blue-400" />
+                  </span>
+                  Background Music
                 </h3>
-                <ul className="space-y-4">
-                  <li className="flex items-start">
-                    <div className="bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 mt-0.5 shrink-0">
-                      1
-                    </div>
-                    <p className="text-gray-300">Set a 25-minute timer and focus on a single task until the timer rings.</p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-green-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 mt-0.5 shrink-0">
-                      2
-                    </div>
-                    <p className="text-gray-300">Take a short 5-minute break to relax and recharge.</p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-yellow-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 mt-0.5 shrink-0">
-                      3
-                    </div>
-                    <p className="text-gray-300">After completing four pomodoros, take a longer 15-minute break.</p>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3 mt-0.5 shrink-0">
-                      4
-                    </div>
-                    <p className="text-gray-300">Adjust timer settings to find what works best for your productivity.</p>
-                  </li>
-                </ul>
-                
-                <div className="mt-6 pt-6 border-t border-dark-800/50">
-                  <h4 className="text-lg font-semibold text-white mb-3 flex items-center">
-                    <span className="mr-2 w-1 h-5 bg-green-500 rounded-full"></span>
-                    Productivity Tips
-                  </h4>
-                  <ul className="grid gap-2 text-gray-400 text-sm">
-                    <li className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                      Break down complex tasks into actionable items
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                      Use background music for better concentration
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                      Stay hydrated and take short walks during breaks
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                      Avoid checking emails during focus time
-                    </li>
-                  </ul>
-                </div>
+              </div>
+              <div className="p-1">
+                <YouTubePlayer />
               </div>
             </div>
           </div>
