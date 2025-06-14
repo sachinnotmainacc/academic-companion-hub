@@ -13,8 +13,9 @@ const perks = [
     title: "GitHub Student Pack",
     description: "Free access to developer tools, cloud services, and learning resources worth $200,000+",
     icon: <Book className="h-8 w-8 text-blue-500" />,
-    gradient: "from-blue-500/20 to-indigo-500/20",
-    borderGradient: "from-blue-500 to-indigo-500",
+    gradient: "from-blue-500/10 to-indigo-500/10",
+    borderColor: "border-blue-500/30",
+    hoverBorderColor: "hover:border-blue-500/50",
     offers: [
       "GitHub Pro free for students",
       "$200 AWS credits for cloud computing",
@@ -30,8 +31,9 @@ const perks = [
     title: "Software & Tools",
     description: "Professional software and development tools that boost your productivity",
     icon: <Star className="h-8 w-8 text-yellow-500" />,
-    gradient: "from-yellow-500/20 to-orange-500/20",
-    borderGradient: "from-yellow-500 to-orange-500",
+    gradient: "from-yellow-500/10 to-orange-500/10",
+    borderColor: "border-yellow-500/30",
+    hoverBorderColor: "hover:border-yellow-500/50",
     offers: [
       "Microsoft Office 365 Education",
       "Notion Pro for unlimited blocks",
@@ -47,8 +49,9 @@ const perks = [
     title: "Learning Platforms",
     description: "Access to premium educational content and skill development platforms",
     icon: <Award className="h-8 w-8 text-green-500" />,
-    gradient: "from-green-500/20 to-emerald-500/20",
-    borderGradient: "from-green-500 to-emerald-500",
+    gradient: "from-green-500/10 to-emerald-500/10",
+    borderColor: "border-green-500/30",
+    hoverBorderColor: "hover:border-green-500/50",
     offers: [
       "LinkedIn Learning premium access",
       "Coursera Plus with 90% discount",
@@ -71,43 +74,36 @@ const EmailPerks = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
+    <div className="min-h-screen bg-dark-950">
       <Navbar />
       
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent" />
-        <div className="container mx-auto pt-24 pb-16 px-4 relative">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-4">
-              <Sparkles className="h-4 w-4" />
-              Student Benefits
+      <div className="container mx-auto pt-24 pb-16 px-4">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-4">
+            <Sparkles className="h-4 w-4" />
+            Student Benefits
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            Unlock Premium
+            <br />
+            <span className="text-blue-400">Student Perks</span>
+          </h1>
+          
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            Get access to <span className="text-blue-400 font-semibold">$200,000+ worth</span> of premium tools, 
+            software, and services completely free with your student email address.
+          </p>
+          
+          <div className="flex items-center justify-center gap-8 pt-6">
+            <div className="flex items-center gap-2 text-green-400">
+              <Gift className="h-5 w-5" />
+              <span className="text-sm font-medium">100% Free</span>
             </div>
-            
-            <h1 className="text-6xl md:text-7xl font-bold">
-              <span className="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-                Unlock Premium
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-blue-600 bg-clip-text text-transparent">
-                Student Perks
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Get access to <span className="text-blue-400 font-semibold">$200,000+ worth</span> of premium tools, 
-              software, and services completely free with your student email address.
-            </p>
-            
-            <div className="flex items-center justify-center gap-8 pt-6">
-              <div className="flex items-center gap-2 text-green-400">
-                <Gift className="h-5 w-5" />
-                <span className="text-sm font-medium">100% Free</span>
-              </div>
-              <div className="flex items-center gap-2 text-blue-400">
-                <Award className="h-5 w-5" />
-                <span className="text-sm font-medium">Verified Student Only</span>
-              </div>
+            <div className="flex items-center gap-2 text-blue-400">
+              <Award className="h-5 w-5" />
+              <span className="text-sm font-medium">Verified Student Only</span>
             </div>
           </div>
         </div>
@@ -120,29 +116,20 @@ const EmailPerks = () => {
             {perks.map((perk, index) => (
               <Card 
                 key={index} 
-                className="group relative overflow-hidden border-0 bg-gradient-to-br from-dark-900/80 via-dark-800/50 to-dark-900/80 backdrop-blur-xl shadow-2xl hover:shadow-blue-500/10 transition-all duration-700"
+                className={`group bg-dark-900 border-dark-700 ${perk.hoverBorderColor} transition-all duration-300 hover:shadow-lg`}
               >
-                {/* Background gradient overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-                
-                {/* Border gradient */}
-                <div className={`absolute inset-0 rounded-lg bg-gradient-to-r ${perk.borderGradient} opacity-0 group-hover:opacity-20 transition-opacity duration-700`} style={{ padding: '1px' }}>
-                  <div className="h-full w-full bg-dark-900 rounded-lg" />
-                </div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-50 group-hover:opacity-70 transition-opacity duration-300 rounded-lg`} />
                 
                 <div className="relative z-10">
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-6">
-                        <div className="relative">
-                          <div className={`absolute inset-0 bg-gradient-to-br ${perk.borderGradient} rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity duration-500`} />
-                          <div className="relative p-4 rounded-2xl bg-gradient-to-br from-dark-800 to-dark-700 group-hover:scale-110 transition-transform duration-500 shadow-xl">
-                            {perk.icon}
-                          </div>
+                        <div className="p-4 rounded-2xl bg-dark-800 border border-dark-600 group-hover:border-dark-500 transition-colors duration-300">
+                          {perk.icon}
                         </div>
                         
                         <div className="space-y-2">
-                          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-white transition-all duration-500">
+                          <CardTitle className="text-3xl font-bold text-white">
                             {perk.title}
                           </CardTitle>
                           <p className="text-gray-400 text-lg leading-relaxed max-w-2xl">
@@ -163,9 +150,9 @@ const EmailPerks = () => {
                   <CardContent className="pt-0">
                     <div className="grid md:grid-cols-2 gap-4">
                       {perk.offers.slice(0, 4).map((offer, i) => (
-                        <div key={i} className="flex items-center gap-3 group/item">
-                          <div className="h-2 w-2 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 group-hover/item:scale-125 transition-transform duration-300" />
-                          <span className="text-gray-300 group-hover/item:text-white transition-colors duration-300">
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="h-2 w-2 rounded-full bg-blue-400" />
+                          <span className="text-gray-300">
                             {offer}
                           </span>
                         </div>
@@ -191,13 +178,13 @@ const EmailPerks = () => {
                           View All Benefits
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="w-full max-w-3xl bg-dark-950/95 backdrop-blur-xl border-dark-700">
+                      <DialogContent className="w-full max-w-3xl bg-dark-900 border-dark-700">
                         <PerkDetails {...perk} />
                       </DialogContent>
                     </Dialog>
                     
                     <Button 
-                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-700 hover:via-blue-600 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-blue-500/25 transition-all duration-300" 
+                      className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-300" 
                       onClick={() => handleAccessClick(perk.link, perk.title)}
                     >
                       Get Access Now
@@ -210,7 +197,7 @@ const EmailPerks = () => {
           </div>
           
           {/* Call to Action */}
-          <div className="mt-16 text-center p-8 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+          <div className="mt-16 text-center p-8 rounded-2xl bg-dark-900 border border-dark-700">
             <h3 className="text-2xl font-bold text-white mb-4">
               Ready to unlock these amazing benefits?
             </h3>
