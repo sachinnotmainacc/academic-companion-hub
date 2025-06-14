@@ -47,11 +47,11 @@ const PlacementDSA = () => {
 
     let filtered = questions.filter(q => {
       const matchesCompany = selectedCompany === 'all' || q.company === selectedCompany;
-      const matchesTimeRange = selectedTimeRange === 'all' || q.timeRange === selectedTimeRange;
+      const matchesTimeRange = selectedTimeRange === 'alltime' || q.timeRange === selectedTimeRange;
       const matchesDifficulty = selectedDifficulty === 'all' || q.difficulty === selectedDifficulty;
       const matchesSearch = searchTerm === '' || 
         q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()));
+        (q.topics && q.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase())));
 
       return matchesCompany && matchesTimeRange && matchesDifficulty && matchesSearch;
     });
@@ -61,7 +61,19 @@ const PlacementDSA = () => {
 
     // Paginate
     const endIndex = currentPage * questionsPerPage;
-    setDisplayedQuestions(filtered.slice(0, endIndex));
+    // Convert QuestionData to Question format
+    const convertedQuestions: Question[] = filtered.slice(0, endIndex).map(q => ({
+      id: q.id,
+      title: q.title,
+      difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
+      topics: q.topics || ['General'],
+      link: q.link,
+      frequency: q.frequency,
+      company: q.company || 'Unknown',
+      timeRange: q.timeRange || 'alltime'
+    }));
+    
+    setDisplayedQuestions(convertedQuestions);
   }, [questions, selectedCompany, selectedTimeRange, selectedDifficulty, searchTerm, currentPage]);
 
   const loadMore = () => {
@@ -341,11 +353,11 @@ const PlacementDSA = () => {
         {/* Load More */}
         {displayedQuestions.length < questions.filter(q => {
           const matchesCompany = selectedCompany === 'all' || q.company === selectedCompany;
-          const matchesTimeRange = selectedTimeRange === 'all' || q.timeRange === selectedTimeRange;
+          const matchesTimeRange = selectedTimeRange === 'alltime' || q.timeRange === selectedTimeRange;
           const matchesDifficulty = selectedDifficulty === 'all' || q.difficulty === selectedDifficulty;
           const matchesSearch = searchTerm === '' || 
             q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            q.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase()));
+            (q.topics && q.topics.some(topic => topic.toLowerCase().includes(searchTerm.toLowerCase())));
           return matchesCompany && matchesTimeRange && matchesDifficulty && matchesSearch;
         }).length && (
           <div className="text-center">
