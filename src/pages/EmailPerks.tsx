@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag } from "lucide-react";
+import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag, Settings, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/layout/Navbar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -20,130 +20,294 @@ const categories = [
 
 const perks = [
   {
-    title: "Developer & Tech Tools",
-    description: "Essential development tools and platforms for coding, hosting, and building projects",
-    icon: <Code className="h-6 w-6 text-blue-400" />,
-    gradient: "from-blue-600/20 to-indigo-600/20",
-    borderColor: "border-blue-500/30",
-    hoverBorderColor: "hover:border-blue-400/60",
+    title: "GitHub Student Developer Pack",
+    description: "The ultimate collection of free developer tools and services for students",
+    icon: <Code className="h-6 w-6 text-orange-400" />,
+    gradient: "from-orange-600/20 to-red-600/20",
+    borderColor: "border-orange-500/30",
+    hoverBorderColor: "hover:border-orange-400/60",
     category: "developers" as Category,
     offers: [
-      "GitHub Student Developer Pack - Free GitHub Pro, domain (.me/.xyz), SSL certificate",
+      "Free GitHub Pro account",
+      "Free domain (Namecheap .me or .xyz)",
+      "Free SSL certificate (Namecheap)",
+      "Canva Pro for 12 months",
       "JetBrains IDEs (IntelliJ, PyCharm) free for a year",
       "MongoDB Atlas: $50 in credits",
       "DigitalOcean: $100 in credits for 60 days",
-      "Replit Hacker plan (6 months free)",
+      "Replit Hacker plan (6 months)",
       "Taskade Pro (free access)",
       "InterviewCake for interview prep",
-      "Canva Pro for 12 months",
       "Reality Check: Must verify student status. Indian colleges work 95% of the time"
     ],
     link: "https://education.github.com/pack",
     value: "$10,000+"
   },
   {
-    title: "Software & Productivity Tools",
-    description: "Professional software suites and productivity applications for academic and personal use",
-    icon: <Star className="h-6 w-6 text-yellow-400" />,
-    gradient: "from-yellow-500/20 to-orange-500/20",
-    borderColor: "border-yellow-500/30",
-    hoverBorderColor: "hover:border-yellow-400/60",
-    category: "utilities" as Category,
+    title: "JetBrains Student License",
+    description: "Professional IDEs for software development, completely free for students",
+    icon: <Code className="h-6 w-6 text-purple-400" />,
+    gradient: "from-purple-600/20 to-indigo-600/20",
+    borderColor: "border-purple-500/30",
+    hoverBorderColor: "hover:border-purple-400/60",
+    category: "developers" as Category,
     offers: [
-      "JetBrains Student License - All professional IDEs free",
-      "Notion Pro - Free for personal use (auto-applied with student email)",
-      "Microsoft Office 365 - Word, Excel, PowerPoint, Teams online",
-      "Google Workspace for Education - Extra Drive storage, unlimited Meet",
-      "Reality: Office 365 depends on institution. Not all .ac.in emails work",
-      "Google Workspace only if college uses it - not automatic"
+      "Free access to all JetBrains professional IDEs",
+      "PyCharm Pro - Python development",
+      "IntelliJ IDEA Ultimate - Java/Kotlin development",
+      "WebStorm - JavaScript/TypeScript development",
+      "PhpStorm - PHP development",
+      "All other JetBrains tools included"
     ],
     link: "https://www.jetbrains.com/community/education/",
-    value: "$2,000+"
+    value: "$1,500+"
   },
   {
-    title: "Design & Creativity",
-    description: "Professional design tools and creative software for UI/UX design and content creation",
+    title: "Notion Pro",
+    description: "All-in-one workspace for notes, tasks, wikis, and databases",
+    icon: <Settings className="h-6 w-6 text-gray-400" />,
+    gradient: "from-gray-600/20 to-slate-600/20",
+    borderColor: "border-gray-500/30",
+    hoverBorderColor: "hover:border-gray-400/60",
+    category: "utilities" as Category,
+    offers: [
+      "Free Notion Pro for personal use",
+      "Unlimited blocks and file uploads",
+      "Advanced features and integrations",
+      "Reality: Automatically applied with student email registration"
+    ],
+    link: "https://www.notion.so/students",
+    value: "$200+"
+  },
+  {
+    title: "Microsoft Office 365",
+    description: "Complete office suite with Word, Excel, PowerPoint, and Teams",
+    icon: <Briefcase className="h-6 w-6 text-blue-400" />,
+    gradient: "from-blue-600/20 to-cyan-600/20",
+    borderColor: "border-blue-500/30",
+    hoverBorderColor: "hover:border-blue-400/60",
+    category: "utilities" as Category,
+    offers: [
+      "Free access to Word, Excel, PowerPoint (online versions)",
+      "Microsoft Teams for collaboration",
+      "OneDrive cloud storage",
+      "Reality: Depends on your institution. Not all .ac.in emails work"
+    ],
+    link: "https://www.microsoft.com/en-in/education/products/office",
+    value: "$300+"
+  },
+  {
+    title: "Google Workspace for Education",
+    description: "Enhanced Google services with unlimited storage and advanced features",
+    icon: <Cloud className="h-6 w-6 text-green-400" />,
+    gradient: "from-green-600/20 to-emerald-600/20",
+    borderColor: "border-green-500/30",
+    hoverBorderColor: "hover:border-green-400/60",
+    category: "utilities" as Category,
+    offers: [
+      "Extra Google Drive storage",
+      "Enhanced Gmail with custom domain",
+      "Google Meet with no time limits",
+      "Google Classroom access",
+      "Reality: Only if your college uses Google Workspace - not automatic"
+    ],
+    link: "https://edu.google.com/workspace-for-education/",
+    value: "$200+"
+  },
+  {
+    title: "Canva Pro",
+    description: "Professional design tool with premium templates and features",
+    icon: <Palette className="h-6 w-6 text-pink-400" />,
+    gradient: "from-pink-600/20 to-rose-600/20",
+    borderColor: "border-pink-500/30",
+    hoverBorderColor: "hover:border-pink-400/60",
+    category: "creativity" as Category,
+    offers: [
+      "1 year free via GitHub Pack",
+      "Premium templates and design elements",
+      "Background remover and magic resize",
+      "Brand kit and team collaboration",
+      "Also available separately for students via EDU access"
+    ],
+    link: "https://www.canva.com/education/",
+    value: "$150+"
+  },
+  {
+    title: "Figma Education Plan",
+    description: "Professional design and prototyping tool for UI/UX designers",
     icon: <Palette className="h-6 w-6 text-purple-400" />,
-    gradient: "from-purple-500/20 to-pink-500/20",
+    gradient: "from-purple-600/20 to-violet-600/20",
     borderColor: "border-purple-500/30",
     hoverBorderColor: "hover:border-purple-400/60",
     category: "creativity" as Category,
     offers: [
-      "Canva Pro - 1 year free via GitHub Pack",
-      "Figma Education Plan - Free Professional Plan with real-time collaboration",
-      "Version history and advanced features",
-      "Sometimes available separately for students via EDU access"
+      "Free Figma Professional Plan",
+      "Real-time collaboration features",
+      "Version history and branching",
+      "Advanced prototyping tools",
+      "Unlimited personal files"
     ],
     link: "https://www.figma.com/education/",
-    value: "$500+"
+    value: "$200+"
   },
   {
-    title: "Cloud & Hosting Credits",
-    description: "Free cloud hosting credits and platform access for deploying projects and applications",
+    title: "DigitalOcean Credits",
+    description: "Cloud hosting platform with $100 in free credits for students",
+    icon: <Cloud className="h-6 w-6 text-blue-400" />,
+    gradient: "from-blue-600/20 to-indigo-600/20",
+    borderColor: "border-blue-500/30",
+    hoverBorderColor: "hover:border-blue-400/60",
+    category: "developers" as Category,
+    offers: [
+      "$100 credit from GitHub Student Pack",
+      "Deploy backend projects and APIs",
+      "Host portfolios and websites",
+      "Database hosting and management",
+      "Tip: Perfect for deploying personal projects"
+    ],
+    link: "https://education.github.com/pack",
+    value: "$100"
+  },
+  {
+    title: "Microsoft Azure for Students",
+    description: "Cloud computing platform with free credits and services",
     icon: <Cloud className="h-6 w-6 text-cyan-400" />,
-    gradient: "from-cyan-500/20 to-blue-500/20",
+    gradient: "from-cyan-600/20 to-blue-600/20",
     borderColor: "border-cyan-500/30",
     hoverBorderColor: "hover:border-cyan-400/60",
     category: "developers" as Category,
     offers: [
-      "DigitalOcean - $100 credit from GitHub Student Pack",
-      "Microsoft Azure for Students - $100 credit without credit card",
-      "Google Cloud Platform - $50-$100 GCP credits via GitHub Pack",
-      "Google Cloud Career Readiness Program access",
-      "Tip: Use for deploying backend projects, portfolios, etc."
+      "$100 credit without needing a credit card",
+      "Free access to popular Azure services",
+      "Virtual machines and databases",
+      "AI and machine learning services",
+      "12 months of free services"
     ],
     link: "https://azure.microsoft.com/en-us/free/students/",
+    value: "$100+"
+  },
+  {
+    title: "Google Cloud Platform Credits",
+    description: "Google's cloud platform with free credits for student projects",
+    icon: <Cloud className="h-6 w-6 text-orange-400" />,
+    gradient: "from-orange-600/20 to-yellow-600/20",
+    borderColor: "border-orange-500/30",
+    hoverBorderColor: "hover:border-orange-400/60",
+    category: "developers" as Category,
+    offers: [
+      "Via GitHub Pack: $50–$100 GCP credits",
+      "Access to Google Cloud Career Readiness Program",
+      "Machine learning and AI services",
+      "Compute Engine and storage",
+      "BigQuery for data analysis"
+    ],
+    link: "https://cloud.google.com/edu",
+    value: "$100+"
+  },
+  {
+    title: "LinkedIn Learning",
+    description: "Professional development courses and skill building platform",
+    icon: <GraduationCap className="h-6 w-6 text-blue-400" />,
+    gradient: "from-blue-600/20 to-indigo-600/20",
+    borderColor: "border-blue-500/30",
+    hoverBorderColor: "hover:border-blue-400/60",
+    category: "placement-prep" as Category,
+    offers: [
+      "Free via some universities or GitHub Pack",
+      "Courses on technology and programming",
+      "Soft skills and business courses",
+      "Professional development content",
+      "Certificates for course completion"
+    ],
+    link: "https://learning.linkedin.com/",
     value: "$300+"
   },
   {
-    title: "Learning Platforms",
-    description: "Access to premium educational content and skill development platforms for career growth",
+    title: "Educative.io",
+    description: "Interactive coding courses and interview preparation platform",
     icon: <GraduationCap className="h-6 w-6 text-green-400" />,
-    gradient: "from-green-500/20 to-emerald-500/20",
+    gradient: "from-green-600/20 to-emerald-600/20",
     borderColor: "border-green-500/30",
     hoverBorderColor: "hover:border-green-400/60",
     category: "placement-prep" as Category,
     offers: [
-      "LinkedIn Learning - Free via universities or GitHub Pack",
-      "Educative.io - 6-month free plan via GitHub Student Pack",
-      "FrontendMasters - 6 months free with student verification",
-      "Interactive coding lessons (DSA, system design, etc.)",
-      "Courses on tech, soft skills, business"
+      "6-month free plan via GitHub Student Pack",
+      "Interactive coding lessons",
+      "Data structures and algorithms courses",
+      "System design interview prep",
+      "Hands-on coding practice"
+    ],
+    link: "https://www.educative.io/github-students",
+    value: "$500+"
+  },
+  {
+    title: "FrontendMasters",
+    description: "Advanced frontend development courses from industry experts",
+    icon: <GraduationCap className="h-6 w-6 text-orange-400" />,
+    gradient: "from-orange-600/20 to-red-600/20",
+    borderColor: "border-orange-500/30",
+    hoverBorderColor: "hover:border-orange-400/60",
+    category: "placement-prep" as Category,
+    offers: [
+      "6 months free access with student verification",
+      "Advanced JavaScript and React courses",
+      "Frontend engineering best practices",
+      "Interview preparation content",
+      "Expert-led video courses"
     ],
     link: "https://www.frontendmasters.com/teachers/students/",
-    value: "$1,500+"
+    value: "$500+"
   },
   {
-    title: "Entertainment & Media",
-    description: "Discounted streaming services and entertainment platforms for students",
-    icon: <Music className="h-6 w-6 text-pink-400" />,
-    gradient: "from-pink-500/20 to-red-500/20",
-    borderColor: "border-pink-500/30",
-    hoverBorderColor: "hover:border-pink-400/60",
+    title: "Spotify Student Plan",
+    description: "Music streaming service with significant student discount",
+    icon: <Music className="h-6 w-6 text-green-400" />,
+    gradient: "from-green-600/20 to-emerald-600/20",
+    borderColor: "border-green-500/30",
+    hoverBorderColor: "hover:border-green-400/60",
     category: "utilities" as Category,
     offers: [
-      "Spotify Student Plan - ₹59/month (vs ₹119 regular)",
-      "YouTube Premium Student - ₹79/month (vs ₹129 regular)",
-      "Prime Video, faster delivery included",
-      "Reality: Need SheerID verification - works with many Indian universities"
+      "₹59/month (vs ₹119 regular price)",
+      "Ad-free music streaming",
+      "Offline downloads",
+      "High-quality audio",
+      "Reality: Verify through SheerID - works with many Indian universities"
     ],
     link: "https://www.spotify.com/student/",
-    value: "$200+"
+    value: "$50+"
   },
   {
-    title: "Shopping & Discounts",
-    description: "Exclusive student discounts on shopping, delivery, and essential services",
+    title: "YouTube Premium Student",
+    description: "Ad-free YouTube experience with background play and downloads",
+    icon: <Music className="h-6 w-6 text-red-400" />,
+    gradient: "from-red-600/20 to-pink-600/20",
+    borderColor: "border-red-500/30",
+    hoverBorderColor: "hover:border-red-400/60",
+    category: "utilities" as Category,
+    offers: [
+      "₹79/month (vs ₹129 regular price)",
+      "Ad-free YouTube videos",
+      "Background play on mobile",
+      "YouTube Music included",
+      "Offline video downloads"
+    ],
+    link: "https://www.youtube.com/premium/student",
+    value: "$50+"
+  },
+  {
+    title: "Amazon Prime Student",
+    description: "Amazon's membership program with student pricing and benefits",
     icon: <ShoppingBag className="h-6 w-6 text-orange-400" />,
-    gradient: "from-orange-500/20 to-yellow-500/20",
+    gradient: "from-orange-600/20 to-yellow-600/20",
     borderColor: "border-orange-500/30",
     hoverBorderColor: "hover:border-orange-400/60",
     category: "utilities" as Category,
     offers: [
-      "Amazon Prime Student - ₹499/year (vs ₹1499 regular)",
-      "Prime Video access included",
+      "₹499/year (vs ₹1499 regular price)",
+      "Prime Video streaming access",
       "Faster delivery on eligible items",
-      "Reality: Only if Amazon recognizes your college",
-      "Not every Indian student email will work"
+      "Prime Reading and exclusive deals",
+      "Reality: Only if Amazon recognizes your college - not every student email works"
     ],
     link: "https://www.amazon.in/gp/student/signup/info",
     value: "$100+"
@@ -226,50 +390,46 @@ const EmailPerks = () => {
       {/* Perks Grid */}
       <div className="container mx-auto px-4 pb-16">
         <div className="max-w-6xl mx-auto">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPerks.map((perk, index) => (
               <Card 
                 key={index} 
-                className={`group bg-gray-900/60 border border-gray-800/50 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-2xl overflow-hidden`}
+                className={`group bg-gray-900/60 border border-gray-800/50 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col`}
                 style={{
                   boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />
                 
-                <div className="relative z-10">
-                  <CardHeader className="pb-4 p-8">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
-                          {perk.icon}
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <CardTitle className="text-xl font-bold text-white tracking-tight leading-tight">
-                            {perk.title}
-                          </CardTitle>
-                          <p className="text-gray-300 text-sm leading-relaxed max-w-sm font-medium">
-                            {perk.description}
-                          </p>
-                        </div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <CardHeader className="pb-4 p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
+                        {perk.icon}
                       </div>
                       
-                      <div className="text-right ml-4">
-                        <div className="text-lg font-bold text-green-400 mb-1">
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-green-400 mb-1">
                           {perk.value}
                         </div>
-                        <div className="text-xs text-gray-400 font-medium">Total Value</div>
+                        <div className="text-xs text-gray-400 font-medium">Value</div>
                       </div>
                     </div>
+                    
+                    <CardTitle className="text-lg font-bold text-white tracking-tight leading-tight mb-2">
+                      {perk.title}
+                    </CardTitle>
+                    <p className="text-gray-300 text-sm leading-relaxed font-medium">
+                      {perk.description}
+                    </p>
                   </CardHeader>
 
-                  <CardContent className="pt-0 px-8">
-                    <div className="space-y-3">
+                  <CardContent className="pt-0 px-6 flex-grow">
+                    <div className="space-y-2">
                       {perk.offers.slice(0, 3).map((offer, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-gray-800/40 hover:bg-gray-800/60 transition-colors duration-300 border border-gray-700/30">
-                          <div className="h-2 w-2 rounded-full bg-blue-400 flex-shrink-0 mt-2 shadow-sm shadow-blue-400/50" />
-                          <span className="text-gray-200 font-medium text-sm leading-relaxed">
+                        <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800/60 transition-colors duration-300 border border-gray-700/30">
+                          <div className="h-1.5 w-1.5 rounded-full bg-blue-400 flex-shrink-0 mt-2 shadow-sm shadow-blue-400/50" />
+                          <span className="text-gray-200 font-medium text-xs leading-relaxed">
                             {offer}
                           </span>
                         </div>
@@ -277,22 +437,23 @@ const EmailPerks = () => {
                     </div>
                     
                     {perk.offers.length > 3 && (
-                      <div className="mt-5 pt-4 border-t border-gray-800/60">
-                        <p className="text-blue-400 font-semibold text-sm">
-                          + {perk.offers.length - 3} more incredible benefits included
+                      <div className="mt-4 pt-3 border-t border-gray-800/60">
+                        <p className="text-blue-400 font-semibold text-xs">
+                          + {perk.offers.length - 3} more benefits included
                         </p>
                       </div>
                     )}
                   </CardContent>
 
-                  <CardFooter className="pt-6 px-8 pb-8 gap-4">
+                  <CardFooter className="pt-4 px-6 pb-6 gap-3 mt-auto">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
-                          className="flex-1 h-12 text-white font-semibold border-gray-700/60 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm rounded-xl"
+                          size="sm"
+                          className="flex-1 h-9 text-white font-semibold border-gray-700/60 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm rounded-xl text-xs"
                         >
-                          View All Benefits
+                          View All
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="w-full max-w-3xl bg-gray-900 border-gray-800">
@@ -301,11 +462,12 @@ const EmailPerks = () => {
                     </Dialog>
                     
                     <Button 
-                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 rounded-xl" 
+                      size="sm"
+                      className="flex-1 h-9 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 rounded-xl text-xs" 
                       onClick={() => handleAccessClick(perk.link, perk.title)}
                     >
-                      Get Access Now
-                      <ExternalLink className="ml-2 h-4 w-4" />
+                      Get Access
+                      <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                   </CardFooter>
                 </div>
@@ -321,7 +483,7 @@ const EmailPerks = () => {
             <p className="text-gray-200 mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-lg">
               All you need is a valid student email address to access these premium tools and services worth thousands of dollars.
             </p>
-            <div className="flex items-center justify-center gap-8 text-gray-300">
+            <div className="flex items-center justify-center gap-8 text-gray-300 flex-wrap">
               <span className="flex items-center gap-3 font-semibold">
                 <div className="h-2 w-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"></div>
                 No credit card required
@@ -332,7 +494,7 @@ const EmailPerks = () => {
               </span>
               <span className="flex items-center gap-3 font-semibold">
                 <div className="h-2 w-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400/50"></div>
-                Valid throughout your studies
+                Valid throughout studies
               </span>
             </div>
           </div>
