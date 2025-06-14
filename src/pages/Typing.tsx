@@ -57,30 +57,36 @@ const Typing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-black to-zinc-950 text-white relative overflow-hidden">
+      {/* Premium background effects */}
+      <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/20 via-transparent to-zinc-900/20"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/3 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/2 rounded-full blur-3xl"></div>
+      
       <Navbar />
-      <div className="container mx-auto px-4 py-24">
-        {/* Header */}
+      <div className="container mx-auto px-4 py-24 relative z-10">
+        {/* Premium Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent drop-shadow-lg">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent drop-shadow-lg">
             Code Typing Master
           </h1>
-          <p className="text-gray-400 text-xl max-w-3xl mx-auto leading-relaxed">
+          <div className="w-24 h-1 bg-gradient-to-r from-white to-zinc-400 mx-auto mb-6"></div>
+          <p className="text-zinc-400 text-xl max-w-3xl mx-auto leading-relaxed">
             Elevate your coding speed and precision with advanced performance analytics
           </p>
         </div>
 
         {!showResults ? (
           <>
-            {/* Control Bar */}
+            {/* Premium Control Bar */}
             <div className="max-w-5xl mx-auto mb-10">
-              <div className="bg-gray-900 backdrop-blur-xl rounded-2xl p-6 border border-gray-800 shadow-2xl">
+              <div className="bg-gradient-to-r from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 backdrop-blur-xl rounded-2xl p-6 border border-zinc-700/50 shadow-2xl shadow-black/50">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                   <div className="flex items-center space-x-6">
                     <Button 
                       onClick={handleReset}
                       variant="outline"
-                      className="border-gray-700 hover:bg-gray-800 hover:border-gray-600 bg-gray-900 text-gray-200 transition-all duration-300"
+                      className="border-zinc-600 hover:bg-zinc-700/50 hover:border-zinc-500 bg-zinc-800/50 text-zinc-200 transition-all duration-300 backdrop-blur-sm"
                       disabled={isStarted && timeLeft > 0}
                     >
                       <RotateCcw className="w-4 h-4 mr-2" />
@@ -89,7 +95,7 @@ const Typing = () => {
                     
                     <Button 
                       onClick={handleStart}
-                      className="bg-white text-black hover:bg-gray-200 shadow-lg transition-all duration-300"
+                      className="bg-gradient-to-r from-white to-zinc-200 text-black hover:from-zinc-100 hover:to-zinc-300 shadow-lg transition-all duration-300 font-medium"
                       disabled={isStarted}
                     >
                       <Play className="w-4 h-4 mr-2" />
@@ -99,7 +105,7 @@ const Typing = () => {
 
                   <div className="flex items-center space-x-8">
                     <div className="text-center">
-                      <div className="text-sm text-gray-400 mb-2 font-medium tracking-wide">Language</div>
+                      <div className="text-sm text-zinc-400 mb-2 font-medium tracking-wide">Language</div>
                       <LanguageSelector 
                         currentLanguage={currentSnippet.language}
                         onLanguageChange={handleLanguageChange}
@@ -108,12 +114,12 @@ const Typing = () => {
                     </div>
                     
                     <div className="text-center">
-                      <div className="text-sm text-gray-400 mb-2 font-medium tracking-wide">Duration</div>
+                      <div className="text-sm text-zinc-400 mb-2 font-medium tracking-wide">Duration</div>
                       <select 
                         value={testDuration}
                         onChange={(e) => handleDurationChange(Number(e.target.value))}
                         disabled={isStarted}
-                        className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white text-sm min-w-[90px] focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-300"
+                        className="bg-zinc-800/50 border border-zinc-600 rounded-lg px-4 py-2 text-white text-sm min-w-[90px] focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
                       >
                         <option value={15}>15s</option>
                         <option value={30}>30s</option>
@@ -122,7 +128,7 @@ const Typing = () => {
                       </select>
                     </div>
                     
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-gray-800 transition-all duration-300">
+                    <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white hover:bg-zinc-700/50 transition-all duration-300">
                       <Settings className="w-5 h-5" />
                     </Button>
                   </div>
@@ -130,10 +136,11 @@ const Typing = () => {
               </div>
             </div>
 
-            {/* Main Typing Area */}
+            {/* Premium Typing Area */}
             <div className="max-w-5xl mx-auto">
-              <div className="bg-gray-900 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-800 overflow-hidden">
-                <div className="p-10">
+              <div className="bg-gradient-to-br from-zinc-900/95 via-zinc-800/95 to-zinc-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-zinc-700/50 overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+                <div className="p-10 relative z-10">
                   <TypingArea
                     snippet={currentSnippet}
                     timeLeft={timeLeft}
@@ -149,12 +156,10 @@ const Typing = () => {
                 </div>
               </div>
               
-              {/* Only show live results during typing, not the full results */}
               {isStarted && !isTestComplete && <TypingResults />}
             </div>
           </>
         ) : (
-          /* Show final test results */
           <div className="max-w-5xl mx-auto">
             <TypingTestResults onRestart={handleReset} />
           </div>
