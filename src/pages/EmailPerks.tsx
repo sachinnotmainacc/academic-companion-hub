@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,16 @@ import Navbar from "@/components/layout/Navbar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import PerkDetails from "@/components/email-perks/PerkDetails";
 import { toast } from "sonner";
+
+type Category = "all" | "developers" | "creativity" | "placement-prep" | "utilities";
+
+const categories = [
+  { id: "all" as Category, label: "All Tools" },
+  { id: "developers" as Category, label: "Developers" },
+  { id: "creativity" as Category, label: "Creativity" },
+  { id: "placement-prep" as Category, label: "Placement Prep" },
+  { id: "utilities" as Category, label: "Utilities" }
+];
 
 const perks = [
   {
@@ -16,6 +26,7 @@ const perks = [
     gradient: "from-blue-600/20 to-indigo-600/20",
     borderColor: "border-blue-500/30",
     hoverBorderColor: "hover:border-blue-400/60",
+    category: "developers" as Category,
     offers: [
       "GitHub Student Developer Pack - Free GitHub Pro, domain (.me/.xyz), SSL certificate",
       "JetBrains IDEs (IntelliJ, PyCharm) free for a year",
@@ -37,6 +48,7 @@ const perks = [
     gradient: "from-yellow-500/20 to-orange-500/20",
     borderColor: "border-yellow-500/30",
     hoverBorderColor: "hover:border-yellow-400/60",
+    category: "utilities" as Category,
     offers: [
       "JetBrains Student License - All professional IDEs free",
       "Notion Pro - Free for personal use (auto-applied with student email)",
@@ -55,6 +67,7 @@ const perks = [
     gradient: "from-purple-500/20 to-pink-500/20",
     borderColor: "border-purple-500/30",
     hoverBorderColor: "hover:border-purple-400/60",
+    category: "creativity" as Category,
     offers: [
       "Canva Pro - 1 year free via GitHub Pack",
       "Figma Education Plan - Free Professional Plan with real-time collaboration",
@@ -71,6 +84,7 @@ const perks = [
     gradient: "from-cyan-500/20 to-blue-500/20",
     borderColor: "border-cyan-500/30",
     hoverBorderColor: "hover:border-cyan-400/60",
+    category: "developers" as Category,
     offers: [
       "DigitalOcean - $100 credit from GitHub Student Pack",
       "Microsoft Azure for Students - $100 credit without credit card",
@@ -88,6 +102,7 @@ const perks = [
     gradient: "from-green-500/20 to-emerald-500/20",
     borderColor: "border-green-500/30",
     hoverBorderColor: "hover:border-green-400/60",
+    category: "placement-prep" as Category,
     offers: [
       "LinkedIn Learning - Free via universities or GitHub Pack",
       "Educative.io - 6-month free plan via GitHub Student Pack",
@@ -105,6 +120,7 @@ const perks = [
     gradient: "from-pink-500/20 to-red-500/20",
     borderColor: "border-pink-500/30",
     hoverBorderColor: "hover:border-pink-400/60",
+    category: "utilities" as Category,
     offers: [
       "Spotify Student Plan - ₹59/month (vs ₹119 regular)",
       "YouTube Premium Student - ₹79/month (vs ₹129 regular)",
@@ -121,6 +137,7 @@ const perks = [
     gradient: "from-orange-500/20 to-yellow-500/20",
     borderColor: "border-orange-500/30",
     hoverBorderColor: "hover:border-orange-400/60",
+    category: "utilities" as Category,
     offers: [
       "Amazon Prime Student - ₹499/year (vs ₹1499 regular)",
       "Prime Video access included",
@@ -134,6 +151,12 @@ const perks = [
 ];
 
 const EmailPerks = () => {
+  const [selectedCategory, setSelectedCategory] = useState<Category>("all");
+
+  const filteredPerks = selectedCategory === "all" 
+    ? perks 
+    : perks.filter(perk => perk.category === selectedCategory);
+
   const handleAccessClick = (link: string, title: string) => {
     window.open(link, '_blank');
     toast.success(`Accessing ${title} benefits`, {
@@ -179,27 +202,51 @@ const EmailPerks = () => {
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="container mx-auto px-4 pb-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-3 p-6 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 backdrop-blur-sm ${
+                  selectedCategory === category.id
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-500/30'
+                    : 'bg-gray-800/60 text-gray-300 border border-gray-700/50 hover:bg-gray-700/60 hover:text-white hover:border-gray-600/50'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Perks Grid */}
       <div className="container mx-auto px-4 pb-16">
         <div className="max-w-6xl mx-auto">
-          <div className="grid gap-6 md:grid-cols-2">
-            {perks.map((perk, index) => (
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+            {filteredPerks.map((perk, index) => (
               <Card 
                 key={index} 
-                className={`group bg-gray-900/90 border-gray-800 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/10 backdrop-blur-sm`}
+                className={`group bg-gray-900/60 border border-gray-800/50 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-2xl overflow-hidden`}
+                style={{
+                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                }}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-40 group-hover:opacity-60 transition-opacity duration-500 rounded-lg`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />
                 
                 <div className="relative z-10">
-                  <CardHeader className="pb-4">
+                  <CardHeader className="pb-4 p-8">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700 group-hover:border-gray-600 transition-all duration-500 backdrop-blur-sm">
+                      <div className="flex items-center gap-5">
+                        <div className="p-4 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
                           {perk.icon}
                         </div>
                         
-                        <div className="space-y-2">
-                          <CardTitle className="text-xl font-bold text-white tracking-tight">
+                        <div className="space-y-3">
+                          <CardTitle className="text-xl font-bold text-white tracking-tight leading-tight">
                             {perk.title}
                           </CardTitle>
                           <p className="text-gray-300 text-sm leading-relaxed max-w-sm font-medium">
@@ -208,7 +255,7 @@ const EmailPerks = () => {
                         </div>
                       </div>
                       
-                      <div className="text-right">
+                      <div className="text-right ml-4">
                         <div className="text-lg font-bold text-green-400 mb-1">
                           {perk.value}
                         </div>
@@ -217,11 +264,11 @@ const EmailPerks = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
+                  <CardContent className="pt-0 px-8">
+                    <div className="space-y-3">
                       {perk.offers.slice(0, 3).map((offer, i) => (
-                        <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-gray-800/50 hover:bg-gray-800/70 transition-colors duration-300">
-                          <div className="h-2 w-2 rounded-full bg-blue-400 flex-shrink-0 mt-2" />
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-gray-800/40 hover:bg-gray-800/60 transition-colors duration-300 border border-gray-700/30">
+                          <div className="h-2 w-2 rounded-full bg-blue-400 flex-shrink-0 mt-2 shadow-sm shadow-blue-400/50" />
                           <span className="text-gray-200 font-medium text-sm leading-relaxed">
                             {offer}
                           </span>
@@ -230,7 +277,7 @@ const EmailPerks = () => {
                     </div>
                     
                     {perk.offers.length > 3 && (
-                      <div className="mt-4 pt-3 border-t border-gray-800">
+                      <div className="mt-5 pt-4 border-t border-gray-800/60">
                         <p className="text-blue-400 font-semibold text-sm">
                           + {perk.offers.length - 3} more incredible benefits included
                         </p>
@@ -238,12 +285,12 @@ const EmailPerks = () => {
                     )}
                   </CardContent>
 
-                  <CardFooter className="pt-5 gap-4">
+                  <CardFooter className="pt-6 px-8 pb-8 gap-4">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
-                          className="flex-1 h-11 text-white font-semibold border-gray-700 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm"
+                          className="flex-1 h-12 text-white font-semibold border-gray-700/60 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm rounded-xl"
                         >
                           View All Benefits
                         </Button>
@@ -254,7 +301,7 @@ const EmailPerks = () => {
                     </Dialog>
                     
                     <Button 
-                      className="flex-1 h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40" 
+                      className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 rounded-xl" 
                       onClick={() => handleAccessClick(perk.link, perk.title)}
                     >
                       Get Access Now
@@ -267,24 +314,24 @@ const EmailPerks = () => {
           </div>
           
           {/* Call to Action */}
-          <div className="mt-16 text-center p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800 backdrop-blur-sm">
-            <h3 className="text-2xl font-bold text-white mb-4">
+          <div className="mt-20 text-center p-10 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800/60 backdrop-blur-xl shadow-2xl">
+            <h3 className="text-3xl font-bold text-white mb-6">
               Ready to unlock these amazing benefits?
             </h3>
-            <p className="text-gray-200 mb-6 max-w-xl mx-auto font-medium leading-relaxed">
+            <p className="text-gray-200 mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-lg">
               All you need is a valid student email address to access these premium tools and services worth thousands of dollars.
             </p>
-            <div className="flex items-center justify-center gap-6 text-gray-300">
-              <span className="flex items-center gap-2 font-semibold">
-                <div className="h-2 w-2 rounded-full bg-green-400"></div>
+            <div className="flex items-center justify-center gap-8 text-gray-300">
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"></div>
                 No credit card required
               </span>
-              <span className="flex items-center gap-2 font-semibold">
-                <div className="h-2 w-2 rounded-full bg-blue-400"></div>
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></div>
                 Instant access
               </span>
-              <span className="flex items-center gap-2 font-semibold">
-                <div className="h-2 w-2 rounded-full bg-purple-400"></div>
+              <span className="flex items-center gap-3 font-semibold">
+                <div className="h-2 w-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400/50"></div>
                 Valid throughout your studies
               </span>
             </div>
