@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag, Settings, Briefcase, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import PerkDetails from "@/components/email-perks/PerkDetails";
 import { toast } from "sonner";
@@ -532,6 +532,8 @@ const EmailPerks = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

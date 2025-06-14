@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ExternalLink, Clock, Users, Star, BookOpen, Zap, Trophy, Code, Search, Brain, Palette, Database, Shield, Smartphone, Globe, Calculator, Filter, ChevronDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 type Category = "all" | "web-dev" | "data-science" | "mobile" | "cybersecurity" | "design" | "algorithms" | "ai-ml";
 
@@ -279,7 +280,7 @@ const Courses = () => {
   const getSelectedCategoryName = () => {
     if (selectedCategory === "all") return "All Courses";
     const category = categories.find(cat => cat.id === selectedCategory);
-    return category ? category.name : "All Courses";
+    return category ? category.label : "All Courses";
   };
 
   return (
@@ -536,6 +537,8 @@ const Courses = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
