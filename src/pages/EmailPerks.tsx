@@ -12,7 +12,7 @@ const perks = [
   {
     title: "GitHub Student Pack",
     description: "Free access to developer tools, cloud services, and learning resources worth $200,000+",
-    icon: <Book className="h-8 w-8 text-blue-400" />,
+    icon: <Book className="h-6 w-6 text-blue-400" />,
     gradient: "from-blue-600/20 to-indigo-600/20",
     borderColor: "border-blue-500/30",
     hoverBorderColor: "hover:border-blue-400/60",
@@ -30,7 +30,7 @@ const perks = [
   {
     title: "Software & Tools",
     description: "Professional software and development tools that boost your productivity",
-    icon: <Star className="h-8 w-8 text-yellow-400" />,
+    icon: <Star className="h-6 w-6 text-yellow-400" />,
     gradient: "from-yellow-500/20 to-orange-500/20",
     borderColor: "border-yellow-500/30",
     hoverBorderColor: "hover:border-yellow-400/60",
@@ -48,7 +48,7 @@ const perks = [
   {
     title: "Learning Platforms",
     description: "Access to premium educational content and skill development platforms",
-    icon: <Award className="h-8 w-8 text-green-400" />,
+    icon: <Award className="h-6 w-6 text-green-400" />,
     gradient: "from-green-500/20 to-emerald-500/20",
     borderColor: "border-green-500/30",
     hoverBorderColor: "hover:border-green-400/60",
@@ -77,15 +77,15 @@ const EmailPerks = () => {
     <div className="min-h-screen bg-black">
       <Navbar />
       
-      {/* Hero Section */}
-      <div className="container mx-auto pt-24 pb-16 px-4">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-300 text-sm font-semibold mb-6 backdrop-blur-sm">
-            <Sparkles className="h-5 w-5" />
+      {/* Hero Section - More Compact */}
+      <div className="container mx-auto pt-20 pb-12 px-4">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-600/20 to-blue-500/20 border border-blue-500/30 text-blue-300 text-sm font-semibold mb-4 backdrop-blur-sm">
+            <Sparkles className="h-4 w-4" />
             Student Benefits Program
           </div>
           
-          <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
             Unlock Premium
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-blue-500 bg-clip-text text-transparent">
@@ -93,68 +93,68 @@ const EmailPerks = () => {
             </span>
           </h1>
           
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed font-medium">
-            Get access to <span className="text-blue-400 font-bold text-2xl">$200,000+ worth</span> of premium tools, 
+          <p className="text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed font-medium">
+            Get access to <span className="text-blue-400 font-bold text-xl">$200,000+ worth</span> of premium tools, 
             software, and services completely free with your student email address.
           </p>
           
-          <div className="flex items-center justify-center gap-12 pt-8">
-            <div className="flex items-center gap-3 text-green-400">
-              <Gift className="h-6 w-6" />
-              <span className="text-lg font-semibold text-white">100% Free</span>
+          <div className="flex items-center justify-center gap-8 pt-6">
+            <div className="flex items-center gap-2 text-green-400">
+              <Gift className="h-5 w-5" />
+              <span className="text-sm font-semibold text-white">100% Free</span>
             </div>
-            <div className="flex items-center gap-3 text-blue-400">
-              <Award className="h-6 w-6" />
-              <span className="text-lg font-semibold text-white">Verified Students Only</span>
+            <div className="flex items-center gap-2 text-blue-400">
+              <Award className="h-5 w-5" />
+              <span className="text-sm font-semibold text-white">Verified Students Only</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Perks Grid */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid gap-8 lg:gap-12">
+      {/* Perks Grid - More Compact */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid gap-6">
             {perks.map((perk, index) => (
               <Card 
                 key={index} 
-                className={`group bg-gray-900/90 border-gray-800 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-sm`}
+                className={`group bg-gray-900/90 border-gray-800 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/10 backdrop-blur-sm`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-40 group-hover:opacity-60 transition-opacity duration-500 rounded-lg`} />
                 
                 <div className="relative z-10">
-                  <CardHeader className="pb-6">
+                  <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-8">
-                        <div className="p-5 rounded-3xl bg-gray-800/80 border border-gray-700 group-hover:border-gray-600 transition-all duration-500 backdrop-blur-sm">
+                      <div className="flex items-center gap-6">
+                        <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700 group-hover:border-gray-600 transition-all duration-500 backdrop-blur-sm">
                           {perk.icon}
                         </div>
                         
-                        <div className="space-y-3">
-                          <CardTitle className="text-4xl font-bold text-white tracking-tight">
+                        <div className="space-y-2">
+                          <CardTitle className="text-2xl font-bold text-white tracking-tight">
                             {perk.title}
                           </CardTitle>
-                          <p className="text-gray-300 text-xl leading-relaxed max-w-2xl font-medium">
+                          <p className="text-gray-300 text-base leading-relaxed max-w-xl font-medium">
                             {perk.description}
                           </p>
                         </div>
                       </div>
                       
                       <div className="text-right">
-                        <div className="text-3xl font-bold text-green-400 mb-1">
+                        <div className="text-xl font-bold text-green-400 mb-1">
                           {perk.value}
                         </div>
-                        <div className="text-sm text-gray-400 font-medium">Total Value</div>
+                        <div className="text-xs text-gray-400 font-medium">Total Value</div>
                       </div>
                     </div>
                   </CardHeader>
 
                   <CardContent className="pt-0">
-                    <div className="grid md:grid-cols-2 gap-5">
+                    <div className="grid md:grid-cols-2 gap-3">
                       {perk.offers.slice(0, 4).map((offer, i) => (
-                        <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800/70 transition-colors duration-300">
-                          <div className="h-3 w-3 rounded-full bg-blue-400 flex-shrink-0" />
-                          <span className="text-gray-200 font-medium">
+                        <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-gray-800/50 hover:bg-gray-800/70 transition-colors duration-300">
+                          <div className="h-2 w-2 rounded-full bg-blue-400 flex-shrink-0" />
+                          <span className="text-gray-200 font-medium text-sm">
                             {offer}
                           </span>
                         </div>
@@ -162,20 +162,20 @@ const EmailPerks = () => {
                     </div>
                     
                     {perk.offers.length > 4 && (
-                      <div className="mt-6 pt-5 border-t border-gray-800">
-                        <p className="text-blue-400 font-semibold text-lg">
+                      <div className="mt-4 pt-3 border-t border-gray-800">
+                        <p className="text-blue-400 font-semibold text-sm">
                           + {perk.offers.length - 4} more incredible benefits included
                         </p>
                       </div>
                     )}
                   </CardContent>
 
-                  <CardFooter className="pt-8 gap-6">
+                  <CardFooter className="pt-5 gap-4">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
-                          className="flex-1 h-14 text-white font-semibold text-lg border-gray-700 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm"
+                          className="flex-1 h-11 text-white font-semibold border-gray-700 hover:border-blue-500/60 hover:bg-blue-500/10 transition-all duration-300 backdrop-blur-sm"
                         >
                           View All Benefits
                         </Button>
@@ -186,11 +186,11 @@ const EmailPerks = () => {
                     </Dialog>
                     
                     <Button 
-                      className="flex-1 h-14 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-lg transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40" 
+                      className="flex-1 h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40" 
                       onClick={() => handleAccessClick(perk.link, perk.title)}
                     >
                       Get Access Now
-                      <ExternalLink className="ml-3 h-6 w-6" />
+                      <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
                   </CardFooter>
                 </div>
@@ -198,24 +198,24 @@ const EmailPerks = () => {
             ))}
           </div>
           
-          {/* Call to Action */}
-          <div className="mt-20 text-center p-10 rounded-3xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800 backdrop-blur-sm">
-            <h3 className="text-3xl font-bold text-white mb-6">
+          {/* Call to Action - More Compact */}
+          <div className="mt-16 text-center p-8 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800 backdrop-blur-sm">
+            <h3 className="text-2xl font-bold text-white mb-4">
               Ready to unlock these amazing benefits?
             </h3>
-            <p className="text-gray-200 mb-8 max-w-2xl mx-auto text-lg font-medium leading-relaxed">
+            <p className="text-gray-200 mb-6 max-w-xl mx-auto font-medium leading-relaxed">
               All you need is a valid student email address to access these premium tools and services worth thousands of dollars.
             </p>
-            <div className="flex items-center justify-center gap-8 text-gray-300">
-              <span className="flex items-center gap-2 text-lg font-semibold">
+            <div className="flex items-center justify-center gap-6 text-gray-300">
+              <span className="flex items-center gap-2 font-semibold">
                 <div className="h-2 w-2 rounded-full bg-green-400"></div>
                 No credit card required
               </span>
-              <span className="flex items-center gap-2 text-lg font-semibold">
+              <span className="flex items-center gap-2 font-semibold">
                 <div className="h-2 w-2 rounded-full bg-blue-400"></div>
                 Instant access
               </span>
-              <span className="flex items-center gap-2 text-lg font-semibold">
+              <span className="flex items-center gap-2 font-semibold">
                 <div className="h-2 w-2 rounded-full bg-purple-400"></div>
                 Valid throughout your studies
               </span>
