@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -299,26 +298,26 @@ const Projects = () => {
           </div>
         </div>
 
-        {/* Compact Filter Section */}
+        {/* Improved Filter Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Category Filter Dropdown */}
             <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <CollapsibleTrigger asChild>
                 <Button 
-                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px]"
+                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px] transition-all duration-300 hover:shadow-lg hover:border-zinc-600/50"
                   variant="outline"
                 >
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
                     {getSelectedCategoryName()}
                   </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
               
-              <CollapsibleContent className="mt-2">
-                <Card className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 backdrop-blur-xl">
+              <CollapsibleContent className="mt-2 transition-all duration-300 ease-in-out">
+                <Card className="bg-gradient-to-br from-zinc-900/95 via-zinc-800/95 to-zinc-900/95 border-zinc-700/50 backdrop-blur-xl shadow-2xl animate-fade-in">
                   <CardContent className="p-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                       <Button
@@ -326,10 +325,10 @@ const Projects = () => {
                           setSelectedCategory('all');
                           setIsFilterOpen(false);
                         }}
-                        className={`h-12 ${selectedCategory === 'all' 
-                          ? 'bg-white text-black hover:bg-zinc-200' 
+                        className={`h-12 transition-all duration-300 transform hover:scale-105 ${selectedCategory === 'all' 
+                          ? 'bg-white text-black hover:bg-zinc-200 shadow-md' 
                           : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
-                        } rounded-xl transition-all duration-300`}
+                        } rounded-xl`}
                       >
                         All Categories
                       </Button>
@@ -342,10 +341,10 @@ const Projects = () => {
                               setSelectedCategory(category.id);
                               setIsFilterOpen(false);
                             }}
-                            className={`h-12 flex flex-col gap-1 ${selectedCategory === category.id
-                              ? 'bg-white text-black hover:bg-zinc-200'
+                            className={`h-12 flex flex-col gap-1 transition-all duration-300 transform hover:scale-105 ${selectedCategory === category.id
+                              ? 'bg-white text-black hover:bg-zinc-200 shadow-md'
                               : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
-                            } rounded-xl transition-all duration-300`}
+                            } rounded-xl`}
                           >
                             <Icon className="h-4 w-4" />
                             <span className="text-xs text-center leading-tight">{category.name}</span>
@@ -358,35 +357,39 @@ const Projects = () => {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Search Input */}
+            {/* Enhanced Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400 transition-colors duration-200" />
               <input
                 type="text"
-                placeholder="Search projects..."
+                placeholder="Search projects by title, description, or tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-zinc-800/50 border border-zinc-700 rounded-md text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 hover:bg-zinc-800/70 focus:bg-zinc-800/70 backdrop-blur-sm"
               />
             </div>
           </div>
         </div>
 
-        {/* Projects Grid */}
+        {/* Projects Grid with smooth transitions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {filteredProjects.map((project, index) => {
             const CategoryIcon = getCategoryIcon(project.category);
             return (
-              <Card key={index} className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 backdrop-blur-xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-black/20">
+              <Card 
+                key={index} 
+                className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 backdrop-blur-xl hover:border-zinc-600/50 transition-all duration-300 hover:shadow-lg hover:shadow-black/20 hover:scale-[1.02] animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50">
+                      <div className="p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 transition-colors duration-200 hover:bg-zinc-700/50">
                         <CategoryIcon className="h-5 w-5 text-white" />
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-white">{project.title}</h3>
-                        <Badge className={`${getDifficultyColor(project.difficulty)} border text-xs font-medium mt-1`}>
+                        <Badge className={`${getDifficultyColor(project.difficulty)} border text-xs font-medium mt-1 transition-all duration-200`}>
                           {project.difficulty}
                         </Badge>
                       </div>
@@ -399,20 +402,20 @@ const Projects = () => {
                   
                   <div className="flex flex-wrap gap-2 mb-4">
                     {project.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="outline" className="border-zinc-600 text-zinc-300 text-xs">
+                      <Badge key={idx} variant="outline" className="border-zinc-600 text-zinc-300 text-xs hover:bg-zinc-700/50 transition-colors duration-200">
                         {tag}
                       </Badge>
                     ))}
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button asChild size="sm" className="bg-white text-black hover:bg-zinc-200 transition-all duration-300 flex-1">
+                    <Button asChild size="sm" className="bg-white text-black hover:bg-zinc-200 transition-all duration-300 flex-1 hover:scale-105">
                       <a href={project.github} target="_blank" rel="noopener noreferrer">
                         <Github className="h-4 w-4 mr-2" />
                         GitHub
                       </a>
                     </Button>
-                    <Button asChild size="sm" variant="outline" className="border-zinc-600 text-zinc-300 hover:text-white hover:bg-zinc-700/80 flex-1">
+                    <Button asChild size="sm" variant="outline" className="border-zinc-600 text-zinc-300 hover:text-white hover:bg-zinc-700/80 flex-1 transition-all duration-300 hover:scale-105">
                       <a href={project.youtube} target="_blank" rel="noopener noreferrer">
                         <Youtube className="h-4 w-4 mr-2" />
                         Tutorial
@@ -426,7 +429,7 @@ const Projects = () => {
         </div>
 
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <div className="p-4 rounded-2xl bg-zinc-800/30 border border-zinc-700/50 inline-block mb-4">
               <Search className="h-8 w-8 text-zinc-400" />
             </div>
@@ -437,7 +440,7 @@ const Projects = () => {
                 setSelectedCategory('all');
                 setSearchTerm('');
               }} 
-              className="bg-white text-black hover:bg-zinc-200"
+              className="bg-white text-black hover:bg-zinc-200 transition-all duration-300 hover:scale-105"
             >
               Reset Filters
             </Button>
