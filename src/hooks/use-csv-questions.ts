@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export type QuestionData = {
@@ -8,9 +7,9 @@ export type QuestionData = {
   difficulty: string;
   frequency: number;
   link: string;
-  company?: string;
-  timeRange?: string;
-  topics?: string[];
+  company: string;
+  timeRange: string;
+  topics: string[];
 };
 
 type TimeFrame = '6 Months' | '1 Year' | '2 Years' | 'All Time';
@@ -108,7 +107,6 @@ const processCSVLine = (line: string): string[] => {
 
 // Get list of available companies from CSV files
 const getAvailableCompanies = (): string[] => {
-  // This is a simplified list based on the CSV files available
   return [
     'google', 'amazon', 'microsoft', 'facebook', 'apple', 'netflix', 'uber', 
     'airbnb', 'linkedin', 'twitter', 'adobe', 'salesforce', 'dropbox', 
@@ -122,81 +120,65 @@ const getAvailableTimeRanges = (): string[] => {
   return ['6months', '1year', '2year', 'alltime'];
 };
 
-export const useCSVQuestions = (companySlug?: string | null, timeFrame?: TimeFrame) => {
+export const useCSVQuestions = () => {
   const [questions, setQuestions] = useState<QuestionData[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [companies] = useState<string[]>(getAvailableCompanies());
   const [timeRanges] = useState<string[]>(getAvailableTimeRanges());
 
   useEffect(() => {
     const fetchCSVData = async () => {
-      setLoading(true);
-      setError(null);
+      setIsLoading(true);
+      setError('');
       
       try {
-        if (!companySlug) {
-          // Load questions from all companies
-          const allQuestions: QuestionData[] = [];
-          const companiesToLoad = companies.slice(0, 10); // Limit to first 10 companies for performance
-          
-          for (const company of companiesToLoad) {
-            try {
-              const response = await fetch(`/csv/${company}_alltime.csv`);
-              if (response.ok) {
-                const csvText = await response.text();
-                const parsedQuestions = parseCSVData(csvText, company, 'alltime');
-                allQuestions.push(...parsedQuestions);
-              }
-            } catch (err) {
-              console.warn(`Failed to load data for ${company}`);
-            }
-          }
-          
-          if (allQuestions.length === 0) {
-            throw new Error('No questions found');
-          }
-          
-          setQuestions(allQuestions);
-        } else {
-          // Load questions for specific company
-          const fileName = timeFrameToFileName(companySlug, timeFrame || 'All Time');
-          const response = await fetch(`/csv/${fileName}`);
-          
-          if (!response.ok) {
-            if (timeFrame !== 'All Time') {
-              const alltimeResponse = await fetch(`/csv/${companySlug}_alltime.csv`);
-              if (!alltimeResponse.ok) {
-                throw new Error('No data available for this company');
-              }
-              const csvText = await alltimeResponse.text();
-              const parsedQuestions = parseCSVData(csvText, companySlug, 'alltime');
-              if (parsedQuestions.length === 0) {
-                throw new Error('Failed to parse company data');
-              }
-              setQuestions(parsedQuestions);
+        const allQuestions: QuestionData[] = [];
+        const companiesToLoad = companies.slice(0, 10);
+        
+        console.log('Loading questions from companies:', companiesToLoad);
+        
+        for (const company of companiesToLoad) {
+          try {
+            const response = await fetch(`/csv/${company}_alltime.csv`);
+            if (response.ok) {
+              const csvText = await response.text();
+              const parsedQuestions = parseCSVData(csvText, company, 'alltime');
+              allQuestions.push(...parsedQuestions);
+              console.log(`Loaded ${parsedQuestions.length} questions from ${company}`);
             } else {
-              throw new Error('No data available for this company');
+              console.warn(`Failed to load data for ${company}: ${response.status}`);
             }
-          } else {
-            const csvText = await response.text();
-            const parsedQuestions = parseCSVData(csvText, companySlug, timeFrame?.toLowerCase().replace(' ', '') || 'alltime');
-            if (parsedQuestions.length === 0) {
-              throw new Error('Failed to parse company data');
-            }
-            setQuestions(parsedQuestions);
+          } catch (err) {
+            console.warn(`Error loading data for ${company}:`, err);
           }
         }
+        
+        console.log('Total questions loaded:', allQuestions.length);
+        
+        if (allQuestions.length === 0) {
+          throw new Error('No questions found');
+        }
+        
+        setQuestions(allQuestions);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load questions');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load questions';
+        console.error('Error in fetchCSVData:', errorMessage);
+        setError(errorMessage);
         setQuestions([]);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
     fetchCSVData();
-  }, [companySlug, timeFrame, companies]);
+  }, [companies]);
 
-  return { questions, loading, error, companies, timeRanges };
+  return { 
+    questions, 
+    isLoading, 
+    error, 
+    companies, 
+    timeRanges 
+  };
 };

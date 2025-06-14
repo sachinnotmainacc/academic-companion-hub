@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useCSVQuestions } from '@/hooks/use-csv-questions';
+import { useCSVQuestions, type QuestionData } from '@/hooks/use-csv-questions';
 import { 
   Code2, 
   Building2, 
@@ -18,32 +18,24 @@ import {
   BookOpen
 } from 'lucide-react';
 
-interface Question {
-  id: string;
-  title: string;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  topics: string[];
-  link: string;
-  frequency: number;
-  company: string;
-  timeRange: string;
-}
-
 const PlacementDSA = () => {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('alltime');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [displayedQuestions, setDisplayedQuestions] = useState<Question[]>([]);
+  const [displayedQuestions, setDisplayedQuestions] = useState<QuestionData[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [questionsPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { questions, loading, error, companies, timeRanges } = useCSVQuestions();
+  const { questions, isLoading, error, companies = [], timeRanges = [] } = useCSVQuestions();
 
   // Filter and paginate questions
   useEffect(() => {
-    if (questions.length === 0) return;
+    if (questions.length === 0) {
+      setDisplayedQuestions([]);
+      return;
+    }
 
     let filtered = questions.filter(q => {
       const matchesCompany = selectedCompany === 'all' || q.company === selectedCompany;
@@ -61,19 +53,9 @@ const PlacementDSA = () => {
 
     // Paginate
     const endIndex = currentPage * questionsPerPage;
-    // Convert QuestionData to Question format
-    const convertedQuestions: Question[] = filtered.slice(0, endIndex).map(q => ({
-      id: q.id,
-      title: q.title,
-      difficulty: q.difficulty as 'Easy' | 'Medium' | 'Hard',
-      topics: q.topics || ['General'],
-      link: q.link,
-      frequency: q.frequency,
-      company: q.company || 'Unknown',
-      timeRange: q.timeRange || 'alltime'
-    }));
+    const paginatedQuestions = filtered.slice(0, endIndex);
     
-    setDisplayedQuestions(convertedQuestions);
+    setDisplayedQuestions(paginatedQuestions);
   }, [questions, selectedCompany, selectedTimeRange, selectedDifficulty, searchTerm, currentPage]);
 
   const loadMore = () => {
@@ -116,7 +98,7 @@ const PlacementDSA = () => {
 
   const stats = getStats();
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
@@ -325,12 +307,12 @@ const PlacementDSA = () => {
                     </div>
                     
                     <div className="flex flex-wrap gap-2">
-                      {question.topics.slice(0, 5).map((topic, idx) => (
+                      {question.topics?.slice(0, 5).map((topic, idx) => (
                         <Badge key={idx} variant="outline" className="border-zinc-600 text-zinc-300 text-xs">
                           {topic}
                         </Badge>
                       ))}
-                      {question.topics.length > 5 && (
+                      {question.topics && question.topics.length > 5 && (
                         <Badge variant="outline" className="border-zinc-600 text-zinc-300 text-xs">
                           +{question.topics.length - 5} more
                         </Badge>
@@ -382,7 +364,7 @@ const PlacementDSA = () => {
           </div>
         )}
 
-        {displayedQuestions.length === 0 && !loading && (
+        {displayedQuestions.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="p-4 rounded-2xl bg-zinc-800/30 border border-zinc-700/50 inline-block mb-4">
               <Search className="h-8 w-8 text-zinc-400" />
