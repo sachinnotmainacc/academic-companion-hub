@@ -268,7 +268,7 @@ const Pomodoro: React.FC = () => {
           return 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/25';
       }
     }
-    return 'bg-dark-800/60 hover:bg-dark-700 text-gray-400 hover:text-white border border-dark-700';
+    return 'bg-zinc-800/60 hover:bg-zinc-700/80 text-gray-400 hover:text-white border border-zinc-700/50';
   };
 
   // Get progress bar color based on mode
@@ -333,23 +333,29 @@ const Pomodoro: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950 text-white">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Premium background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/20 via-black to-zinc-900/20"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/2 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/1 rounded-full blur-3xl"></div>
+      
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 md:py-16">
+      <main className="container mx-auto px-4 py-8 md:py-16 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Enhanced Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-6 mb-6">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30">
-                  <CheckCircle className="h-8 w-8 text-blue-400" />
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-white/10 to-zinc-800/30 border border-white/20 backdrop-blur-sm">
+                  <CheckCircle className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent drop-shadow-lg">
                     Pomodoro Timer
                   </h1>
-                  <p className="text-lg text-gray-400 mt-2">Boost your productivity with focused work sessions</p>
+                  <div className="w-24 h-1 bg-gradient-to-r from-white to-zinc-400 mx-auto mt-4 mb-4"></div>
+                  <p className="text-lg text-zinc-400 mt-2">Boost your productivity with focused work sessions</p>
                 </div>
               </div>
               <HowItWorksDialog />
@@ -358,18 +364,18 @@ const Pomodoro: React.FC = () => {
           
           {/* Main Timer Card */}
           <div className="max-w-4xl mx-auto mb-16">
-            <div className="bg-dark-900/50 backdrop-blur-xl rounded-3xl border border-dark-800/50 shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 backdrop-blur-xl rounded-3xl border border-zinc-700/50 shadow-2xl shadow-black/50 overflow-hidden">
               {/* Mode Selector */}
-              <div className="p-6 bg-dark-900/80 border-b border-dark-800/50">
+              <div className="p-6 bg-gradient-to-r from-zinc-900/80 via-zinc-800/80 to-zinc-900/80 border-b border-zinc-700/50">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-2xl font-bold text-white">{getModeTitle()}</h2>
-                    <p className="text-gray-400">{getModeSubtitle()}</p>
+                    <p className="text-zinc-400">{getModeSubtitle()}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-gray-400 hover:text-white hover:bg-dark-800/50 rounded-xl"
+                    className="text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
                     onClick={() => setShowSettings(true)}
                   >
                     <Settings className="h-5 w-5" />
@@ -378,19 +384,19 @@ const Pomodoro: React.FC = () => {
                 
                 <div className="grid grid-cols-3 gap-3">
                   <Button 
-                    className={`${getButtonColor('pomodoro')} h-14 text-base font-medium rounded-xl transition-all duration-300`}
+                    className={`${getButtonColor('pomodoro')} h-14 text-base font-medium rounded-xl transition-all duration-300 hover:scale-105`}
                     onClick={() => changeMode('pomodoro')}
                   >
                     Focus
                   </Button>
                   <Button 
-                    className={`${getButtonColor('shortBreak')} h-14 text-base font-medium rounded-xl transition-all duration-300`}
+                    className={`${getButtonColor('shortBreak')} h-14 text-base font-medium rounded-xl transition-all duration-300 hover:scale-105`}
                     onClick={() => changeMode('shortBreak')}
                   >
                     Short Break
                   </Button>
                   <Button 
-                    className={`${getButtonColor('longBreak')} h-14 text-base font-medium rounded-xl transition-all duration-300`}
+                    className={`${getButtonColor('longBreak')} h-14 text-base font-medium rounded-xl transition-all duration-300 hover:scale-105`}
                     onClick={() => changeMode('longBreak')}
                   >
                     Long Break
@@ -404,7 +410,7 @@ const Pomodoro: React.FC = () => {
                 <div className="relative mb-12">
                   <div className="w-80 h-80 md:w-96 md:h-96 rounded-full relative">
                     {/* Background circle */}
-                    <div className="absolute inset-0 rounded-full border-8 border-dark-800/30"></div>
+                    <div className="absolute inset-0 rounded-full border-8 border-zinc-800/30"></div>
                     
                     {/* Progress circle */}
                     <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -415,7 +421,7 @@ const Pomodoro: React.FC = () => {
                         stroke="currentColor"
                         strokeWidth="8"
                         fill="none"
-                        className="text-dark-800/30"
+                        className="text-zinc-800/30"
                       />
                       <circle
                         cx="50"
@@ -442,7 +448,7 @@ const Pomodoro: React.FC = () => {
                       <div className="text-6xl md:text-8xl font-bold text-white mb-2 font-mono tracking-tight">
                         {formatTime(timeLeft)}
                       </div>
-                      <div className="text-lg text-gray-400 font-medium">
+                      <div className="text-lg text-zinc-400 font-medium">
                         {isActive ? 'Active' : 'Paused'}
                       </div>
                     </div>
@@ -465,7 +471,7 @@ const Pomodoro: React.FC = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-2 border-dark-700 bg-dark-800/50 text-gray-300 hover:text-white hover:border-gray-600 hover:bg-dark-700 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105"
+                    className="border-2 border-zinc-700 bg-zinc-800/50 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-700/80 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105"
                     onClick={resetTimer}
                   >
                     <RotateCcw className="mr-3 h-6 w-6" />
@@ -475,7 +481,7 @@ const Pomodoro: React.FC = () => {
               </div>
               
               {/* Enhanced Session Counter */}
-              <div className="p-6 bg-dark-900/80 border-t border-dark-800/50">
+              <div className="p-6 bg-gradient-to-r from-zinc-900/80 via-zinc-800/80 to-zinc-900/80 border-t border-zinc-700/50">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="p-3 rounded-xl bg-green-500/20 border border-green-500/30">
@@ -483,19 +489,19 @@ const Pomodoro: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-white">{todayPomodoros}</div>
-                      <div className="text-sm text-gray-400">Sessions Today</div>
+                      <div className="text-sm text-zinc-400">Sessions Today</div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4">
                     <div className="text-center">
                       <div className="text-lg font-semibold text-white">{currentStreak}</div>
-                      <div className="text-xs text-gray-400">Current Streak</div>
+                      <div className="text-xs text-zinc-400">Current Streak</div>
                     </div>
-                    <div className="w-px h-8 bg-dark-700"></div>
+                    <div className="w-px h-8 bg-zinc-700"></div>
                     <div className="text-center">
                       <div className="text-lg font-semibold text-white">{completedPomodoros}</div>
-                      <div className="text-xs text-gray-400">Total Sessions</div>
+                      <div className="text-xs text-zinc-400">Total Sessions</div>
                     </div>
                   </div>
                 </div>
@@ -506,7 +512,7 @@ const Pomodoro: React.FC = () => {
           {/* Enhanced Secondary Content */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Stats Card */}
-            <div className="bg-dark-900/50 backdrop-blur-xl rounded-2xl border border-dark-800/50 shadow-lg p-6">
+            <div className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-700/50 shadow-lg p-6">
               <PomodoroStats 
                 completedPomodoros={completedPomodoros}
                 completedBreaks={completedBreaks}
@@ -517,15 +523,15 @@ const Pomodoro: React.FC = () => {
             </div>
             
             {/* YouTube Player */}
-            <div className="bg-dark-900/50 backdrop-blur-xl rounded-2xl border border-dark-800/50 shadow-lg overflow-hidden">
-              <div className="p-6 bg-dark-900/80 border-b border-dark-800/50">
+            <div className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 backdrop-blur-xl rounded-2xl border border-zinc-700/50 shadow-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-zinc-900/80 via-zinc-800/80 to-zinc-900/80 border-b border-zinc-700/50">
                 <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-blue-500/20 border border-blue-500/30">
-                    <CheckCircle className="h-5 w-5 text-blue-400" />
+                  <div className="p-2 rounded-xl bg-white/10 border border-white/20">
+                    <CheckCircle className="h-5 w-5 text-white" />
                   </div>
                   Background Music
                 </h3>
-                <p className="text-gray-400 mt-1">Enhance your focus with ambient sounds</p>
+                <p className="text-zinc-400 mt-1">Enhance your focus with ambient sounds</p>
               </div>
               <div className="p-1">
                 <YouTubePlayer />
