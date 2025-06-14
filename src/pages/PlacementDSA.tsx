@@ -30,22 +30,22 @@ import {
 import { toast } from 'sonner';
 
 interface Question {
-  id: number;
+  id: string;
   title: string;
   difficulty: string;
   frequency: number;
-  url: string;
+  link: string;
   acceptance: string;
 }
 
 const PlacementDSA = () => {
   const [selectedCompany, setSelectedCompany] = useState('google');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('alltime');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('All Time');
   const [difficultyFilter, setDifficultyFilter] = useState('all');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [solvedQuestions, setSolvedQuestions] = useState<Set<number>>(new Set());
+  const [solvedQuestions, setSolvedQuestions] = useState<Set<string>>(new Set());
   
-  const { questions, loading, error } = useCSVQuestions(selectedCompany, selectedTimeframe);
+  const { questions, isLoading, error } = useCSVQuestions(selectedCompany, selectedTimeframe);
 
   // Load solved questions from localStorage
   useEffect(() => {
@@ -72,10 +72,10 @@ const PlacementDSA = () => {
   ];
 
   const timeframes = [
-    { id: 'alltime', name: 'All Time' },
-    { id: '2year', name: 'Last 2 Years' },
-    { id: '1year', name: 'Last Year' },
-    { id: '6months', name: 'Last 6 Months' },
+    { id: 'All Time', name: 'All Time' },
+    { id: '2 Years', name: 'Last 2 Years' },
+    { id: '1 Year', name: 'Last Year' },
+    { id: '6 Months', name: 'Last 6 Months' },
   ];
 
   const filteredQuestions = questions.filter(q => 
@@ -89,7 +89,7 @@ const PlacementDSA = () => {
     toast.success('New random question selected!');
   };
 
-  const markAsSolved = (questionId: number) => {
+  const markAsSolved = (questionId: string) => {
     setSolvedQuestions(prev => new Set([...prev, questionId]));
     toast.success('Question marked as solved! 🎉');
   };
@@ -246,7 +246,7 @@ const PlacementDSA = () => {
           </div>
 
           {/* Enhanced Current Question */}
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-16">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
               <p className="text-gray-400 text-lg">Loading questions...</p>
@@ -297,7 +297,7 @@ const PlacementDSA = () => {
                     asChild 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white h-14 text-lg font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-105"
                   >
-                    <a href={currentQuestion.url} target="_blank" rel="noopener noreferrer">
+                    <a href={currentQuestion.link} target="_blank" rel="noopener noreferrer">
                       <Code className="mr-2 h-5 w-5" />
                       Solve on LeetCode
                       <ChevronRight className="ml-2 h-5 w-5" />
