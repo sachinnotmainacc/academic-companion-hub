@@ -15,7 +15,7 @@ const Typing = () => {
   const [currentText, setCurrentText] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const [isStarted, setIsStarted] = useState(false);
-  const [currentSnippet, setCurrentSnippet] = useState<CodeSnippet>(codeSnippets.javascript);
+  const [currentSnippet, setCurrentSnippet] = useState<CodeSnippet>(codeSnippets.javascript[0]);
   const [testDuration, setTestDuration] = useState(30);
   const { resetStats, stats } = useTypingStore();
 

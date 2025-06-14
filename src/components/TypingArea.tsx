@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTypingStore } from '../store/typingStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -54,17 +53,15 @@ export default function TypingArea({
   useEffect(() => {
     if (isStarted && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setTimeLeft((prev: number) => {
-          const newTime = Math.max(0, prev - 1);
-          if (newTime <= 0) {
-            const elapsedTime = testDuration;
-            setComplete(elapsedTime);
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
+        const newTime = Math.max(0, timeLeft - 1);
+        setTimeLeft(newTime);
+        if (newTime <= 0) {
+          const elapsedTime = testDuration;
+          setComplete(elapsedTime);
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
           }
-          return newTime;
-        });
+        }
       }, 1000);
 
       return () => {
@@ -73,7 +70,7 @@ export default function TypingArea({
         }
       };
     }
-  }, [isStarted, setTimeLeft, testDuration, setComplete]);
+  }, [isStarted, setTimeLeft, testDuration, setComplete, timeLeft]);
 
   // Cursor blinking effect
   useEffect(() => {
