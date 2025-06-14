@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTypingStore } from '../store/typingStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +17,8 @@ interface TypingAreaProps {
   currentText: string;
   setTimeLeft: (time: number) => void;
   testDuration: number;
+  isStarted: boolean;
+  onStart: () => void;
 }
 
 const SAMPLE_INTERVAL = 1000; // 1 second
@@ -28,7 +31,9 @@ export default function TypingArea({
   setCursorPosition,
   currentText,
   setTimeLeft,
-  testDuration
+  testDuration,
+  isStarted,
+  onStart
 }: TypingAreaProps) {
   const [isCursorVisible, setIsCursorVisible] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
@@ -45,20 +50,21 @@ export default function TypingArea({
     settings
   } = useTypingStore();
 
-  // Start timer when typing begins
+  // Start timer when test is started
   useEffect(() => {
-    if (hasStartedTyping && timeLeft > 0) {
+    if (isStarted && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setTimeLeft(Math.max(0, timeLeft - 1));
-        
-        if (timeLeft <= 1) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
+        setTimeLeft((prev) => {
+          const newTime = Math.max(0, prev - 1);
+          if (newTime <= 0) {
+            const elapsedTime = testDuration;
+            setComplete(elapsedTime);
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+            }
           }
-          // Set completion when time runs out
-          const elapsedTime = testDuration;
-          setComplete(elapsedTime);
-        }
+          return newTime;
+        });
       }, 1000);
 
       return () => {
@@ -67,7 +73,7 @@ export default function TypingArea({
         }
       };
     }
-  }, [hasStartedTyping, timeLeft, setTimeLeft, testDuration, setComplete]);
+  }, [isStarted, setTimeLeft, testDuration, setComplete]);
 
   // Cursor blinking effect
   useEffect(() => {
@@ -79,17 +85,17 @@ export default function TypingArea({
 
   // Auto-focus the typing area when component mounts
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && isStarted) {
       containerRef.current.focus();
     }
-  }, []);
+  }, [isStarted]);
 
-  // Prevent losing focus
+  // Prevent losing focus during test
   const handleBlur = useCallback(() => {
-    if (containerRef.current) {
+    if (containerRef.current && isStarted) {
       containerRef.current.focus();
     }
-  }, []);
+  }, [isStarted]);
 
   const calculateAndUpdateStats = useCallback(() => {
     const timeElapsed = (testDuration - timeLeft) / 60; // Convert to minutes
@@ -118,7 +124,7 @@ export default function TypingArea({
 
   // Calculate and store WPM periodically
   useEffect(() => {
-    if (!hasStartedTyping) return;
+    if (!hasStartedTyping || !isStarted) return;
 
     const now = Date.now();
     if (now - lastSampleTime.current >= SAMPLE_INTERVAL) {
@@ -135,11 +141,11 @@ export default function TypingArea({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [hasStartedTyping, calculateAndUpdateStats]);
+  }, [hasStartedTyping, isStarted, calculateAndUpdateStats]);
 
   // Handle completion when text matches exactly
   useEffect(() => {
-    if (currentText === snippet.code) {
+    if (currentText === snippet.code && isStarted) {
       calculateAndUpdateStats();
       const elapsedTime = (testDuration - timeLeft);
       setComplete(elapsedTime);
@@ -147,10 +153,16 @@ export default function TypingArea({
         clearInterval(timerRef.current);
       }
     }
-  }, [currentText, snippet.code, timeLeft, calculateAndUpdateStats, setComplete]);
+  }, [currentText, snippet.code, isStarted, timeLeft, calculateAndUpdateStats, setComplete]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (timeLeft === 0) return;
+
+    // Start the test on first keypress if not already started
+    if (!isStarted) {
+      onStart();
+      return;
+    }
 
     // Prevent default behavior for space
     if (e.code === 'Space') {
@@ -200,13 +212,15 @@ export default function TypingArea({
         setComplete(elapsedTime);
       }
     }
-  }, [timeLeft, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete, testDuration]);
+  }, [timeLeft, isStarted, onStart, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete, testDuration]);
 
   // Bind keyboard events
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+    if (isStarted) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [handleKeyDown, isStarted]);
 
   return (
     <div className="relative">
@@ -257,17 +271,33 @@ export default function TypingArea({
       {/* Enhanced Code Display */}
       <div 
         ref={containerRef}
-        className="relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-dark-850 p-6 rounded-lg border border-dark-600 focus:border-blue-500 transition-colors min-h-[300px]"
+        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-dark-850 p-6 rounded-lg border border-dark-600 transition-colors min-h-[300px] ${
+          isStarted ? 'focus:border-blue-500 cursor-text' : 'cursor-pointer border-gray-600'
+        }`}
         tabIndex={0}
         onBlur={handleBlur}
+        onClick={() => {
+          if (!isStarted) {
+            onStart();
+          }
+        }}
         style={{ lineHeight: '1.8' }}
       >
+        {!isStarted && (
+          <div className="absolute inset-0 flex items-center justify-center bg-dark-850/80 rounded-lg">
+            <div className="text-center">
+              <p className="text-gray-400 text-lg mb-2">Click here or press any key to start typing</p>
+              <p className="text-gray-500 text-sm">Make sure to click "Start Test" first</p>
+            </div>
+          </div>
+        )}
+        
         {snippet.code.split('').map((char, index) => {
           const isTyped = index < currentText.length;
           const typedChar = currentText[index];
           const isCorrect = isTyped && typedChar === char;
           const isWrong = isTyped && typedChar !== char;
-          const isCursor = index === cursorPosition;
+          const isCursor = index === cursorPosition && isStarted;
 
           return (
             <span

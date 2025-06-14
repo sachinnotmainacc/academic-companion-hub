@@ -35,7 +35,7 @@ const Typing = () => {
   };
 
   const handleStart = () => {
-    if (!isStarted) {
+    if (!isStarted && timeLeft > 0) {
       setIsStarted(true);
     }
   };
@@ -98,7 +98,7 @@ const Typing = () => {
 
                 <div className="flex items-center space-x-6">
                   <div className="text-center">
-                    <div className="text-sm text-gray-400">Test Type</div>
+                    <div className="text-sm text-gray-400 mb-1">Language</div>
                     <LanguageSelector 
                       currentLanguage={currentSnippet.language}
                       onLanguageChange={handleLanguageChange}
@@ -107,12 +107,12 @@ const Typing = () => {
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-sm text-gray-400">Duration</div>
+                    <div className="text-sm text-gray-400 mb-1">Duration</div>
                     <select 
                       value={testDuration}
                       onChange={(e) => handleDurationChange(Number(e.target.value))}
                       disabled={isStarted}
-                      className="bg-dark-800 border border-dark-600 rounded px-3 py-1 text-white text-sm"
+                      className="bg-dark-800 border border-dark-600 rounded px-3 py-2 text-white text-sm min-w-[80px]"
                     >
                       <option value={15}>15s</option>
                       <option value={30}>30s</option>
@@ -141,6 +141,8 @@ const Typing = () => {
                     currentText={currentText}
                     setTimeLeft={setTimeLeft}
                     testDuration={testDuration}
+                    isStarted={isStarted}
+                    onStart={handleStart}
                   />
                 </div>
               </div>

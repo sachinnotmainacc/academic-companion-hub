@@ -119,27 +119,31 @@ const LanguageSelector = ({ currentLanguage, onLanguageChange, disabled }: Langu
   };
 
   return (
-    <Select value={currentLanguage} onValueChange={handleLanguageSelect} disabled={disabled}>
-      <SelectTrigger className="w-40 bg-dark-800 border-dark-600 text-white">
+    <Select 
+      value={currentLanguage} 
+      onValueChange={handleLanguageSelect} 
+      disabled={disabled}
+    >
+      <SelectTrigger className="w-40 bg-dark-800 border-dark-600 text-white focus:ring-0 focus:ring-offset-0">
         <div className="flex items-center space-x-2">
           <Code className="w-4 h-4" />
           <SelectValue />
         </div>
       </SelectTrigger>
       <SelectContent className="bg-dark-800 border-dark-600">
-        <SelectItem value="javascript" className="text-white hover:bg-dark-700">
+        <SelectItem value="javascript" className="text-white hover:bg-dark-700 focus:bg-dark-700">
           JavaScript
         </SelectItem>
-        <SelectItem value="python" className="text-white hover:bg-dark-700">
+        <SelectItem value="python" className="text-white hover:bg-dark-700 focus:bg-dark-700">
           Python
         </SelectItem>
-        <SelectItem value="java" className="text-white hover:bg-dark-700">
+        <SelectItem value="java" className="text-white hover:bg-dark-700 focus:bg-dark-700">
           Java
         </SelectItem>
-        <SelectItem value="cpp" className="text-white hover:bg-dark-700">
+        <SelectItem value="cpp" className="text-white hover:bg-dark-700 focus:bg-dark-700">
           C++
         </SelectItem>
-        <SelectItem value="typescript" className="text-white hover:bg-dark-700">
+        <SelectItem value="typescript" className="text-white hover:bg-dark-700 focus:bg-dark-700">
           TypeScript
         </SelectItem>
       </SelectContent>
