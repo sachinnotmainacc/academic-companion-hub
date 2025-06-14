@@ -14,6 +14,8 @@ interface TypingAreaProps {
   cursorPosition: number;
   setCursorPosition: (pos: number) => void;
   currentText: string;
+  setTimeLeft: (time: number) => void;
+  testDuration: number;
 }
 
 const SAMPLE_INTERVAL = 1000; // 1 second
@@ -24,12 +26,13 @@ export default function TypingArea({
   onType,
   cursorPosition,
   setCursorPosition,
-  currentText
+  currentText,
+  setTimeLeft,
+  testDuration
 }: TypingAreaProps) {
   const [isCursorVisible, setIsCursorVisible] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
-  const [internalTimeLeft, setInternalTimeLeft] = useState(30);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastSampleTime = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,13 +47,16 @@ export default function TypingArea({
 
   // Start timer when typing begins
   useEffect(() => {
-    if (hasStartedTyping && internalTimeLeft > 0) {
+    if (hasStartedTyping && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setInternalTimeLeft((prev) => {
+        setTimeLeft((prev: number) => {
           if (prev <= 1) {
             if (timerRef.current) {
               clearInterval(timerRef.current);
             }
+            // Set completion when time runs out
+            const elapsedTime = testDuration;
+            setComplete(elapsedTime);
             return 0;
           }
           return prev - 1;
@@ -63,7 +69,7 @@ export default function TypingArea({
         }
       };
     }
-  }, [hasStartedTyping]);
+  }, [hasStartedTyping, timeLeft, setTimeLeft, testDuration, setComplete]);
 
   // Cursor blinking effect
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function TypingArea({
   }, []);
 
   const calculateAndUpdateStats = useCallback(() => {
-    const timeElapsed = (30 - internalTimeLeft) / 60; // Convert to minutes
+    const timeElapsed = (testDuration - timeLeft) / 60; // Convert to minutes
     if (timeElapsed > 0) {
       const wordCount = currentText.length / 5;
       const wpm = Math.round(wordCount / timeElapsed);
@@ -110,7 +116,7 @@ export default function TypingArea({
         missed: Math.max(0, snippet.code.length - totalChars),
       });
     }
-  }, [internalTimeLeft, currentText, snippet.code, errorCount, addWPMSample, updateAccuracy, updateCharacters]);
+  }, [timeLeft, currentText, snippet.code, errorCount, addWPMSample, updateAccuracy, updateCharacters, testDuration]);
 
   // Calculate and store WPM periodically
   useEffect(() => {
@@ -137,16 +143,16 @@ export default function TypingArea({
   useEffect(() => {
     if (currentText === snippet.code) {
       calculateAndUpdateStats();
-      const elapsedTime = (30 - internalTimeLeft);
+      const elapsedTime = (testDuration - timeLeft);
       setComplete(elapsedTime);
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
     }
-  }, [currentText, snippet.code, internalTimeLeft, calculateAndUpdateStats, setComplete]);
+  }, [currentText, snippet.code, timeLeft, calculateAndUpdateStats, setComplete]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (internalTimeLeft === 0) return;
+    if (timeLeft === 0) return;
 
     // Prevent default behavior for space
     if (e.code === 'Space') {
@@ -192,11 +198,11 @@ export default function TypingArea({
       // Check if this was the last character
       if (newText === targetText) {
         calculateAndUpdateStats();
-        const elapsedTime = (30 - internalTimeLeft);
+        const elapsedTime = (testDuration - timeLeft);
         setComplete(elapsedTime);
       }
     }
-  }, [internalTimeLeft, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete]);
+  }, [timeLeft, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete, testDuration]);
 
   // Bind keyboard events
   useEffect(() => {
@@ -214,7 +220,7 @@ export default function TypingArea({
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
           </div>
-          <div className="text-sm px-3 py-1 bg-blue-600 rounded-md text-white font-medium">
+          <div className="text-sm px-3 py-1 bg-blue-600 rounded-md text-white font-medium capitalize">
             {snippet.language}
           </div>
         </div>
@@ -223,10 +229,10 @@ export default function TypingArea({
           <div className="text-right">
             <div className="text-xs text-gray-400 uppercase tracking-wide">Time Left</div>
             <div className={`text-2xl font-mono font-bold ${
-              internalTimeLeft <= 10 ? 'text-red-400' : 
-              internalTimeLeft <= 20 ? 'text-yellow-400' : 'text-green-400'
+              timeLeft <= 10 ? 'text-red-400' : 
+              timeLeft <= 20 ? 'text-yellow-400' : 'text-green-400'
             }`}>
-              {internalTimeLeft}s
+              {timeLeft}s
             </div>
           </div>
           <div className="w-12 h-12 relative">
@@ -240,9 +246,9 @@ export default function TypingArea({
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
-                stroke={internalTimeLeft <= 10 ? '#F87171' : internalTimeLeft <= 20 ? '#FBBF24' : '#10B981'}
+                stroke={timeLeft <= 10 ? '#F87171' : timeLeft <= 20 ? '#FBBF24' : '#10B981'}
                 strokeWidth="2"
-                strokeDasharray={`${(internalTimeLeft / 30) * 100}, 100`}
+                strokeDasharray={`${(timeLeft / testDuration) * 100}, 100`}
                 className="transition-all duration-1000 ease-linear"
               />
             </svg>

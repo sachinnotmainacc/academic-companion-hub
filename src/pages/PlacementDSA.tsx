@@ -407,7 +407,7 @@ const PlacementDSA = () => {
       // If we have a selected company but no CSV questions and no error
       setUseHardcodedData(true);
     }
-  }, [csvError, selectedCompany, csvQuestions, csvLoading, toast]);
+  }, [csvError, selectedCompany, csvQuestions, useHardcodedData, toast]);
   
   // Reset to page 1 when company or filters change
   useEffect(() => {
@@ -554,12 +554,15 @@ const PlacementDSA = () => {
 
   // Animation variants
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: { y: 20, opacity: 0 },
     visible: { 
-      opacity: 1,
+      y: 0, 
+      opacity: 1, 
       transition: { 
-        staggerChildren: 0.05
-      }
+        type: "spring" as const, 
+        stiffness: 100, 
+        damping: 15 
+      } 
     }
   };
 
@@ -1025,7 +1028,7 @@ const PlacementDSA = () => {
                                       key={item.name}
                                       className={`${item.color} h-full`} 
                                       style={{ 
-                                        width: `${Math.max(1, (item.count / Math.max(1, statsData.totalQuestions)) * 100)}%`,
+                                        width: `${Math.max(1, (item.count / Math.max(1, statsData.totalQuestions)) * 100}%`,
                                         opacity: item.solved > 0 ? 1 : 0.5 
                                       }}
                                     ></div>
@@ -1512,4 +1515,4 @@ const PlacementDSA = () => {
   );
 };
 
-export default PlacementDSA; 
+export default PlacementDSA;
