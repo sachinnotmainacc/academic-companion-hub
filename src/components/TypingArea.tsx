@@ -206,22 +206,57 @@ export default function TypingArea({
 
   return (
     <div className="relative">
-      {/* Header with timer and language */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="text-sm px-3 py-1 bg-dark-700 rounded-md text-gray-300">
-          {snippet.language}
+      {/* Enhanced Header */}
+      <div className="flex justify-between items-center mb-6 p-4 bg-dark-800 rounded-lg border border-dark-600">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          </div>
+          <div className="text-sm px-3 py-1 bg-blue-600 rounded-md text-white font-medium">
+            {snippet.language}
+          </div>
         </div>
-        <div className="text-xl font-mono">
-          {internalTimeLeft}s
+        
+        <div className="flex items-center space-x-4">
+          <div className="text-right">
+            <div className="text-xs text-gray-400 uppercase tracking-wide">Time Left</div>
+            <div className={`text-2xl font-mono font-bold ${
+              internalTimeLeft <= 10 ? 'text-red-400' : 
+              internalTimeLeft <= 20 ? 'text-yellow-400' : 'text-green-400'
+            }`}>
+              {internalTimeLeft}s
+            </div>
+          </div>
+          <div className="w-12 h-12 relative">
+            <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke="#374151"
+                strokeWidth="2"
+              />
+              <path
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                fill="none"
+                stroke={internalTimeLeft <= 10 ? '#F87171' : internalTimeLeft <= 20 ? '#FBBF24' : '#10B981'}
+                strokeWidth="2"
+                strokeDasharray={`${(internalTimeLeft / 30) * 100}, 100`}
+                className="transition-all duration-1000 ease-linear"
+              />
+            </svg>
+          </div>
         </div>
       </div>
 
-      {/* Code display area */}
+      {/* Enhanced Code Display */}
       <div 
         ref={containerRef}
-        className="relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-dark-800 p-4 rounded-lg border border-dark-700"
+        className="relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-dark-850 p-6 rounded-lg border border-dark-600 focus:border-blue-500 transition-colors min-h-[300px]"
         tabIndex={0}
         onBlur={handleBlur}
+        style={{ lineHeight: '1.8' }}
       >
         {snippet.code.split('').map((char, index) => {
           const isTyped = index < currentText.length;
@@ -233,20 +268,20 @@ export default function TypingArea({
           return (
             <span
               key={index}
-              className={`${
+              className={`relative ${
                 isTyped
                   ? isCorrect
-                    ? 'text-green-400'
+                    ? 'text-green-400 bg-green-400/10'
                     : isWrong
-                    ? 'text-red-400 bg-red-900/50'
+                    ? 'text-red-400 bg-red-400/20 rounded'
                     : ''
                   : 'text-gray-500'
-              }`}
+              } transition-colors duration-150`}
             >
               {isCursor && isCursorVisible && (
                 <span
-                  className="absolute w-0.5 -ml-0.5 bg-blue-400"
-                  style={{ height: '1.5em' }}
+                  className="absolute w-0.5 -ml-0.5 bg-blue-400 animate-pulse"
+                  style={{ height: '1.6em' }}
                   data-cursor
                 />
               )}
@@ -255,6 +290,20 @@ export default function TypingArea({
           );
         })}
       </div>
+
+      {/* Progress Bar */}
+      <div className="mt-4">
+        <div className="flex justify-between text-xs text-gray-400 mb-1">
+          <span>Progress</span>
+          <span>{Math.round((currentText.length / snippet.code.length) * 100)}%</span>
+        </div>
+        <div className="w-full bg-dark-700 rounded-full h-2">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${Math.min(100, (currentText.length / snippet.code.length) * 100)}%` }}
+          ></div>
+        </div>
+      </div>
     </div>
   );
-} 
+}
