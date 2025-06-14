@@ -49,18 +49,16 @@ export default function TypingArea({
   useEffect(() => {
     if (hasStartedTyping && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setTimeLeft((prev: number) => {
-          if (prev <= 1) {
-            if (timerRef.current) {
-              clearInterval(timerRef.current);
-            }
-            // Set completion when time runs out
-            const elapsedTime = testDuration;
-            setComplete(elapsedTime);
-            return 0;
+        setTimeLeft(Math.max(0, timeLeft - 1));
+        
+        if (timeLeft <= 1) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
           }
-          return prev - 1;
-        });
+          // Set completion when time runs out
+          const elapsedTime = testDuration;
+          setComplete(elapsedTime);
+        }
       }, 1000);
 
       return () => {

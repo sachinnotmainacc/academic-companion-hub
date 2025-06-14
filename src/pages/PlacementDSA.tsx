@@ -21,21 +21,28 @@ interface Question {
 
 const PlacementDSA = () => {
   const [selectedCompany, setSelectedCompany] = useState<string>('');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('alltime');
+  const [selectedPeriod, setSelectedPeriod] = useState<'6 Months' | '1 Year' | '2 Years' | 'All Time'>('All Time');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
   const [correctAnswers, setCorrectAnswers] = useState<Set<number>>(new Set());
   const [showResults, setShowResults] = useState(false);
   const [quizMode, setQuizMode] = useState(false);
 
-  const { questions, loading, error, companies } = useCSVQuestions(selectedCompany, selectedPeriod);
+  const { questions, isLoading, error } = useCSVQuestions(selectedCompany, selectedPeriod);
+
+  // Extract companies from available CSV files (hardcoded list for now)
+  const companies = [
+    'amazon', 'google', 'microsoft', 'facebook', 'apple', 'netflix', 'uber', 'airbnb',
+    'linkedin', 'spotify', 'dropbox', 'twitter', 'reddit', 'pinterest', 'snapchat',
+    'tesla', 'nvidia', 'salesforce', 'oracle', 'adobe', 'cisco', 'intel', 'qualcomm'
+  ];
 
   const handleCompanyChange = (company: string) => {
     setSelectedCompany(company);
     resetQuiz();
   };
 
-  const handlePeriodChange = (period: string) => {
+  const handlePeriodChange = (period: '6 Months' | '1 Year' | '2 Years' | 'All Time') => {
     setSelectedPeriod(period);
     resetQuiz();
   };
@@ -101,10 +108,10 @@ const PlacementDSA = () => {
 
   const formatPeriodName = (period: string) => {
     switch (period) {
-      case '6months': return '6 Months';
-      case '1year': return '1 Year';
-      case '2year': return '2 Years';
-      case 'alltime': return 'All Time';
+      case '6 Months': return '6 Months';
+      case '1 Year': return '1 Year';
+      case '2 Years': return '2 Years';
+      case 'All Time': return 'All Time';
       default: return period;
     }
   };
@@ -113,7 +120,7 @@ const PlacementDSA = () => {
   const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
   const accuracy = answeredQuestions.size > 0 ? (correctAnswers.size / answeredQuestions.size) * 100 : 0;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-950">
         <Navbar />
@@ -189,10 +196,10 @@ const PlacementDSA = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-dark-700 border-dark-600">
-                      <SelectItem value="6months" className="text-white hover:bg-dark-600">6 Months</SelectItem>
-                      <SelectItem value="1year" className="text-white hover:bg-dark-600">1 Year</SelectItem>
-                      <SelectItem value="2year" className="text-white hover:bg-dark-600">2 Years</SelectItem>
-                      <SelectItem value="alltime" className="text-white hover:bg-dark-600">All Time</SelectItem>
+                      <SelectItem value="6 Months" className="text-white hover:bg-dark-600">6 Months</SelectItem>
+                      <SelectItem value="1 Year" className="text-white hover:bg-dark-600">1 Year</SelectItem>
+                      <SelectItem value="2 Years" className="text-white hover:bg-dark-600">2 Years</SelectItem>
+                      <SelectItem value="All Time" className="text-white hover:bg-dark-600">All Time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -232,16 +239,16 @@ const PlacementDSA = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-4">{currentQuestion.Title}</h3>
+                  <h3 className="text-xl font-semibold text-white mb-4">{currentQuestion.title}</h3>
                   <div className="flex gap-3 mb-4">
-                    <Badge className={getDifficultyColor(currentQuestion.Difficulty)}>
-                      {currentQuestion.Difficulty}
+                    <Badge className={getDifficultyColor(currentQuestion.difficulty)}>
+                      {currentQuestion.difficulty}
                     </Badge>
                     <Badge variant="outline" className="text-gray-300 border-gray-600">
-                      {currentQuestion.Acceptance}
+                      {currentQuestion.acceptance}
                     </Badge>
                     <Badge variant="outline" className="text-gray-300 border-gray-600">
-                      Frequency: {getFrequencyLevel(currentQuestion.Frequency)}
+                      Frequency: {getFrequencyLevel(currentQuestion.frequency.toString())}
                     </Badge>
                   </div>
                 </div>
@@ -270,7 +277,7 @@ const PlacementDSA = () => {
 
                 <div className="pt-4">
                   <a 
-                    href={currentQuestion['Leetcode Question Link']} 
+                    href={currentQuestion.link} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
@@ -344,9 +351,9 @@ const PlacementDSA = () => {
                   {questions.map((question, index) => (
                     <div key={index} className="bg-dark-700 p-4 rounded-lg border border-dark-600 hover:border-dark-500 transition-colors">
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-lg font-semibold text-white">{question.Title}</h3>
+                        <h3 className="text-lg font-semibold text-white">{question.title}</h3>
                         <a 
-                          href={question['Leetcode Question Link']} 
+                          href={question.link} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-blue-400 hover:text-blue-300 transition-colors"
@@ -355,16 +362,16 @@ const PlacementDSA = () => {
                         </a>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Badge className={getDifficultyColor(question.Difficulty)}>
-                          {question.Difficulty}
+                        <Badge className={getDifficultyColor(question.difficulty)}>
+                          {question.difficulty}
                         </Badge>
                         <Badge variant="outline" className="text-gray-300 border-gray-600">
                           <Users className="w-3 h-3 mr-1" />
-                          {question.Acceptance}
+                          {question.acceptance}
                         </Badge>
                         <Badge variant="outline" className="text-gray-300 border-gray-600">
                           <Calendar className="w-3 h-3 mr-1" />
-                          Frequency: {getFrequencyLevel(question.Frequency)}
+                          Frequency: {getFrequencyLevel(question.frequency.toString())}
                         </Badge>
                       </div>
                     </div>
