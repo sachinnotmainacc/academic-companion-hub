@@ -37,7 +37,8 @@ export default function TypingArea({
 }: TypingAreaProps) {
   const [isCursorVisible, setIsCursorVisible] = useState(true);
   const [hasStartedTyping, setHasStartedTyping] = useState(false);
-  const [errorCount, setErrorCount] = useState(0);
+  const [totalMistakes, setTotalMistakes] = useState(0);
+  const [currentMistakes, setCurrentMistakes] = useState(new Set<number>());
   const containerRef = useRef<HTMLDivElement>(null);
   const lastSampleTime = useRef<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,7 +55,7 @@ export default function TypingArea({
   useEffect(() => {
     if (isStarted && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        const newTime = Math.max(0, timeLeft - 1);
+        const newTime = timeLeft - 1;
         setTimeLeft(newTime);
         if (newTime <= 0) {
           const elapsedTime = testDuration;
@@ -102,23 +103,37 @@ export default function TypingArea({
       const wpm = Math.round(wordCount / timeElapsed);
       const raw = Math.round((currentText.length / 5) / timeElapsed);
       
-      addWPMSample(wpm, raw, errorCount);
+      // Calculate correct characters more accurately
+      let correctChars = 0;
+      let incorrectChars = 0;
       
-      // Calculate accuracy
-      const totalChars = currentText.length;
-      const correctChars = currentText.split('').filter((char, i) => char === snippet.code[i]).length;
-      const accuracy = totalChars > 0 ? (correctChars / (totalChars + errorCount)) * 100 : 0;
+      for (let i = 0; i < Math.min(currentText.length, snippet.code.length); i++) {
+        if (currentText[i] === snippet.code[i]) {
+          correctChars++;
+        } else {
+          incorrectChars++;
+        }
+      }
+      
+      // Add extra characters as incorrect
+      if (currentText.length > snippet.code.length) {
+        incorrectChars += currentText.length - snippet.code.length;
+      }
+      
+      const accuracy = currentText.length > 0 ? (correctChars / currentText.length) * 100 : 100;
+      
+      addWPMSample(wpm, raw, totalMistakes);
       updateAccuracy(accuracy);
       
       // Update character stats
       updateCharacters({
         correct: correctChars,
-        incorrect: totalChars - correctChars,
-        extra: Math.max(0, totalChars - snippet.code.length),
-        missed: Math.max(0, snippet.code.length - totalChars),
+        incorrect: incorrectChars,
+        extra: Math.max(0, currentText.length - snippet.code.length),
+        missed: Math.max(0, snippet.code.length - currentText.length),
       });
     }
-  }, [timeLeft, currentText, snippet.code, errorCount, addWPMSample, updateAccuracy, updateCharacters, testDuration]);
+  }, [timeLeft, currentText, snippet.code, totalMistakes, addWPMSample, updateAccuracy, updateCharacters, testDuration]);
 
   // Calculate and store WPM periodically
   useEffect(() => {
@@ -187,6 +202,11 @@ export default function TypingArea({
       setCursorPosition(cursorPosition + 2);
     } else if (e.key === 'Backspace') {
       if (cursorPosition > 0) {
+        // Remove mistake tracking if backspacing over a mistake
+        const newMistakes = new Set(currentMistakes);
+        newMistakes.delete(cursorPosition - 1);
+        setCurrentMistakes(newMistakes);
+        
         const newText = currentValue.slice(0, cursorPosition - 1) + currentValue.slice(cursorPosition);
         onType(newText);
         setCursorPosition(cursorPosition - 1);
@@ -199,8 +219,12 @@ export default function TypingArea({
       onType(newText);
       setCursorPosition(cursorPosition + 1);
 
-      if (!isCorrect) {
-        setErrorCount(prev => prev + 1);
+      // Track mistakes more accurately
+      if (!isCorrect && !currentMistakes.has(cursorPosition)) {
+        setTotalMistakes(prev => prev + 1);
+        const newMistakes = new Set(currentMistakes);
+        newMistakes.add(cursorPosition);
+        setCurrentMistakes(newMistakes);
       }
 
       // Check if this was the last character
@@ -210,7 +234,7 @@ export default function TypingArea({
         setComplete(elapsedTime);
       }
     }
-  }, [timeLeft, isStarted, onStart, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete, testDuration]);
+  }, [timeLeft, isStarted, onStart, hasStartedTyping, currentText, snippet.code, cursorPosition, onType, setCursorPosition, calculateAndUpdateStats, setComplete, testDuration, currentMistakes]);
 
   // Bind keyboard events
   useEffect(() => {
@@ -223,7 +247,7 @@ export default function TypingArea({
   return (
     <div className="relative">
       {/* Enhanced Header */}
-      <div className="flex justify-between items-center mb-8 p-6 bg-gradient-to-r from-slate-800/60 to-gray-800/60 rounded-xl border border-slate-600/30 backdrop-blur-sm">
+      <div className="flex justify-between items-center mb-8 p-6 bg-gradient-to-r from-black/80 to-zinc-900/80 rounded-xl border border-zinc-800/50 backdrop-blur-sm">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/30"></div>
@@ -237,7 +261,7 @@ export default function TypingArea({
         
         <div className="flex items-center space-x-6">
           <div className="text-right">
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-medium mb-1">Time Left</div>
+            <div className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">Time Left</div>
             <div className={`text-3xl font-mono font-bold transition-all duration-300 ${
               timeLeft <= 10 ? 'text-red-400 animate-pulse' : 
               timeLeft <= 20 ? 'text-yellow-400' : 'text-green-400'
@@ -250,7 +274,7 @@ export default function TypingArea({
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
-                stroke="#374151"
+                stroke="#18181b"
                 strokeWidth="2"
               />
               <path
@@ -269,8 +293,8 @@ export default function TypingArea({
       {/* Enhanced Code Display */}
       <div 
         ref={containerRef}
-        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-gradient-to-br from-slate-900/90 to-gray-900/90 p-8 rounded-xl border transition-all duration-300 min-h-[350px] backdrop-blur-sm ${
-          isStarted ? 'focus:border-blue-500/60 cursor-text border-slate-600/40 shadow-inner' : 'cursor-pointer border-slate-600/60 hover:border-slate-500/80'
+        className={`relative font-mono text-lg leading-relaxed whitespace-pre-wrap outline-none bg-gradient-to-br from-black/95 to-zinc-900/95 p-8 rounded-xl border transition-all duration-300 min-h-[350px] backdrop-blur-sm ${
+          isStarted ? 'focus:border-blue-500/60 cursor-text border-zinc-800/60 shadow-inner' : 'cursor-pointer border-zinc-700/80 hover:border-zinc-600/90'
         }`}
         tabIndex={0}
         onBlur={handleBlur}
@@ -282,10 +306,10 @@ export default function TypingArea({
         style={{ lineHeight: '1.8' }}
       >
         {!isStarted && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/85 rounded-xl backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/90 rounded-xl backdrop-blur-sm">
             <div className="text-center p-8">
-              <p className="text-slate-300 text-xl mb-3 font-medium">Click here or press any key to start typing</p>
-              <p className="text-slate-500 text-base">Make sure to click "Start Test" first</p>
+              <p className="text-zinc-300 text-xl mb-3 font-medium">Click here or press any key to start typing</p>
+              <p className="text-zinc-600 text-base">Make sure to click "Start Test" first</p>
             </div>
           </div>
         )}
@@ -307,7 +331,7 @@ export default function TypingArea({
                     : isWrong
                     ? 'text-red-400 bg-red-400/20 rounded-sm'
                     : ''
-                  : 'text-slate-500'
+                  : 'text-zinc-600'
               }`}
             >
               {isCursor && isCursorVisible && (
@@ -325,11 +349,11 @@ export default function TypingArea({
 
       {/* Progress Bar */}
       <div className="mt-6">
-        <div className="flex justify-between text-sm text-slate-400 mb-2">
+        <div className="flex justify-between text-sm text-zinc-500 mb-2">
           <span className="font-medium">Progress</span>
           <span className="font-mono">{Math.round((currentText.length / snippet.code.length) * 100)}%</span>
         </div>
-        <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden shadow-inner">
+        <div className="w-full bg-zinc-900 rounded-full h-3 overflow-hidden shadow-inner">
           <div 
             className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out shadow-lg"
             style={{ width: `${Math.min(100, (currentText.length / snippet.code.length) * 100)}%` }}
