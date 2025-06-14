@@ -1,10 +1,10 @@
-
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Clock, Users, Star, BookOpen, Zap, Trophy, Code, Search, Brain, Palette, Database, Shield, Smartphone, Globe, Calculator } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ExternalLink, Clock, Users, Star, BookOpen, Zap, Trophy, Code, Search, Brain, Palette, Database, Shield, Smartphone, Globe, Calculator, Filter, ChevronDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 
 type Category = "all" | "web-dev" | "data-science" | "mobile" | "cybersecurity" | "design" | "algorithms" | "ai-ml";
@@ -257,6 +257,7 @@ const levelColors = {
 const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const filteredCourses = useMemo(() => {
     let filtered = selectedCategory === "all" 
@@ -274,6 +275,12 @@ const Courses = () => {
 
     return filtered;
   }, [selectedCategory, searchQuery]);
+
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") return "All Courses";
+    const category = categories.find(cat => cat.id === selectedCategory);
+    return category ? category.name : "All Courses";
+  };
 
   return (
     <div className="min-h-screen bg-black">
@@ -319,37 +326,63 @@ const Courses = () => {
 
       {/* Search and Filter Bar */}
       <div className="container mx-auto px-4 pb-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Search Bar */}
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search courses, topics, or providers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-900/60 border-gray-800/50 text-white placeholder:text-gray-400 focus:border-blue-500/50 backdrop-blur-xl"
-            />
-          </div>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Category Filter Dropdown */}
+            <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px] transition-all duration-300 hover:shadow-lg hover:border-zinc-600/50"
+                  variant="outline"
+                >
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    {getSelectedCategoryName()}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="mt-2 transition-all duration-300 ease-in-out">
+                <Card className="bg-gradient-to-br from-zinc-900/95 via-zinc-800/95 to-zinc-900/95 border-zinc-700/50 backdrop-blur-xl shadow-2xl animate-fade-in">
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {categories.map(category => (
+                        <Button
+                          key={category.id}
+                          onClick={() => {
+                            setSelectedCategory(category.id);
+                            setIsFilterOpen(false);
+                          }}
+                          className={`h-12 transition-all duration-300 transform hover:scale-105 ${selectedCategory === category.id 
+                            ? 'bg-white text-black hover:bg-zinc-200 shadow-md' 
+                            : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
+                          } rounded-xl text-sm`}
+                        >
+                          {category.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-3 p-6 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 backdrop-blur-sm ${
-                  selectedCategory === category.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-500/30'
-                    : 'bg-gray-800/60 text-gray-300 border border-gray-700/50 hover:bg-gray-700/60 hover:text-white hover:border-gray-600/50'
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
+            {/* Enhanced Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400 transition-colors duration-200" />
+              <input
+                type="text"
+                placeholder="Search courses, topics, or providers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 hover:bg-zinc-800/70 focus:bg-zinc-800/70 backdrop-blur-sm"
+              />
+            </div>
           </div>
 
           {/* Results Count */}
-          <div className="text-center">
+          <div className="text-center mt-6">
             <p className="text-gray-400 font-medium">
               Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''}
               {searchQuery && (
@@ -367,9 +400,10 @@ const Courses = () => {
             {filteredCourses.map((course, index) => (
               <Card 
                 key={index} 
-                className={`group bg-gray-900/60 border border-gray-800/50 hover:border-gray-600/60 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col`}
+                className={`group bg-gray-900/60 border border-gray-800/50 hover:border-gray-600/60 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col hover:scale-[1.02] animate-fade-in`}
                 style={{
-                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                  animationDelay: `${index * 0.1}s`
                 }}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${course.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />

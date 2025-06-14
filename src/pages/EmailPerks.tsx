@@ -1,8 +1,9 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag, Settings, Briefcase } from "lucide-react";
+import { Award, Book, Star, ExternalLink, Sparkles, Gift, Code, Palette, Cloud, GraduationCap, Music, ShoppingBag, Settings, Briefcase, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Navbar from "@/components/layout/Navbar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import PerkDetails from "@/components/email-perks/PerkDetails";
@@ -316,6 +317,7 @@ const perks = [
 
 const EmailPerks = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("all");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const filteredPerks = selectedCategory === "all" 
     ? perks 
@@ -326,6 +328,12 @@ const EmailPerks = () => {
     toast.success(`Accessing ${title} benefits`, {
       description: "You're being redirected to the provider's website"
     });
+  };
+
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") return "All Tools";
+    const category = categories.find(cat => cat.id === selectedCategory);
+    return category ? category.label : "All Tools";
   };
 
   return (
@@ -369,21 +377,44 @@ const EmailPerks = () => {
       {/* Filter Bar */}
       <div className="container mx-auto px-4 pb-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-wrap justify-center gap-3 p-6 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-gray-800/50 shadow-2xl">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 backdrop-blur-sm ${
-                  selectedCategory === category.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 border border-blue-500/30'
-                    : 'bg-gray-800/60 text-gray-300 border border-gray-700/50 hover:bg-gray-700/60 hover:text-white hover:border-gray-600/50'
-                }`}
+          <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen} className="flex justify-center">
+            <CollapsibleTrigger asChild>
+              <Button 
+                className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px] transition-all duration-300 hover:shadow-lg hover:border-zinc-600/50"
+                variant="outline"
               >
-                {category.label}
-              </button>
-            ))}
-          </div>
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  {getSelectedCategoryName()}
+                </div>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent className="w-full mt-2 transition-all duration-300 ease-in-out">
+              <Card className="bg-gradient-to-br from-zinc-900/95 via-zinc-800/95 to-zinc-900/95 border-zinc-700/50 backdrop-blur-xl shadow-2xl animate-fade-in">
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {categories.map((category) => (
+                      <Button
+                        key={category.id}
+                        onClick={() => {
+                          setSelectedCategory(category.id);
+                          setIsFilterOpen(false);
+                        }}
+                        className={`h-12 transition-all duration-300 transform hover:scale-105 ${selectedCategory === category.id
+                          ? 'bg-white text-black hover:bg-zinc-200 shadow-md'
+                          : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
+                        } rounded-xl text-sm`}
+                      >
+                        {category.label}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
 
@@ -394,9 +425,10 @@ const EmailPerks = () => {
             {filteredPerks.map((perk, index) => (
               <Card 
                 key={index} 
-                className={`group bg-gray-900/60 border border-gray-800/50 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col`}
+                className={`group bg-gray-900/60 border border-gray-800/50 ${perk.hoverBorderColor} transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-2xl overflow-hidden h-full flex flex-col hover:scale-[1.02] animate-fade-in`}
                 style={{
-                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  boxShadow: '0 0 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  animationDelay: `${index * 0.1}s`
                 }}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${perk.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />
