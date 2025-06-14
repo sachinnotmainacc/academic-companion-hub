@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Code2, 
   ExternalLink,
@@ -21,12 +22,14 @@ import {
   Zap,
   Blocks,
   Brain,
-  Eye
+  Eye,
+  ChevronDown
 } from 'lucide-react';
 
 const Projects = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const categories = [
     { id: 'web', name: 'Web Development', icon: Globe, color: 'bg-blue-500' },
@@ -262,6 +265,12 @@ const Projects = () => {
     return category ? category.icon : Code2;
   };
 
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === 'all') return 'All Categories';
+    const category = categories.find(cat => cat.id === selectedCategory);
+    return category ? category.name : 'All Categories';
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Premium background effects */}
@@ -290,56 +299,77 @@ const Projects = () => {
           </div>
         </div>
 
-        {/* Category Filter */}
+        {/* Compact Filter Section */}
         <div className="mb-8">
-          <Card className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 backdrop-blur-xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Filter className="h-5 w-5" />
-                Filter by Category
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-                <Button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`h-14 ${selectedCategory === 'all' 
-                    ? 'bg-white text-black hover:bg-zinc-200' 
-                    : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
-                  } rounded-xl transition-all duration-300`}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Category Filter Dropdown */}
+            <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px]"
+                  variant="outline"
                 >
-                  All Categories
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    {getSelectedCategoryName()}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
                 </Button>
-                {categories.map(category => {
-                  const Icon = category.icon;
-                  return (
-                    <Button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`h-14 flex flex-col gap-1 ${selectedCategory === category.id
-                        ? 'bg-white text-black hover:bg-zinc-200'
-                        : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
-                      } rounded-xl transition-all duration-300`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="text-xs">{category.name}</span>
-                    </Button>
-                  );
-                })}
-              </div>
+              </CollapsibleTrigger>
               
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
-                <input
-                  type="text"
-                  placeholder="Search projects..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-zinc-800/50 border border-zinc-700 rounded-md text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent"
-                />
-              </div>
-            </CardContent>
-          </Card>
+              <CollapsibleContent className="mt-2">
+                <Card className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 backdrop-blur-xl">
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                      <Button
+                        onClick={() => {
+                          setSelectedCategory('all');
+                          setIsFilterOpen(false);
+                        }}
+                        className={`h-12 ${selectedCategory === 'all' 
+                          ? 'bg-white text-black hover:bg-zinc-200' 
+                          : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
+                        } rounded-xl transition-all duration-300`}
+                      >
+                        All Categories
+                      </Button>
+                      {categories.map(category => {
+                        const Icon = category.icon;
+                        return (
+                          <Button
+                            key={category.id}
+                            onClick={() => {
+                              setSelectedCategory(category.id);
+                              setIsFilterOpen(false);
+                            }}
+                            className={`h-12 flex flex-col gap-1 ${selectedCategory === category.id
+                              ? 'bg-white text-black hover:bg-zinc-200'
+                              : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
+                            } rounded-xl transition-all duration-300`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span className="text-xs text-center leading-tight">{category.name}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-zinc-800/50 border border-zinc-700 rounded-md text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Projects Grid */}
