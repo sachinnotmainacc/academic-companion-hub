@@ -30,7 +30,7 @@ export default function TypingChart() {
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 12, fill: '#9CA3AF' }}
-              label={{ value: 'wpm', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
+              label={{ value: 'value', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9CA3AF' } }}
             />
             <Tooltip 
               contentStyle={{ 
@@ -51,13 +51,37 @@ export default function TypingChart() {
             <Line 
               type="monotone" 
               dataKey="raw" 
-              stroke="#F87171" 
+              stroke="#A78BFA" 
               strokeWidth={2}
               dot={false}
               name="Raw"
             />
+            <Line 
+              type="monotone" 
+              dataKey="errors" 
+              stroke="#F87171" 
+              strokeWidth={2}
+              dot={false}
+              name="Errors"
+            />
           </LineChart>
         </ResponsiveContainer>
+      </div>
+      
+      {/* Legend */}
+      <div className="flex justify-center space-x-6 mt-4">
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-0.5 bg-blue-400"></div>
+          <span className="text-sm text-gray-400">WPM</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-0.5 bg-purple-400"></div>
+          <span className="text-sm text-gray-400">Raw</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-3 h-0.5 bg-red-400"></div>
+          <span className="text-sm text-gray-400">Errors</span>
+        </div>
       </div>
     </div>
   );

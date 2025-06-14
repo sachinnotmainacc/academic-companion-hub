@@ -54,7 +54,7 @@ export default function TypingArea({
   useEffect(() => {
     if (isStarted && timeLeft > 0) {
       timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
+        setTimeLeft((prev: number) => {
           const newTime = Math.max(0, prev - 1);
           if (newTime <= 0) {
             const elapsedTime = testDuration;
