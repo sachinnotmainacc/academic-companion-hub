@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -343,7 +344,7 @@ const Pomodoro: React.FC = () => {
       
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 md:py-16 relative z-10">
+      <main className="container mx-auto px-4 pt-24 pb-8 md:pt-28 md:pb-16 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Shortened Header */}
           <div className="text-center mb-8">
