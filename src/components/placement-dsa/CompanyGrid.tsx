@@ -29,6 +29,59 @@ const CompanyGrid: React.FC<CompanyGridProps> = ({ companies, onCompanySelect })
       .join(' ');
   };
 
+  // Get company logo URL
+  const getCompanyLogoUrl = (company: string) => {
+    // Map company slugs to their actual domain names for logo fetching
+    const companyDomains: { [key: string]: string } = {
+      'google': 'google.com',
+      'amazon': 'amazon.com',
+      'microsoft': 'microsoft.com',
+      'facebook': 'meta.com',
+      'apple': 'apple.com',
+      'netflix': 'netflix.com',
+      'uber': 'uber.com',
+      'airbnb': 'airbnb.com',
+      'linkedin': 'linkedin.com',
+      'twitter': 'x.com',
+      'adobe': 'adobe.com',
+      'salesforce': 'salesforce.com',
+      'dropbox': 'dropbox.com',
+      'spotify': 'spotify.com',
+      'snapchat': 'snap.com',
+      'pinterest': 'pinterest.com',
+      'robinhood': 'robinhood.com',
+      'palantir-technologies': 'palantir.com',
+      'nvidia': 'nvidia.com',
+      'samsung': 'samsung.com',
+      'sap': 'sap.com',
+      'nutanix': 'nutanix.com',
+      'opendoor': 'opendoor.com',
+      'pocket-gems': 'pocketgems.com',
+      'rubrik': 'rubrik.com',
+      'splunk': 'splunk.com',
+      'riot-games': 'riotgames.com',
+      'alibaba': 'alibaba.com',
+      'coursera': 'coursera.org',
+      'akuna-capital': 'akunacapital.com',
+      'cruise-automation': 'getcruise.com',
+      'didi': 'didiglobal.com',
+      'databricks': 'databricks.com',
+      'doordash': 'doordash.com',
+      'docusign': 'docusign.com',
+      'netease': 'netease.com',
+      'morgan-stanley': 'morganstanley.com',
+      'deutsche-bank': 'db.com',
+      'dataminr': 'dataminr.com',
+      'dell': 'dell.com',
+      'drawbridge': 'drawbridge.com'
+    };
+
+    const domain = companyDomains[company] || `${company.replace('-', '')}.com`;
+    
+    // Using logo.dev service for company logos
+    return `https://img.logo.dev/${domain}?token=pk_X-1ZO13GSamOsqmuhsq6PA&format=png&size=200`;
+  };
+
   return (
     <motion.div
       className="mb-12"
@@ -56,8 +109,25 @@ const CompanyGrid: React.FC<CompanyGridProps> = ({ companies, onCompanySelect })
               variant="outline"
             >
               <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-lg bg-gradient-to-br from-white/10 to-zinc-800/30 border border-white/20 group-hover:border-blue-500/30 transition-colors">
-                  <Building2 className="h-6 w-6 text-white group-hover:text-blue-400 transition-colors" />
+                <div className="relative w-12 h-12 rounded-lg bg-white/10 border border-white/20 group-hover:border-blue-500/30 transition-colors flex items-center justify-center overflow-hidden">
+                  <img
+                    src={getCompanyLogoUrl(company)}
+                    alt={`${formatCompanyName(company)} logo`}
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => {
+                      // Fallback to building icon if logo fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallbackIcon = target.nextElementSibling as HTMLElement;
+                      if (fallbackIcon) {
+                        fallbackIcon.style.display = 'block';
+                      }
+                    }}
+                  />
+                  <Building2 
+                    className="h-6 w-6 text-white group-hover:text-blue-400 transition-colors hidden" 
+                    style={{ display: 'none' }}
+                  />
                 </div>
                 <span className="text-white font-semibold text-sm text-center group-hover:text-blue-300 transition-colors">
                   {formatCompanyName(company)}
