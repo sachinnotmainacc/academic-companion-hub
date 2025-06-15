@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -69,45 +68,46 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredQuestions.map((question) => (
-              <TableRow 
-                key={question.id}
-                className="transition-colors duration-200 hover:bg-zinc-800/50"
-              >
-                <TableCell className="font-medium text-center">{question.id}</TableCell>
-                <TableCell className="flex items-center justify-between">
-                  {question.title}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hover:bg-zinc-700/50 rounded-full"
-                    onClick={() => handleCopyQuestion(question.id, question.title)}
-                    disabled={copiedQuestionId === question.id}
-                  >
-                    {copiedQuestionId === question.id ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    className={
-                      question.difficulty === 'Easy' ? 'bg-green-500 text-white' :
-                        question.difficulty === 'Medium' ? 'bg-yellow-500 text-black' :
-                          'bg-red-500 text-white'
-                    }
-                  >
-                    {question.difficulty}
-                  </Badge>
-                </TableCell>
-                <TableCell>{question.topic}</TableCell>
-                <TableCell className="text-right">{question.popularity}</TableCell>
-                <TableCell className="text-right">{question.acceptance}</TableCell>
-              </TableRow>
-            ))}
-            {filteredQuestions.length === 0 && (
+            {filteredQuestions.length > 0 ? (
+              filteredQuestions.map((question) => (
+                <TableRow 
+                  key={question.id}
+                  className="transition-colors duration-200 hover:bg-zinc-800/50"
+                >
+                  <TableCell className="font-medium text-center">{question.id}</TableCell>
+                  <TableCell className="flex items-center justify-between">
+                    {question.title}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-zinc-700/50 rounded-full"
+                      onClick={() => handleCopyQuestion(question.id, question.title)}
+                      disabled={copiedQuestionId === question.id}
+                    >
+                      {copiedQuestionId === question.id ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        question.difficulty === 'Easy' ? 'bg-green-500 text-white' :
+                          question.difficulty === 'Medium' ? 'bg-yellow-500 text-black' :
+                            'bg-red-500 text-white'
+                      }
+                    >
+                      {question.difficulty}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{question.topic}</TableCell>
+                  <TableCell className="text-right">{question.popularity}</TableCell>
+                  <TableCell className="text-right">{question.acceptance}</TableCell>
+                </TableRow>
+              ))
+            ) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-zinc-400 italic">
                   No questions found.
