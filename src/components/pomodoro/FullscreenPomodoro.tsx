@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Play, Pause, RotateCcw } from 'lucide-react';
+import { X, Play, Pause, RotateCcw, Music, Volume2, VolumeX } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface FullscreenPomodoroProps {
   isOpen: boolean;
@@ -13,6 +14,15 @@ interface FullscreenPomodoroProps {
   onResetTimer: () => void;
   calculateProgress: () => number;
   formatTime: (seconds: number) => string;
+  // YouTube player props
+  youtubeVideoId?: string | null;
+  isYoutubePlaying?: boolean;
+  isYoutubeMuted?: boolean;
+  youtubeVolume?: number;
+  onLoadYoutubeVideo: (url: string) => void;
+  onToggleYoutubePlay: () => void;
+  onToggleYoutubeMute: () => void;
+  onYoutubeVolumeChange: (volume: number) => void;
 }
 
 const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
@@ -24,8 +34,19 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
   onToggleTimer,
   onResetTimer,
   calculateProgress,
-  formatTime
+  formatTime,
+  youtubeVideoId,
+  isYoutubePlaying = false,
+  isYoutubeMuted = false,
+  youtubeVolume = 100,
+  onLoadYoutubeVideo,
+  onToggleYoutubePlay,
+  onToggleYoutubeMute,
+  onYoutubeVolumeChange
 }) => {
+  const [showMusicControl, setShowMusicControl] = useState(false);
+  const [musicUrl, setMusicUrl] = useState('');
+
   if (!isOpen) return null;
 
   const getModeTitle = () => {
@@ -36,6 +57,15 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
         return 'Short Break';
       case 'longBreak':
         return 'Long Break';
+    }
+  };
+
+  const handleLoadMusic = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (musicUrl.trim()) {
+      onLoadYoutubeVideo(musicUrl);
+      setMusicUrl('');
+      setShowMusicControl(false);
     }
   };
 
@@ -50,6 +80,77 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
       >
         <X className="h-6 w-6" />
       </Button>
+
+      {/* Minimalist Music Control */}
+      <div className="absolute top-4 left-4 z-10">
+        {!showMusicControl ? (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-zinc-800/50 rounded-xl"
+              onClick={() => setShowMusicControl(true)}
+            >
+              <Music className="h-5 w-5" />
+            </Button>
+            {youtubeVideoId && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-zinc-800/50 rounded-xl"
+                  onClick={onToggleYoutubePlay}
+                >
+                  {isYoutubePlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-zinc-800/50 rounded-xl"
+                  onClick={onToggleYoutubeMute}
+                >
+                  {isYoutubeMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={youtubeVolume}
+                    onChange={(e) => onYoutubeVolumeChange(Number(e.target.value))}
+                    className="w-16 h-1 bg-zinc-700 rounded-lg appearance-none slider-thumb"
+                    style={{
+                      background: `linear-gradient(to right, #ffffff 0%, #ffffff ${youtubeVolume}%, #4a5568 ${youtubeVolume}%, #4a5568 100%)`
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <form onSubmit={handleLoadMusic} className="flex items-center gap-2 bg-zinc-900/80 backdrop-blur-sm rounded-xl p-3">
+            <Input
+              value={musicUrl}
+              onChange={(e) => setMusicUrl(e.target.value)}
+              placeholder="YouTube URL..."
+              className="w-64 bg-zinc-800 border-zinc-700 text-white text-sm"
+              autoFocus
+            />
+            <Button type="submit" size="sm" variant="secondary">
+              Load
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setShowMusicControl(false)}
+              className="text-white hover:bg-zinc-800/50"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </form>
+        )}
+      </div>
 
       {/* Fullscreen Timer */}
       <div className="flex flex-col items-center">
@@ -128,6 +229,26 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
           </Button>
         </div>
       </div>
+
+      <style jsx>{`
+        .slider-thumb::-webkit-slider-thumb {
+          appearance: none;
+          height: 12px;
+          width: 12px;
+          border-radius: 50%;
+          background: #ffffff;
+          cursor: pointer;
+          border: none;
+        }
+        .slider-thumb::-moz-range-thumb {
+          height: 12px;
+          width: 12px;
+          border-radius: 50%;
+          background: #ffffff;
+          cursor: pointer;
+          border: none;
+        }
+      `}</style>
     </div>
   );
 };

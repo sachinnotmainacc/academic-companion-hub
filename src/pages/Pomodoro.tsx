@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -29,6 +28,13 @@ const Pomodoro: React.FC = () => {
   const [longestStreak, setLongestStreak] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // YouTube player state for fullscreen
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [isYoutubePlaying, setIsYoutubePlaying] = useState(false);
+  const [isYoutubeMuted, setIsYoutubeMuted] = useState(false);
+  const [youtubeVolume, setYoutubeVolume] = useState(100);
+  const youtubePlayerRef = useRef<YT.Player | null>(null);
 
   // Load stats from localStorage
   useEffect(() => {
@@ -101,6 +107,57 @@ const Pomodoro: React.FC = () => {
     };
     localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
   }, [pomodoroTime, shortBreakTime, longBreakTime]);
+
+  // YouTube player functions for fullscreen
+  const extractVideoId = (url: string): string | null => {
+    const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[7].length === 11) ? match[7] : null;
+  };
+
+  const handleLoadYoutubeVideo = (url: string) => {
+    const id = extractVideoId(url);
+    if (id) {
+      setYoutubeVideoId(id);
+    }
+  };
+
+  const handleToggleYoutubePlay = () => {
+    if (youtubePlayerRef.current) {
+      if (isYoutubePlaying) {
+        youtubePlayerRef.current.pauseVideo();
+      } else {
+        youtubePlayerRef.current.playVideo();
+      }
+      setIsYoutubePlaying(!isYoutubePlaying);
+    }
+  };
+
+  const handleToggleYoutubeMute = () => {
+    if (youtubePlayerRef.current) {
+      if (isYoutubeMuted) {
+        youtubePlayerRef.current.unMute();
+        youtubePlayerRef.current.setVolume(youtubeVolume);
+      } else {
+        youtubePlayerRef.current.mute();
+      }
+      setIsYoutubeMuted(!isYoutubeMuted);
+    }
+  };
+
+  const handleYoutubeVolumeChange = (volume: number) => {
+    if (youtubePlayerRef.current) {
+      setYoutubeVolume(volume);
+      youtubePlayerRef.current.setVolume(volume);
+      if (volume === 0) {
+        setIsYoutubeMuted(true);
+        youtubePlayerRef.current.mute();
+      } else if (isYoutubeMuted) {
+        setIsYoutubeMuted(false);
+        youtubePlayerRef.current.unMute();
+      }
+    }
+  };
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -344,7 +401,7 @@ const Pomodoro: React.FC = () => {
       
       <Navbar />
       
-      <main className="container mx-auto px-4 pt-24 pb-8 md:pt-28 md:pb-16 relative z-10">
+      <main className="container mx-auto px-4 pt-32 pb-8 md:pt-32 md:pb-16 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Shortened Header */}
           <div className="text-center mb-8">
@@ -560,6 +617,14 @@ const Pomodoro: React.FC = () => {
         onResetTimer={resetTimer}
         calculateProgress={calculateProgress}
         formatTime={formatTime}
+        youtubeVideoId={youtubeVideoId}
+        isYoutubePlaying={isYoutubePlaying}
+        isYoutubeMuted={isYoutubeMuted}
+        youtubeVolume={youtubeVolume}
+        onLoadYoutubeVideo={handleLoadYoutubeVideo}
+        onToggleYoutubePlay={handleToggleYoutubePlay}
+        onToggleYoutubeMute={handleToggleYoutubeMute}
+        onYoutubeVolumeChange={handleYoutubeVolumeChange}
       />
       
       {/* Settings */}
@@ -571,6 +636,13 @@ const Pomodoro: React.FC = () => {
         longBreakTime={longBreakTime}
         onSave={updateTimerSettings}
       />
+      
+      {/* Hidden YouTube Player for fullscreen control */}
+      {youtubeVideoId && (
+        <div className="hidden">
+          <div id="fullscreen-youtube-player"></div>
+        </div>
+      )}
       
       <Footer />
     </div>
