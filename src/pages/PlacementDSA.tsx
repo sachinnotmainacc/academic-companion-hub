@@ -3,15 +3,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { motion, Variants } from 'framer-motion';
-import { GraduationCap, Lightbulb, XCircle } from 'lucide-react';
+import { GraduationCap, Lightbulb, XCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import SearchFilters from '@/components/placement-dsa/SearchFilters';
 import QuestionsTable from '@/components/placement-dsa/QuestionsTable';
 import StatsSection from '@/components/placement-dsa/StatsSection';
 import FeaturesSection from '@/components/placement-dsa/FeaturesSection';
+import CompanyGrid from '@/components/placement-dsa/CompanyGrid';
 import { useCSVQuestions, QuestionData } from '@/hooks/use-csv-questions';
 
 const PlacementDSA: React.FC = () => {
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
   const [topicFilter, setTopicFilter] = useState('All');
@@ -19,7 +22,7 @@ const PlacementDSA: React.FC = () => {
   const [copiedQuestionId, setCopiedQuestionId] = useState<number | null>(null);
 
   // Use the CSV questions hook
-  const { questions, isLoading, error } = useCSVQuestions();
+  const { questions, isLoading, error, companies } = useCSVQuestions(selectedCompany);
 
   const cardVariants: Variants = {
     hidden: { 
@@ -91,12 +94,28 @@ const PlacementDSA: React.FC = () => {
   const allTopics = questions.flatMap(q => q.topics);
   const topics = ['All', ...new Set(allTopics)];
 
+  // Function to handle company selection
+  const handleCompanySelect = (company: string) => {
+    setSelectedCompany(company);
+    setSearchTerm('');
+    setDifficultyFilter('All');
+    setTopicFilter('All');
+  };
+
+  // Function to go back to company selection
+  const handleBackToCompanies = () => {
+    setSelectedCompany('');
+    setSearchTerm('');
+    setDifficultyFilter('All');
+    setTopicFilter('All');
+  };
+
   // Render loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-black text-white">
         <Lightbulb className="mr-2 h-6 w-6 animate-pulse text-yellow-500" />
-        Loading questions...
+        Loading...
       </div>
     );
   }
@@ -140,30 +159,65 @@ const PlacementDSA: React.FC = () => {
           <p className="text-zinc-400">Ace your coding interviews with our curated list of DSA questions</p>
         </motion.div>
 
-        {/* Search and Filter Section */}
-        <SearchFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          difficultyFilter={difficultyFilter}
-          setDifficultyFilter={setDifficultyFilter}
-          topicFilter={topicFilter}
-          setTopicFilter={setTopicFilter}
-          difficulties={difficulties}
-          topics={topics}
-        />
+        {!selectedCompany ? (
+          /* Company Selection View */
+          <CompanyGrid 
+            companies={companies} 
+            onCompanySelect={handleCompanySelect}
+          />
+        ) : (
+          /* Questions View for Selected Company */
+          <>
+            {/* Back Button */}
+            <motion.div
+              className="mb-6"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ duration: 0.3 }}
+            >
+              <Button
+                onClick={handleBackToCompanies}
+                variant="outline"
+                className="flex items-center gap-2 bg-zinc-900 border-zinc-700 text-white hover:bg-zinc-800"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Companies
+              </Button>
+              <h2 className="text-2xl font-bold mt-4 mb-2 capitalize">
+                {selectedCompany.replace('-', ' ')} Questions
+              </h2>
+              <p className="text-zinc-400">
+                {questions.length} questions available for {selectedCompany.replace('-', ' ')}
+              </p>
+            </motion.div>
 
-        {/* Questions Table */}
-        <QuestionsTable
-          filteredQuestions={filteredQuestions}
-          copiedQuestionId={copiedQuestionId}
-          handleCopyQuestion={handleCopyQuestion}
-        />
+            {/* Search and Filter Section */}
+            <SearchFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              difficultyFilter={difficultyFilter}
+              setDifficultyFilter={setDifficultyFilter}
+              topicFilter={topicFilter}
+              setTopicFilter={setTopicFilter}
+              difficulties={difficulties}
+              topics={topics}
+            />
 
-        {/* Stats Section */}
-        <StatsSection questions={questions} />
+            {/* Questions Table */}
+            <QuestionsTable
+              filteredQuestions={filteredQuestions}
+              copiedQuestionId={copiedQuestionId}
+              handleCopyQuestion={handleCopyQuestion}
+            />
 
-        {/* Key Features Section */}
-        <FeaturesSection />
+            {/* Stats Section */}
+            <StatsSection questions={questions} />
+          </>
+        )}
+
+        {/* Key Features Section - only show when no company is selected */}
+        {!selectedCompany && <FeaturesSection />}
       </main>
 
       <Footer />
