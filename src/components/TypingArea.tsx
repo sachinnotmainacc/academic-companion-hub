@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTypingStore } from '../store/typingStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -81,7 +82,7 @@ export default function TypingArea({
     return () => clearInterval(blinkInterval);
   }, []);
 
-  // Auto-focus the typing area when component mounts
+  // Auto-focus the typing area when test starts
   useEffect(() => {
     if (containerRef.current && isStarted) {
       containerRef.current.focus();
@@ -91,7 +92,11 @@ export default function TypingArea({
   // Prevent losing focus during test
   const handleBlur = useCallback(() => {
     if (containerRef.current && isStarted) {
-      containerRef.current.focus();
+      setTimeout(() => {
+        if (containerRef.current) {
+          containerRef.current.focus();
+        }
+      }, 0);
     }
   }, [isStarted]);
 
@@ -243,6 +248,16 @@ export default function TypingArea({
     }
   }, [handleKeyDown, isStarted]);
 
+  const handleContainerClick = () => {
+    if (!isStarted) {
+      onStart();
+    }
+    // Always focus the container when clicked
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
+  };
+
   return (
     <div className="relative">
       {/* Premium Header */}
@@ -297,11 +312,7 @@ export default function TypingArea({
         }`}
         tabIndex={0}
         onBlur={handleBlur}
-        onClick={() => {
-          if (!isStarted) {
-            onStart();
-          }
-        }}
+        onClick={handleContainerClick}
         style={{ lineHeight: '1.8' }}
       >
         {!isStarted && (
