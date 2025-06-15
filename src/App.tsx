@@ -2,6 +2,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import Index from "@/pages/Index";
 import Notes from "@/pages/Notes";
@@ -18,6 +19,7 @@ import Typing from "@/pages/Typing";
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Toaster />
       <Routes>
         <Route path="/" element={<Index />} />
