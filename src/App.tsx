@@ -15,6 +15,9 @@ import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
 import EmailPerks from "@/pages/EmailPerks";
 import Typing from "@/pages/Typing";
+import About from "@/pages/About";
+import FAQ from "@/pages/FAQ";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
         <Route path="/courses" element={<Courses />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/email-perks" element={<EmailPerks />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
