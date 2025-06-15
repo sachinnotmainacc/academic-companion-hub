@@ -29,7 +29,7 @@ const CompanyGrid: React.FC<CompanyGridProps> = ({ companies, onCompanySelect })
       .join(' ');
   };
 
-  // Get company logo URL
+  // Get company logo URL using multiple fallback services
   const getCompanyLogoUrl = (company: string) => {
     // Map company slugs to their actual domain names for logo fetching
     const companyDomains: { [key: string]: string } = {
@@ -78,8 +78,8 @@ const CompanyGrid: React.FC<CompanyGridProps> = ({ companies, onCompanySelect })
 
     const domain = companyDomains[company] || `${company.replace('-', '')}.com`;
     
-    // Using logo.dev service for company logos
-    return `https://img.logo.dev/${domain}?token=pk_X-1ZO13GSamOsqmuhsq6PA&format=png&size=200`;
+    // Using clearbit logo service which is more reliable
+    return `https://logo.clearbit.com/${domain}`;
   };
 
   return (
@@ -118,14 +118,14 @@ const CompanyGrid: React.FC<CompanyGridProps> = ({ companies, onCompanySelect })
                       // Fallback to building icon if logo fails to load
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
-                      const fallbackIcon = target.nextElementSibling as HTMLElement;
+                      const fallbackIcon = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
                       if (fallbackIcon) {
                         fallbackIcon.style.display = 'block';
                       }
                     }}
                   />
                   <Building2 
-                    className="h-6 w-6 text-white group-hover:text-blue-400 transition-colors hidden" 
+                    className="fallback-icon h-6 w-6 text-white group-hover:text-blue-400 transition-colors" 
                     style={{ display: 'none' }}
                   />
                 </div>
