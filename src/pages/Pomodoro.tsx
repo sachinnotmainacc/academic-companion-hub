@@ -3,11 +3,12 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Play, Pause, RotateCcw, CheckCircle, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle, Settings, Maximize2 } from 'lucide-react';
 import PomodoroSettings from '@/components/pomodoro/PomodoroSettings';
 import YouTubePlayer from '@/components/pomodoro/YouTubePlayer';
 import PomodoroStats from '@/components/pomodoro/PomodoroStats';
 import HowItWorksDialog from '@/components/pomodoro/HowItWorksDialog';
+import FullscreenPomodoro from '@/components/pomodoro/FullscreenPomodoro';
 
 const Pomodoro: React.FC = () => {
   // Timer durations (customizable now)
@@ -26,6 +27,7 @@ const Pomodoro: React.FC = () => {
   const [todayPomodoros, setTodayPomodoros] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Load stats from localStorage
   useEffect(() => {
@@ -343,23 +345,18 @@ const Pomodoro: React.FC = () => {
       
       <main className="container mx-auto px-4 py-8 md:py-16 relative z-10">
         <div className="max-w-7xl mx-auto">
-          {/* Enhanced Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-6 mb-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-white/10 to-zinc-800/30 border border-white/20 backdrop-blur-sm">
-                  <CheckCircle className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent drop-shadow-lg">
-                    Pomodoro Timer
-                  </h1>
-                  <div className="w-24 h-1 bg-gradient-to-r from-white to-zinc-400 mx-auto mt-4 mb-4"></div>
-                  <p className="text-lg text-zinc-400 mt-2">Boost your productivity with focused work sessions</p>
-                </div>
+          {/* Shortened Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-white/10 to-zinc-800/30 border border-white/20 backdrop-blur-sm">
+                <CheckCircle className="h-6 w-6 text-white" />
               </div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-zinc-100 to-zinc-300 bg-clip-text text-transparent">
+                Pomodoro Timer
+              </h1>
               <HowItWorksDialog />
             </div>
+            <p className="text-zinc-400">Boost your productivity with focused work sessions</p>
           </div>
           
           {/* Main Timer Card */}
@@ -372,14 +369,24 @@ const Pomodoro: React.FC = () => {
                     <h2 className="text-2xl font-bold text-white">{getModeTitle()}</h2>
                     <p className="text-zinc-400">{getModeSubtitle()}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
-                    onClick={() => setShowSettings(true)}
-                  >
-                    <Settings className="h-5 w-5" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
+                      onClick={() => setIsFullscreen(true)}
+                    >
+                      <Maximize2 className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
+                      onClick={() => setShowSettings(true)}
+                    >
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-3">
@@ -540,6 +547,19 @@ const Pomodoro: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      {/* Fullscreen Pomodoro */}
+      <FullscreenPomodoro
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        timeLeft={timeLeft}
+        isActive={isActive}
+        mode={mode}
+        onToggleTimer={toggleTimer}
+        onResetTimer={resetTimer}
+        calculateProgress={calculateProgress}
+        formatTime={formatTime}
+      />
       
       {/* Settings */}
       <PomodoroSettings
