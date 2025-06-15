@@ -3,9 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { motion, Variants } from 'framer-motion';
-import { GraduationCap, Lightbulb, XCircle, ArrowLeft } from 'lucide-react';
+import { GraduationCap, Lightbulb, XCircle, ArrowLeft, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import SearchFilters from '@/components/placement-dsa/SearchFilters';
 import QuestionsTable from '@/components/placement-dsa/QuestionsTable';
 import StatsSection from '@/components/placement-dsa/StatsSection';
@@ -20,6 +21,7 @@ const PlacementDSA: React.FC = () => {
   const [topicFilter, setTopicFilter] = useState('All');
   const [filteredQuestions, setFilteredQuestions] = useState<QuestionData[]>([]);
   const [copiedQuestionId, setCopiedQuestionId] = useState<number | null>(null);
+  const [companySearchTerm, setCompanySearchTerm] = useState('');
 
   // Use the CSV questions hook
   const { questions, isLoading, error, companies } = useCSVQuestions(selectedCompany);
@@ -40,6 +42,11 @@ const PlacementDSA: React.FC = () => {
       }
     }
   };
+
+  // Filter companies based on search term
+  const filteredCompanies = companies.filter(company =>
+    company.toLowerCase().includes(companySearchTerm.toLowerCase())
+  );
 
   // Function to handle copying question title
   const handleCopyQuestion = (questionId: number, questionTitle: string) => {
@@ -108,6 +115,7 @@ const PlacementDSA: React.FC = () => {
     setSearchTerm('');
     setDifficultyFilter('All');
     setTopicFilter('All');
+    setCompanySearchTerm('');
   };
 
   // Render loading state
@@ -161,10 +169,32 @@ const PlacementDSA: React.FC = () => {
 
         {!selectedCompany ? (
           /* Company Selection View */
-          <CompanyGrid 
-            companies={companies} 
-            onCompanySelect={handleCompanySelect}
-          />
+          <>
+            {/* Company Search Box */}
+            <motion.div
+              className="mb-8 max-w-md mx-auto"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.3, duration: 0.3 }}
+            >
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <Input
+                  type="text"
+                  placeholder="Search companies..."
+                  value={companySearchTerm}
+                  onChange={(e) => setCompanySearchTerm(e.target.value)}
+                  className="pl-10 bg-zinc-900/60 border-zinc-700/50 text-white placeholder:text-zinc-400 focus:border-blue-500/50 rounded-xl"
+                />
+              </div>
+            </motion.div>
+
+            <CompanyGrid 
+              companies={filteredCompanies} 
+              onCompanySelect={handleCompanySelect}
+            />
+          </>
         ) : (
           /* Questions View for Selected Company */
           <>
