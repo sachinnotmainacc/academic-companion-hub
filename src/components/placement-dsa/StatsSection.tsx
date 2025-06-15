@@ -1,19 +1,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-
-interface Question {
-  id: number;
-  title: string;
-  difficulty: string;
-  topic: string;
-  premium: boolean;
-  popularity: number;
-  acceptance: number;
-}
+import { QuestionData } from '@/hooks/use-csv-questions';
 
 interface StatsSectionProps {
-  questions: Question[];
+  questions: QuestionData[];
 }
 
 const StatsSection: React.FC<StatsSectionProps> = ({ questions }) => {

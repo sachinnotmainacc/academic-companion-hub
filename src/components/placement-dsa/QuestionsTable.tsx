@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -13,19 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface Question {
-  id: number;
-  title: string;
-  difficulty: string;
-  topic: string;
-  premium: boolean;
-  popularity: number;
-  acceptance: number;
-}
+import { QuestionData } from '@/hooks/use-csv-questions';
 
 interface QuestionsTableProps {
-  filteredQuestions: Question[];
+  filteredQuestions: QuestionData[];
   copiedQuestionId: number | null;
   handleCopyQuestion: (questionId: number, questionTitle: string) => void;
 }
@@ -62,16 +54,16 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
               <TableHead className="w-[50px] text-center">ID</TableHead>
               <TableHead className="text-left">Title</TableHead>
               <TableHead>Difficulty</TableHead>
-              <TableHead>Topic</TableHead>
-              <TableHead className="text-right">Popularity</TableHead>
+              <TableHead>Topics</TableHead>
+              <TableHead className="text-right">Frequency</TableHead>
               <TableHead className="text-right">Acceptance</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredQuestions.length > 0 ? (
-              filteredQuestions.map((question) => (
+              filteredQuestions.map((question, index) => (
                 <TableRow 
-                  key={question.id}
+                  key={question.id || index}
                   className="transition-colors duration-200 hover:bg-zinc-800/50"
                 >
                   <TableCell className="font-medium text-center">{question.id}</TableCell>
@@ -81,10 +73,10 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       variant="ghost"
                       size="icon"
                       className="hover:bg-zinc-700/50 rounded-full"
-                      onClick={() => handleCopyQuestion(question.id, question.title)}
-                      disabled={copiedQuestionId === question.id}
+                      onClick={() => handleCopyQuestion(Number(question.id), question.title)}
+                      disabled={copiedQuestionId === Number(question.id)}
                     >
-                      {copiedQuestionId === question.id ? (
+                      {copiedQuestionId === Number(question.id) ? (
                         <Check className="h-4 w-4 text-green-500" />
                       ) : (
                         <Copy className="h-4 w-4" />
@@ -102,8 +94,8 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                       {question.difficulty}
                     </Badge>
                   </TableCell>
-                  <TableCell>{question.topic}</TableCell>
-                  <TableCell className="text-right">{question.popularity}</TableCell>
+                  <TableCell>{question.topics.join(', ')}</TableCell>
+                  <TableCell className="text-right">{question.frequency}</TableCell>
                   <TableCell className="text-right">{question.acceptance}</TableCell>
                 </TableRow>
               ))
