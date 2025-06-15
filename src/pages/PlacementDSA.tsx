@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -134,41 +135,14 @@ const PlacementDSA: React.FC = () => {
     );
   }
 
-  // Fix the function call at line 379 - remove the extra arguments
-  const someFunction = () => {
-    // Fixed function call without arguments
-    someFunction();
-  };
-
-  // Animation variants for table rows
-  const rowVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.1, ease: 'easeInOut' },
-    },
-  };
-
-  // Animation variants for table headers
-  const headerVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.2, ease: 'easeInOut' },
-    },
-  };
-
-  // Fix animation variants - remove the problematic type property
+  // Fix animation variants - use proper easing values
   const cardVariants = {
     hidden: { y: 50, opacity: 0 },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: {
-        stiffness: 100,
-        damping: 10
+        duration: 0.3
       }
     }
   };
@@ -179,8 +153,7 @@ const PlacementDSA: React.FC = () => {
       y: 0, 
       opacity: 1,
       transition: {
-        stiffness: 100,
-        damping: 10
+        duration: 0.3
       }
     }
   };
@@ -191,8 +164,7 @@ const PlacementDSA: React.FC = () => {
       y: 0, 
       opacity: 1,
       transition: {
-        stiffness: 100,
-        damping: 10
+        duration: 0.3
       }
     }
   };
@@ -273,31 +245,19 @@ const PlacementDSA: React.FC = () => {
               <TableCaption className="text-zinc-400">A list of DSA questions to prepare for placements.</TableCaption>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px] text-center">
-                    <motion.div variants={headerVariants}>ID</motion.div>
-                  </TableHead>
-                  <TableHead className="text-left">
-                    <motion.div variants={headerVariants}>Title</motion.div>
-                  </TableHead>
-                  <TableHead>
-                    <motion.div variants={headerVariants}>Difficulty</motion.div>
-                  </TableHead>
-                  <TableHead>
-                    <motion.div variants={headerVariants}>Topic</motion.div>
-                  </TableHead>
-                  <TableHead className="text-right">
-                    <motion.div variants={headerVariants}>Popularity</motion.div>
-                  </TableHead>
-                  <TableHead className="text-right">
-                    <motion.div variants={headerVariants}>Acceptance</motion.div>
-                  </TableHead>
+                  <TableHead className="w-[50px] text-center">ID</TableHead>
+                  <TableHead className="text-left">Title</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Topic</TableHead>
+                  <TableHead className="text-right">Popularity</TableHead>
+                  <TableHead className="text-right">Acceptance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredQuestions.map((question) => (
-                  <TableRow key={question.id} variants={rowVariants}
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-                    className="transition-colors duration-200"
+                  <TableRow 
+                    key={question.id}
+                    className="transition-colors duration-200 hover:bg-zinc-800/50"
                   >
                     <TableCell className="font-medium text-center">{question.id}</TableCell>
                     <TableCell className="flex items-center justify-between">
