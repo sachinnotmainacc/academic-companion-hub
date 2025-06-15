@@ -120,7 +120,7 @@ const getAvailableTimeRanges = (): string[] => {
   return ['6months', '1year', '2year', 'alltime'];
 };
 
-export const useCSVQuestions = () => {
+export const useCSVQuestions = (selectedCompany?: string, timeFrame?: TimeFrame) => {
   const [questions, setQuestions] = useState<QuestionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -134,16 +134,17 @@ export const useCSVQuestions = () => {
       
       try {
         const allQuestions: QuestionData[] = [];
-        const companiesToLoad = companies.slice(0, 10);
+        const companiesToLoad = selectedCompany ? [selectedCompany] : companies.slice(0, 10);
+        const fileName = selectedCompany && timeFrame ? timeFrameToFileName(selectedCompany, timeFrame) : '_alltime.csv';
         
         console.log('Loading questions from companies:', companiesToLoad);
         
         for (const company of companiesToLoad) {
           try {
-            const response = await fetch(`/csv/${company}_alltime.csv`);
+            const response = await fetch(`/csv/${company}${fileName}`);
             if (response.ok) {
               const csvText = await response.text();
-              const parsedQuestions = parseCSVData(csvText, company, 'alltime');
+              const parsedQuestions = parseCSVData(csvText, company, timeFrame || 'alltime');
               allQuestions.push(...parsedQuestions);
               console.log(`Loaded ${parsedQuestions.length} questions from ${company}`);
             } else {
@@ -172,7 +173,7 @@ export const useCSVQuestions = () => {
     };
 
     fetchCSVData();
-  }, [companies]);
+  }, [companies, selectedCompany, timeFrame]);
 
   return { 
     questions, 

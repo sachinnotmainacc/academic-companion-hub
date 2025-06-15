@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { Input } from "@/components/ui/input";
 
 interface SearchFiltersProps {
@@ -24,13 +23,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   difficulties,
   topics
 }) => {
-  const cardVariants = {
-    hidden: { y: 50, opacity: 0 },
+  const cardVariants: Variants = {
+    hidden: { 
+      y: 50, 
+      opacity: 0 
+    },
     visible: { 
       y: 0, 
       opacity: 1,
       transition: {
-        duration: 0.3
+        duration: 0.3,
+        type: "spring",
+        stiffness: 100,
+        damping: 15
       }
     }
   };
@@ -41,7 +46,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       variants={cardVariants}
       initial="hidden"
       animate="visible"
-      transition={{ delay: 0.4, duration: 0.3 }}
     >
       <Input
         type="text"
