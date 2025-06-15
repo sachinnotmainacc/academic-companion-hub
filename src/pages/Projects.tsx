@@ -1,8 +1,9 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Github, Star, Code, Smartphone, Globe, Filter, ChevronDown } from "lucide-react";
+import { ExternalLink, Github, Star, Code, Filter, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -22,7 +23,6 @@ const projects = [
   {
     title: "E-Commerce Platform",
     description: "A full-stack e-commerce solution with React, Node.js, and MongoDB featuring user authentication, payment integration, and admin dashboard.",
-    image: "/placeholder.svg",
     category: "fullstack" as Category,
     technologies: ["React", "Node.js", "MongoDB", "Stripe", "JWT"],
     githubUrl: "https://github.com/example/ecommerce",
@@ -33,7 +33,6 @@ const projects = [
   {
     title: "Mobile Task Manager",
     description: "A native mobile application for managing tasks and projects, built with React Native and Firebase.",
-    image: "/placeholder.svg",
     category: "mobile" as Category,
     technologies: ["React Native", "Firebase", "Redux", "UI Kitten"],
     githubUrl: "https://github.com/example/taskmanager",
@@ -44,7 +43,6 @@ const projects = [
   {
     title: "AI-Powered Chatbot",
     description: "An intelligent chatbot using natural language processing and machine learning to provide customer support.",
-    image: "/placeholder.svg",
     category: "ai" as Category,
     technologies: ["Python", "TensorFlow", "NLP", "Flask"],
     githubUrl: "https://github.com/example/chatbot",
@@ -55,7 +53,6 @@ const projects = [
   {
     title: "Decentralized Voting System",
     description: "A secure and transparent voting system using blockchain technology to ensure fair elections.",
-    image: "/placeholder.svg",
     category: "blockchain" as Category,
     technologies: ["Solidity", "Ethereum", "Web3.js", "Truffle"],
     githubUrl: "https://github.com/example/voting",
@@ -66,7 +63,6 @@ const projects = [
   {
     title: "Personal Portfolio Website",
     description: "A responsive and modern portfolio website built with Next.js and Tailwind CSS to showcase projects and skills.",
-    image: "/placeholder.svg",
     category: "web" as Category,
     technologies: ["Next.js", "Tailwind CSS", "Vercel"],
     githubUrl: "https://github.com/example/portfolio",
@@ -77,7 +73,6 @@ const projects = [
   {
     title: "Real-Time Chat Application",
     description: "A web-based chat application with real-time messaging using Socket.IO and React.",
-    image: "/placeholder.svg",
     category: "fullstack" as Category,
     technologies: ["React", "Node.js", "Socket.IO", "Express"],
     githubUrl: "https://github.com/example/chatapp",
@@ -88,7 +83,6 @@ const projects = [
   {
     title: "Machine Learning Image Classifier",
     description: "A web application that classifies images using a pre-trained machine learning model.",
-    image: "/placeholder.svg",
     category: "ai" as Category,
     technologies: ["Python", "Flask", "TensorFlow", "HTML/CSS"],
     githubUrl: "https://github.com/example/imageclassifier",
@@ -99,7 +93,6 @@ const projects = [
   {
     title: "Blockchain-Based Supply Chain Tracker",
     description: "A decentralized application to track products in a supply chain using blockchain technology.",
-    image: "/placeholder.svg",
     category: "blockchain" as Category,
     technologies: ["Solidity", "Ethereum", "React", "Web3.js"],
     githubUrl: "https://github.com/example/supplychain",
@@ -110,7 +103,6 @@ const projects = [
   {
     title: "Responsive Blog Website",
     description: "A blog website built with Gatsby and GraphQL, featuring responsive design and optimized performance.",
-    image: "/placeholder.svg",
     category: "web" as Category,
     technologies: ["Gatsby", "GraphQL", "React", "Netlify"],
     githubUrl: "https://github.com/example/blog",
@@ -121,7 +113,6 @@ const projects = [
   {
     title: "Cross-Platform Mobile App",
     description: "A mobile application built with Flutter for both iOS and Android platforms.",
-    image: "/placeholder.svg",
     category: "mobile" as Category,
     technologies: ["Flutter", "Dart", "Firebase"],
     githubUrl: "https://github.com/example/mobileapp",
@@ -199,22 +190,6 @@ const Projects = () => {
                   className="group bg-gray-900/60 border border-gray-800/50 hover:border-blue-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-xl sm:rounded-2xl overflow-hidden h-full flex flex-col hover:scale-[1.01] sm:hover:scale-[1.02] animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={project.image} 
-                      alt={project.title}
-                      className="w-full h-36 sm:h-40 md:h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    {project.featured && (
-                      <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                        <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 text-xs">
-                          Featured
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                  
                   <div className="flex flex-col flex-grow p-3 sm:p-4 md:p-6">
                     <CardHeader className="p-0 mb-3 sm:mb-4">
                       <div className="flex items-start justify-between mb-2">
@@ -264,14 +239,16 @@ const Projects = () => {
                           <Github className="mr-1 h-3 w-3" />
                           Code
                         </Button>
-                        <Button 
-                          size="sm"
-                          className="flex-1 h-8 sm:h-9 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 text-xs"
-                          onClick={() => window.open(project.liveUrl, '_blank')}
-                        >
-                          <ExternalLink className="mr-1 h-3 w-3" />
-                          Live
-                        </Button>
+                        {project.liveUrl && (
+                          <Button 
+                            size="sm"
+                            className="flex-1 h-8 sm:h-9 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 text-xs"
+                            onClick={() => window.open(project.liveUrl, '_blank')}
+                          >
+                            <ExternalLink className="mr-1 h-3 w-3" />
+                            Live
+                          </Button>
+                        )}
                       </div>
                     </CardFooter>
                   </div>
@@ -336,22 +313,6 @@ const Projects = () => {
                 className="group bg-gray-900/60 border border-gray-800/50 hover:border-blue-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-xl rounded-xl sm:rounded-2xl overflow-hidden h-full flex flex-col hover:scale-[1.01] sm:hover:scale-[1.02] animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-36 sm:h-40 md:h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  {project.featured && (
-                    <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                      <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30 text-xs">
-                        Featured
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                
                 <div className="flex flex-col flex-grow p-3 sm:p-4 md:p-6">
                   <CardHeader className="p-0 mb-3 sm:mb-4">
                     <div className="flex items-start justify-between mb-2">
@@ -401,14 +362,16 @@ const Projects = () => {
                         <Github className="mr-1 h-3 w-3" />
                         Code
                       </Button>
-                      <Button 
-                        size="sm"
-                        className="flex-1 h-8 sm:h-9 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 text-xs"
-                        onClick={() => window.open(project.liveUrl, '_blank')}
-                      >
-                        <ExternalLink className="mr-1 h-3 w-3" />
-                        Live
-                      </Button>
+                      {project.liveUrl && (
+                        <Button 
+                          size="sm"
+                          className="flex-1 h-8 sm:h-9 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold transition-all duration-300 text-xs"
+                          onClick={() => window.open(project.liveUrl, '_blank')}
+                        >
+                          <ExternalLink className="mr-1 h-3 w-3" />
+                          Live
+                        </Button>
+                      )}
                     </div>
                   </CardFooter>
                 </div>

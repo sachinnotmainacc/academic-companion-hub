@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -8,27 +9,17 @@ import SearchFilters from '@/components/placement-dsa/SearchFilters';
 import QuestionsTable from '@/components/placement-dsa/QuestionsTable';
 import StatsSection from '@/components/placement-dsa/StatsSection';
 import FeaturesSection from '@/components/placement-dsa/FeaturesSection';
-import { mockQuestions } from '@/data/mockQuestions';
-
-interface Question {
-  id: number;
-  title: string;
-  difficulty: string;
-  topic: string;
-  premium: boolean;
-  popularity: number;
-  acceptance: number;
-}
+import { useCSVQuestions, QuestionData } from '@/hooks/use-csv-questions';
 
 const PlacementDSA: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('All');
   const [topicFilter, setTopicFilter] = useState('All');
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [filteredQuestions, setFilteredQuestions] = useState<QuestionData[]>([]);
   const [copiedQuestionId, setCopiedQuestionId] = useState<number | null>(null);
+
+  // Use the CSV questions hook
+  const { questions, isLoading, error } = useCSVQuestions();
 
   const cardVariants: Variants = {
     hidden: { 
@@ -67,20 +58,6 @@ const PlacementDSA: React.FC = () => {
       });
   };
 
-  // Load mock questions
-  useEffect(() => {
-    setLoading(true);
-    try {
-      setQuestions(mockQuestions);
-      setFilteredQuestions(mockQuestions);
-      setError(null);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   // Function to filter questions
   const filterQuestions = useCallback(() => {
     let results = questions;
@@ -99,7 +76,7 @@ const PlacementDSA: React.FC = () => {
 
     // Filter by topic
     if (topicFilter !== 'All') {
-      results = results.filter(q => q.topic === topicFilter);
+      results = results.filter(q => q.topics.includes(topicFilter));
     }
 
     setFilteredQuestions(results);
@@ -111,10 +88,11 @@ const PlacementDSA: React.FC = () => {
 
   // Extract unique difficulties and topics for filter options
   const difficulties = ['All', ...new Set(questions.map(q => q.difficulty))];
-  const topics = ['All', ...new Set(questions.map(q => q.topic))];
+  const allTopics = questions.flatMap(q => q.topics);
+  const topics = ['All', ...new Set(allTopics)];
 
   // Render loading state
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-black text-white">
         <Lightbulb className="mr-2 h-6 w-6 animate-pulse text-yellow-500" />
@@ -193,4 +171,4 @@ const PlacementDSA: React.FC = () => {
   );
 };
 
-export default PlacementDSA; 
+export default PlacementDSA;
