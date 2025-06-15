@@ -5,7 +5,6 @@ import connectDB from './db/connection';
 import Semester from './db/models/Semester';
 import Subject from './db/models/Subject';
 import PDF from './db/models/PDF';
-import Notes from './db/models/Notes';
 import fs from 'fs';
 import path from 'path';
 
@@ -289,30 +288,19 @@ app.get('/api/notes', async (req, res) => {
   try {
     let notesData;
     
-    // First check if notes.json exists
+    // Check if notes.json exists
     if (fs.existsSync(notesFilePath)) {
       const fileData = fs.readFileSync(notesFilePath, 'utf8');
       notesData = JSON.parse(fileData);
     } else {
-      // If not, check MongoDB
-      const notesDoc = await Notes.findOne();
+      // Create default structure
+      notesData = {
+        semesters: [],
+        searchIndex: { subjects: {} }
+      };
       
-      if (notesDoc) {
-        notesData = notesDoc.toObject();
-      } else {
-        // Create default structure
-        notesData = {
-          semesters: [],
-          searchIndex: { subjects: {} }
-        };
-        
-        // Save to file
-        fs.writeFileSync(notesFilePath, JSON.stringify(notesData, null, 2));
-        
-        // Save to MongoDB
-        const newNotesDoc = new Notes(notesData);
-        await newNotesDoc.save();
-      }
+      // Save to file
+      fs.writeFileSync(notesFilePath, JSON.stringify(notesData, null, 2));
     }
     
     res.json(notesData);
@@ -325,9 +313,6 @@ app.get('/api/notes', async (req, res) => {
 app.post('/api/notes', async (req, res) => {
   try {
     const notesData = req.body;
-    
-    // Update MongoDB
-    await Notes.findOneAndUpdate({}, notesData, { upsert: true });
     
     // Update JSON file
     fs.writeFileSync(notesFilePath, JSON.stringify(notesData, null, 2));
