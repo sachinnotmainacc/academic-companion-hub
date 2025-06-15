@@ -348,7 +348,7 @@ const CGPA = () => {
     });
     
     setEligibleCompanies(eligible);
-    setFilteredCompanies(eligible); // Initialize filtered companies
+    setFilteredCompanies(eligible); // Initialize filtered companies to show all eligible
     setTierDistribution(distribution);
   };
   
@@ -427,7 +427,7 @@ const CGPA = () => {
     setCompletedSemesters(Math.min(Math.max(value, 1), totalSemesters - 1));
   };
   
-  // Handle tier click to filter companies
+  // Handle tier click to filter companies (without scrolling)
   const handleTierClick = (tier: string) => {
     if (selectedTier === tier) {
       // If same tier clicked, show all eligible companies
@@ -439,14 +439,7 @@ const CGPA = () => {
       const filtered = { [tier]: eligibleCompanies[tier] || [] };
       setFilteredCompanies(filtered);
     }
-    
-    // Scroll to company list section
-    setTimeout(() => {
-      const companySection = document.getElementById('company-list-section');
-      if (companySection) {
-        companySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
+    // Removed the scrolling behavior
   };
   
   return (
