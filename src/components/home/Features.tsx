@@ -1,17 +1,9 @@
-
 import React from "react";
-import { BookOpen, Calculator, Clock, Code, BookMarked, Map } from "lucide-react";
+import { Calculator, Clock, Code, BookMarked, Map } from "lucide-react";
 import FeatureCard from "@/components/ui/FeatureCard";
 
 const Features = () => {
   const features = [
-    {
-      title: "Study Notes",
-      description: "Access comprehensive study notes and resources for your academic subjects.",
-      icon: BookOpen,
-      href: "/notes",
-      style: { background: "linear-gradient(225deg, rgba(59,130,246,0.1) 0%, rgba(37,99,235,0.05) 100%)" }
-    },
     {
       title: "CGPA Calculator",
       description: "Calculate your CGPA easily with our intuitive calculator tool.",

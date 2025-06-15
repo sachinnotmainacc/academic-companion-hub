@@ -1,12 +1,10 @@
-
 import { Link } from "react-router-dom";
-import { GraduationCap, BookOpen, Calculator, Clock, Map, Code, BookMarked, Mail, Keyboard, FolderOpen } from "lucide-react";
+import { GraduationCap, Calculator, Clock, Map, Code, BookMarked, Mail, Keyboard, FolderOpen } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   
   const features = [
-    { name: "Notes Repository", path: "/notes", icon: BookOpen },
     { name: "CGPA Calculator", path: "/cgpa", icon: Calculator },
     { name: "Pomodoro Timer", path: "/pomodoro", icon: Clock },
     { name: "Placement DSA", path: "/placement-dsa", icon: Code },

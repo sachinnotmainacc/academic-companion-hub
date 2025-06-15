@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, BookOpen, Calculator, Clock, Map, Code, BookMarked, Mail, Keyboard, FolderOpen } from "lucide-react";
+import { Menu, X, Calculator, Clock, Map, Code, BookMarked, Mail, Keyboard, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +23,6 @@ const Navbar = () => {
   
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Notes", path: "/notes", icon: BookOpen },
     { name: "CGPA Calculator", path: "/cgpa", icon: Calculator },
     { name: "Pomodoro", path: "/pomodoro", icon: Clock },
     { name: "Placement DSA", path: "/placement-dsa", icon: Code },
