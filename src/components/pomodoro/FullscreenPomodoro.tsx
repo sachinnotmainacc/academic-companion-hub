@@ -118,7 +118,7 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
                     max="100"
                     value={youtubeVolume}
                     onChange={(e) => onYoutubeVolumeChange(Number(e.target.value))}
-                    className="w-16 h-1 bg-zinc-700 rounded-lg appearance-none slider-thumb"
+                    className="w-16 h-1 bg-zinc-700 rounded-lg appearance-none"
                     style={{
                       background: `linear-gradient(to right, #ffffff 0%, #ffffff ${youtubeVolume}%, #4a5568 ${youtubeVolume}%, #4a5568 100%)`
                     }}
@@ -230,25 +230,28 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
-        .slider-thumb::-webkit-slider-thumb {
-          appearance: none;
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: #ffffff;
-          cursor: pointer;
-          border: none;
-        }
-        .slider-thumb::-moz-range-thumb {
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: #ffffff;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
+      {/* Custom styles for range input */}
+      <style>
+        {`
+          input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+          }
+          input[type="range"]::-moz-range-thumb {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            border: none;
+          }
+        `}
+      </style>
     </div>
   );
 };
