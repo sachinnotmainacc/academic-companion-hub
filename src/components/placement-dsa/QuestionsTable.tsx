@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from "@/components/ui/badge";
-import { Copy, Check } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Copy, Check, ExternalLink } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -27,6 +29,8 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
   copiedQuestionId,
   handleCopyQuestion
 }) => {
+  const [solvedQuestions, setSolvedQuestions] = useState<Set<string>>(new Set());
+
   const cardVariants = {
     hidden: { y: 50, opacity: 0 },
     visible: { 
@@ -38,6 +42,20 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
     }
   };
 
+  const handleCheckboxChange = (questionId: string, checked: boolean) => {
+    const newSolvedQuestions = new Set(solvedQuestions);
+    if (checked) {
+      newSolvedQuestions.add(questionId);
+    } else {
+      newSolvedQuestions.delete(questionId);
+    }
+    setSolvedQuestions(newSolvedQuestions);
+  };
+
+  const progressPercentage = filteredQuestions.length > 0 
+    ? (solvedQuestions.size / filteredQuestions.length) * 100 
+    : 0;
+
   return (
     <motion.div
       className="rounded-2xl overflow-hidden"
@@ -46,17 +64,26 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
       animate="visible"
       transition={{ delay: 0.6, duration: 0.3 }}
     >
+      {/* Progress Bar */}
+      <div className="bg-zinc-900 border border-zinc-700 rounded-t-2xl p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-medium">Progress</span>
+          <span className="text-zinc-400">{solvedQuestions.size}/{filteredQuestions.length} solved</span>
+        </div>
+        <Progress value={progressPercentage} className="h-2" />
+      </div>
+
       <ScrollArea>
-        <Table className="bg-zinc-900 border border-zinc-700 rounded-2xl">
+        <Table className="bg-zinc-900 border border-zinc-700 border-t-0 rounded-b-2xl">
           <TableCaption className="text-zinc-400">A list of DSA questions to prepare for placements.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px] text-center">ID</TableHead>
+              <TableHead className="w-[50px] text-center">Solved</TableHead>
               <TableHead className="text-left">Title</TableHead>
               <TableHead>Difficulty</TableHead>
               <TableHead>Topics</TableHead>
-              <TableHead className="text-right">Frequency</TableHead>
               <TableHead className="text-right">Acceptance</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -66,7 +93,13 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   key={question.id || index}
                   className="transition-colors duration-200 hover:bg-zinc-800/50"
                 >
-                  <TableCell className="font-medium text-center">{question.id}</TableCell>
+                  <TableCell className="text-center">
+                    <Checkbox
+                      checked={solvedQuestions.has(question.id)}
+                      onCheckedChange={(checked) => handleCheckboxChange(question.id, checked as boolean)}
+                      className="border-zinc-600 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                    />
+                  </TableCell>
                   <TableCell className="flex items-center justify-between">
                     {question.title}
                     <Button
@@ -95,8 +128,18 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     </Badge>
                   </TableCell>
                   <TableCell>{question.topics.join(', ')}</TableCell>
-                  <TableCell className="text-right">{question.frequency}</TableCell>
                   <TableCell className="text-right">{question.acceptance}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+                      onClick={() => window.open(question.link, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Solve
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
