@@ -1,8 +1,10 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import ScrollToTop from "@/components/ScrollToTop";
 
+// Import all pages
 import Index from "@/pages/Index";
 import Pomodoro from "@/pages/Pomodoro";
 import CGPA from "@/pages/CGPA";
@@ -20,7 +22,12 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Toaster />
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+        }}
+      />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/pomodoro" element={<Pomodoro />} />

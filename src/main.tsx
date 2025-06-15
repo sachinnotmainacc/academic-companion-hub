@@ -4,9 +4,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Ensure React is available globally
-window.React = React;
-
 // Get the root element
 const rootElement = document.getElementById('root');
 
