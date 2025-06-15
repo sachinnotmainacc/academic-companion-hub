@@ -204,6 +204,10 @@ const CGPA = () => {
   const [eligibleCompanies, setEligibleCompanies] = useState<{[key: string]: string[]}>({});
   const [tierDistribution, setTierDistribution] = useState<{name: string, value: number, color: string}[]>([]);
   
+  // New state for selected tier filtering
+  const [selectedTier, setSelectedTier] = useState<string | null>(null);
+  const [filteredCompanies, setFilteredCompanies] = useState<{[key: string]: string[]}>({});
+
   // Validation for semester inputs
   useEffect(() => {
     if (completedSemesters >= totalSemesters) {
@@ -344,6 +348,7 @@ const CGPA = () => {
     });
     
     setEligibleCompanies(eligible);
+    setFilteredCompanies(eligible); // Initialize filtered companies
     setTierDistribution(distribution);
   };
   
@@ -420,6 +425,28 @@ const CGPA = () => {
   
   const updateCompletedSemesters = (value: number) => {
     setCompletedSemesters(Math.min(Math.max(value, 1), totalSemesters - 1));
+  };
+  
+  // Handle tier click to filter companies
+  const handleTierClick = (tier: string) => {
+    if (selectedTier === tier) {
+      // If same tier clicked, show all eligible companies
+      setSelectedTier(null);
+      setFilteredCompanies(eligibleCompanies);
+    } else {
+      // Filter to show only selected tier
+      setSelectedTier(tier);
+      const filtered = { [tier]: eligibleCompanies[tier] || [] };
+      setFilteredCompanies(filtered);
+    }
+    
+    // Scroll to company list section
+    setTimeout(() => {
+      const companySection = document.getElementById('company-list-section');
+      if (companySection) {
+        companySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
   
   return (
@@ -736,11 +763,28 @@ const CGPA = () => {
             
             {/* Company Section */}
             {Object.keys(eligibleCompanies).length > 0 && (
-              <Card className="md:col-span-12 glass-card border-dark-800">
+              <Card className="md:col-span-12 glass-card border-dark-800" id="company-list-section">
                 <CardHeader className="bg-dark-900 border-b border-dark-800">
-                  <CardTitle className="text-white flex items-center">
-                    <Building2 className="h-5 w-5 text-blue-500 mr-2" />
-                    Eligible Companies
+                  <CardTitle className="text-white flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Building2 className="h-5 w-5 text-blue-500 mr-2" />
+                      Eligible Companies
+                      {selectedTier && (
+                        <Badge className="ml-3 bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          Showing: {selectedTier} Tier
+                        </Badge>
+                      )}
+                    </div>
+                    {selectedTier && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleTierClick(selectedTier)}
+                        className="border-gray-600 text-gray-400 hover:text-gray-300"
+                      >
+                        Show All Tiers
+                      </Button>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -759,24 +803,44 @@ const CGPA = () => {
                             return (tierOrder[b as CompanyTier] || 0) - (tierOrder[a as CompanyTier] || 0);
                           })
                           .map(tier => (
-                          <div key={tier} className="p-3 rounded-lg bg-dark-800/50 border border-dark-700/50 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <Badge variant="outline" className={getTierColor(tier)}>
-                                {tier}
-                              </Badge>
-                              <span className="text-white">{eligibleCompanies[tier].length} Companies</span>
+                          <div 
+                            key={tier} 
+                            className={`p-3 rounded-lg border transition-all duration-200 cursor-pointer hover:scale-[1.02] ${
+                              selectedTier === tier 
+                                ? 'bg-blue-500/20 border-blue-500/50 shadow-lg' 
+                                : 'bg-dark-800/50 border-dark-700/50 hover:bg-dark-800/70 hover:border-blue-500/30'
+                            }`}
+                            onClick={() => handleTierClick(tier)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <Badge variant="outline" className={getTierColor(tier)}>
+                                  {tier}
+                                </Badge>
+                                <span className="text-white">{eligibleCompanies[tier].length} Companies</span>
+                              </div>
+                              <span className="text-gray-400">{processedCompanyTiers[tier].ctc}</span>
                             </div>
-                            <span className="text-gray-400">{processedCompanyTiers[tier].ctc}</span>
+                            {selectedTier === tier && (
+                              <div className="mt-2 text-xs text-blue-400">
+                                Click to show all tiers
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
                     
                     <div>
-                      <h3 className="text-lg font-medium text-white mb-4">Company List</h3>
+                      <h3 className="text-lg font-medium text-white mb-4">
+                        Company List 
+                        {selectedTier && (
+                          <span className="text-blue-400 text-base ml-2">({selectedTier} Tier)</span>
+                        )}
+                      </h3>
                       <ScrollArea className="h-[400px] rounded-md border border-dark-700 bg-dark-800/50">
                         <div className="p-4">
-                          {Object.keys(eligibleCompanies)
+                          {Object.keys(filteredCompanies)
                             .sort((a, b) => {
                               const tierOrder = {'S+': 5, 'A+': 4, 'A': 3, 'B': 2, 'C': 1};
                               return (tierOrder[b as CompanyTier] || 0) - (tierOrder[a as CompanyTier] || 0);
@@ -788,7 +852,7 @@ const CGPA = () => {
                                   <Badge variant="outline" className={`${getTierColor(tier)} px-3 py-1 text-sm font-medium`}>
                                     {tier} Tier
                                   </Badge>
-                                  <span className="text-sm text-gray-400">{eligibleCompanies[tier].length} Companies</span>
+                                  <span className="text-sm text-gray-400">{filteredCompanies[tier].length} Companies</span>
                                 </div>
                                 <span className="text-sm font-medium text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">
                                   {processedCompanyTiers[tier].ctc}
@@ -812,7 +876,7 @@ const CGPA = () => {
                               </div>
                               
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {eligibleCompanies[tier].map(company => (
+                                {filteredCompanies[tier].map(company => (
                                   <div 
                                     key={company} 
                                     className="flex items-center p-3 rounded-md bg-dark-800/40 hover:bg-dark-800/70 transition-all duration-200 border border-dark-700/30 group hover:border-blue-500/30"
