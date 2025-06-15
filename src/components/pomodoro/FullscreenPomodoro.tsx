@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Play, Pause, RotateCcw, Music, Volume2, VolumeX } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -46,6 +46,81 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
 }) => {
   const [showMusicControl, setShowMusicControl] = useState(false);
   const [musicUrl, setMusicUrl] = useState('');
+  const [isFullscreenMode, setIsFullscreenMode] = useState(false);
+
+  // Enter/exit fullscreen when component opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      enterFullscreen();
+    } else {
+      exitFullscreen();
+    }
+
+    // Cleanup on component unmount
+    return () => {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+  }, [isOpen]);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreenMode(!!document.fullscreenElement);
+      
+      // If user exits fullscreen manually, close the component
+      if (!document.fullscreenElement && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isOpen, onClose]);
+
+  const enterFullscreen = async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (error) {
+      console.log('Could not enter fullscreen mode:', error);
+    }
+  };
+
+  const exitFullscreen = async () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.log('Could not exit fullscreen mode:', error);
+    }
+  };
+
+  const handleClose = () => {
+    exitFullscreen();
+    onClose();
+  };
+
+  // Handle Escape key to exit fullscreen
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -76,7 +151,7 @@ const FullscreenPomodoro: React.FC<FullscreenPomodoroProps> = ({
         variant="ghost"
         size="icon"
         className="absolute top-4 right-4 text-white hover:bg-zinc-800/50 rounded-xl z-10"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <X className="h-6 w-6" />
       </Button>
