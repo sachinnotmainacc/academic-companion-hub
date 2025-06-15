@@ -2,23 +2,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { Input } from "@/components/ui/input"
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Search, Book, GraduationCap, Briefcase, Lightbulb, BarChart, Code, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
-import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { GraduationCap, Lightbulb, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Copy, Check } from 'lucide-react';
+import SearchFilters from '@/components/placement-dsa/SearchFilters';
+import QuestionsTable from '@/components/placement-dsa/QuestionsTable';
+import StatsSection from '@/components/placement-dsa/StatsSection';
+import FeaturesSection from '@/components/placement-dsa/FeaturesSection';
 
 interface Question {
   id: number;
@@ -135,40 +125,6 @@ const PlacementDSA: React.FC = () => {
     );
   }
 
-  // Fix animation variants - use proper easing values
-  const cardVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: {
-        duration: 0.3
-      }
-    }
-  };
-
-  const statsVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: {
-        duration: 0.3
-      }
-    }
-  };
-
-  const featureVariants = {
-    hidden: { y: 50, opacity: 0 },
-    visible: { 
-      y: 0, 
-      opacity: 1,
-      transition: {
-        duration: 0.3
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Premium background effects */}
@@ -198,177 +154,29 @@ const PlacementDSA: React.FC = () => {
         </motion.div>
 
         {/* Search and Filter Section */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.4, duration: 0.3 }}
-        >
-          <Input
-            type="text"
-            placeholder="Search questions..."
-            className="bg-zinc-900 border-zinc-700 text-white shadow-none focus-visible:ring-zinc-600 focus-visible:border-zinc-600"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <select
-            className="bg-zinc-900 border-zinc-700 text-white rounded-md py-2 px-3 shadow-none focus-visible:ring-zinc-600 focus-visible:border-zinc-600"
-            value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value)}
-          >
-            {difficulties.map(difficulty => (
-              <option key={difficulty} value={difficulty}>{difficulty}</option>
-            ))}
-          </select>
-          <select
-            className="bg-zinc-900 border-zinc-700 text-white rounded-md py-2 px-3 shadow-none focus-visible:ring-zinc-600 focus-visible:border-zinc-600"
-            value={topicFilter}
-            onChange={(e) => setTopicFilter(e.target.value)}
-          >
-            {topics.map(topic => (
-              <option key={topic} value={topic}>{topic}</option>
-            ))}
-          </select>
-        </motion.div>
+        <SearchFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          difficultyFilter={difficultyFilter}
+          setDifficultyFilter={setDifficultyFilter}
+          topicFilter={topicFilter}
+          setTopicFilter={setTopicFilter}
+          difficulties={difficulties}
+          topics={topics}
+        />
 
         {/* Questions Table */}
-        <motion.div
-          className="rounded-2xl overflow-hidden"
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.6, duration: 0.3 }}
-        >
-          <ScrollArea>
-            <Table className="bg-zinc-900 border border-zinc-700 rounded-2xl">
-              <TableCaption className="text-zinc-400">A list of DSA questions to prepare for placements.</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px] text-center">ID</TableHead>
-                  <TableHead className="text-left">Title</TableHead>
-                  <TableHead>Difficulty</TableHead>
-                  <TableHead>Topic</TableHead>
-                  <TableHead className="text-right">Popularity</TableHead>
-                  <TableHead className="text-right">Acceptance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredQuestions.map((question) => (
-                  <TableRow 
-                    key={question.id}
-                    className="transition-colors duration-200 hover:bg-zinc-800/50"
-                  >
-                    <TableCell className="font-medium text-center">{question.id}</TableCell>
-                    <TableCell className="flex items-center justify-between">
-                      {question.title}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="hover:bg-zinc-700/50 rounded-full"
-                        onClick={() => handleCopyQuestion(question.id, question.title)}
-                        disabled={copiedQuestionId === question.id}
-                      >
-                        {copiedQuestionId === question.id ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          question.difficulty === 'Easy' ? 'bg-green-500 text-white' :
-                            question.difficulty === 'Medium' ? 'bg-yellow-500 text-black' :
-                              'bg-red-500 text-white'
-                        }
-                      >
-                        {question.difficulty}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{question.topic}</TableCell>
-                    <TableCell className="text-right">{question.popularity}</TableCell>
-                    <TableCell className="text-right">{question.acceptance}</TableCell>
-                  </TableRow>
-                ))}
-                {filteredQuestions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-zinc-400 italic">
-                      No questions found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </motion.div>
+        <QuestionsTable
+          filteredQuestions={filteredQuestions}
+          copiedQuestionId={copiedQuestionId}
+          handleCopyQuestion={handleCopyQuestion}
+        />
 
         {/* Stats Section */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16"
-          variants={statsVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.8, duration: 0.3 }}
-        >
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6 text-center">
-            <div className="text-4xl font-bold text-green-500 mb-2">
-              {questions.filter(q => q.difficulty === 'Easy').length}
-            </div>
-            <div className="text-zinc-400 uppercase font-medium tracking-wider">Easy Questions</div>
-          </div>
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6 text-center">
-            <div className="text-4xl font-bold text-yellow-500 mb-2">
-              {questions.filter(q => q.difficulty === 'Medium').length}
-            </div>
-            <div className="text-zinc-400 uppercase font-medium tracking-wider">Medium Questions</div>
-          </div>
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6 text-center">
-            <div className="text-4xl font-bold text-red-500 mb-2">
-              {questions.filter(q => q.difficulty === 'Hard').length}
-            </div>
-            <div className="text-zinc-400 uppercase font-medium tracking-wider">Hard Questions</div>
-          </div>
-        </motion.div>
+        <StatsSection questions={questions} />
 
         {/* Key Features Section */}
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16"
-          variants={featureVariants}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 1.0, duration: 0.3 }}
-        >
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Book className="h-6 w-6 text-blue-500" />
-              <h3 className="text-lg font-semibold text-white">Comprehensive Questions</h3>
-            </div>
-            <p className="text-zinc-400">A wide range of DSA questions covering various topics.</p>
-          </div>
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <BarChart className="h-6 w-6 text-purple-500" />
-              <h3 className="text-lg font-semibold text-white">Stats and Analysis</h3>
-            </div>
-            <p className="text-zinc-400">Track question popularity and acceptance rates.</p>
-          </div>
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Code className="h-6 w-6 text-yellow-500" />
-              <h3 className="text-lg font-semibold text-white">Filter by Topic</h3>
-            </div>
-            <p className="text-zinc-400">Easily filter questions by specific data structures or algorithms.</p>
-          </div>
-          <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-zinc-700/50 shadow-lg p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <MessageSquare className="h-6 w-6 text-teal-500" />
-              <h3 className="text-lg font-semibold text-white">Community Support</h3>
-            </div>
-            <p className="text-zinc-400">Discuss questions and solutions with other users.</p>
-          </div>
-        </motion.div>
+        <FeaturesSection />
       </main>
 
       <Footer />
