@@ -119,9 +119,10 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group relative"
+              className="group relative animate-fade-in"
               style={{
-                animation: `fade-in-up 0.6s ease-out ${index * 0.1}s both`
+                animationDelay: `${index * 0.1}s`,
+                animationFillMode: 'both'
               }}
             >
               {/* Glow Effect */}
@@ -154,20 +155,6 @@ const Features = () => {
           </div>
         </div>
       </div>
-
-      {/* Enhanced CSS for animations */}
-      <style jsx>{`
-        @keyframes fade-in-up {
-          0% {
-            opacity: 0;
-            transform: translateY(30px) scale(0.95);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-      `}</style>
     </section>
   );
 };
