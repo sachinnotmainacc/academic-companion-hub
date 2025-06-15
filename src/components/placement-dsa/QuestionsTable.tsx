@@ -224,13 +224,17 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   <TableCell className="text-right text-zinc-300 font-medium">{question.acceptance}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-600 hover:border-zinc-500 transition-colors">
+                      <label 
+                        className="flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-600 hover:border-zinc-500 transition-colors cursor-pointer"
+                        htmlFor={`checkbox-${question.id}`}
+                      >
                         <Checkbox
+                          id={`checkbox-${question.id}`}
                           checked={solvedQuestions.has(question.id)}
                           onCheckedChange={(checked) => handleCheckboxChange(question.id, checked as boolean)}
-                          className="border-zinc-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                          className="w-5 h-5 border-zinc-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
                         />
-                      </div>
+                      </label>
                       <Button
                         variant="outline"
                         size="sm"
