@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -45,17 +46,43 @@
   
   html {
     @apply scroll-smooth;
+    /* Improve mobile scrolling */
+    -webkit-overflow-scrolling: touch;
   }
 
   body {
     @apply bg-dark-950 text-foreground antialiased;
     font-family: 'Inter', sans-serif;
+    /* Prevent text size adjustment on mobile */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    /* Improve touch scrolling */
+    overscroll-behavior: contain;
+  }
+
+  /* Improve tap targets for mobile */
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3);
+    touch-action: manipulation;
+  }
+
+  /* Better mobile input handling */
+  input, textarea, select {
+    @apply appearance-none;
   }
 
   /* Custom Scrollbar Styling */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
+  }
+
+  @media (min-width: 768px) {
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
   }
 
   ::-webkit-scrollbar-track {
@@ -70,6 +97,13 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: #2563eb #1f2937;
+  }
+
+  /* Mobile viewport fixes */
+  @supports (-webkit-touch-callout: none) {
+    .min-h-screen {
+      min-height: -webkit-fill-available;
+    }
   }
 }
 
@@ -100,10 +134,87 @@
   }
   
   .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12;
+  }
+
+  /* Mobile-friendly touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Safe area padding for mobile devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Line clamp utilities for better text truncation */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 
 #root {
   @apply min-h-screen w-full;
+  /* Improve mobile viewport handling */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Improve text readability on mobile */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* Better button sizing for touch */
+  button {
+    min-height: 44px;
+  }
+
+  /* Improve form inputs on mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 44px;
+  }
+
+  /* Better spacing for mobile */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Improve focus indicators for accessibility */
+:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
 }

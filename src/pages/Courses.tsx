@@ -288,14 +288,14 @@ const Courses = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <div className="container mx-auto pt-20 pb-12 px-4">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/20 to-blue-500/20 border border-purple-500/30 text-purple-300 text-sm font-semibold mb-4 backdrop-blur-sm">
-            <BookOpen className="h-4 w-4" />
+      <div className="container mx-auto pt-16 sm:pt-20 pb-8 sm:pb-12 px-4">
+        <div className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/20 to-blue-500/20 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-semibold mb-4 backdrop-blur-sm">
+            <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
             Free Learning Resources
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
             Master Your
             <br />
             <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent">
@@ -303,51 +303,51 @@ const Courses = () => {
             </span>
           </h1>
           
-          <p className="text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-base sm:text-lg text-gray-200 max-w-2xl mx-auto leading-relaxed font-medium px-4">
             Curated collection of the best free courses and resources to advance your 
             programming and computer science knowledge across multiple disciplines.
           </p>
           
-          <div className="flex items-center justify-center gap-8 pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 pt-4 sm:pt-6">
             <div className="flex items-center gap-2 text-green-400">
-              <Zap className="h-5 w-5" />
-              <span className="text-sm font-semibold text-white">100% Free</span>
+              <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm font-semibold text-white">100% Free</span>
             </div>
             <div className="flex items-center gap-2 text-blue-400">
-              <Users className="h-5 w-5" />
-              <span className="text-sm font-semibold text-white">Self-Paced</span>
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm font-semibold text-white">Self-Paced</span>
             </div>
             <div className="flex items-center gap-2 text-purple-400">
-              <Trophy className="h-5 w-5" />
-              <span className="text-sm font-semibold text-white">High Quality</span>
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-xs sm:text-sm font-semibold text-white">High Quality</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="container mx-auto px-4 pb-8">
+      <div className="container mx-auto px-4 pb-6 sm:pb-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             {/* Category Filter Dropdown */}
             <Collapsible open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <CollapsibleTrigger asChild>
                 <Button 
-                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between min-w-[200px] transition-all duration-300 hover:shadow-lg hover:border-zinc-600/50"
+                  className="bg-gradient-to-br from-zinc-900/90 via-zinc-800/90 to-zinc-900/90 border-zinc-700/50 text-white hover:bg-zinc-700/80 justify-between w-full sm:w-auto sm:min-w-[200px] transition-all duration-300 hover:shadow-lg hover:border-zinc-600/50 h-12"
                   variant="outline"
                 >
                   <div className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
-                    {getSelectedCategoryName()}
+                    <span className="truncate">{getSelectedCategoryName()}</span>
                   </div>
-                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-300 flex-shrink-0 ${isFilterOpen ? 'rotate-180' : ''}`} />
                 </Button>
               </CollapsibleTrigger>
               
               <CollapsibleContent className="mt-2 transition-all duration-300 ease-in-out">
                 <Card className="bg-gradient-to-br from-zinc-900/95 via-zinc-800/95 to-zinc-900/95 border-zinc-700/50 backdrop-blur-xl shadow-2xl animate-fade-in">
-                  <CardContent className="p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                       {categories.map(category => (
                         <Button
                           key={category.id}
@@ -355,12 +355,12 @@ const Courses = () => {
                             setSelectedCategory(category.id);
                             setIsFilterOpen(false);
                           }}
-                          className={`h-12 transition-all duration-300 transform hover:scale-105 ${selectedCategory === category.id 
+                          className={`h-10 sm:h-12 transition-all duration-300 transform hover:scale-105 text-xs sm:text-sm ${selectedCategory === category.id 
                             ? 'bg-white text-black hover:bg-zinc-200 shadow-md' 
                             : 'bg-zinc-800/50 text-zinc-300 hover:text-white hover:bg-zinc-700/80'
-                          } rounded-xl text-sm`}
+                          } rounded-xl`}
                         >
-                          {category.label}
+                          <span className="truncate">{category.label}</span>
                         </Button>
                       ))}
                     </div>
@@ -377,14 +377,14 @@ const Courses = () => {
                 placeholder="Search courses, topics, or providers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 hover:bg-zinc-800/70 focus:bg-zinc-800/70 backdrop-blur-sm"
+                className="w-full pl-10 pr-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-400 focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 hover:bg-zinc-800/70 focus:bg-zinc-800/70 backdrop-blur-sm text-sm sm:text-base"
               />
             </div>
           </div>
 
           {/* Results Count */}
-          <div className="text-center mt-6">
-            <p className="text-gray-400 font-medium">
+          <div className="text-center mt-4 sm:mt-6">
+            <p className="text-gray-400 font-medium text-sm sm:text-base">
               Showing {filteredCourses.length} course{filteredCourses.length !== 1 ? 's' : ''}
               {searchQuery && (
                 <span className="text-blue-400"> for "{searchQuery}"</span>
@@ -395,9 +395,9 @@ const Courses = () => {
       </div>
 
       {/* Courses Grid */}
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 pb-12 sm:pb-16">
         <div className="max-w-6xl mx-auto">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {filteredCourses.map((course, index) => (
               <Card 
                 key={index} 
@@ -410,29 +410,29 @@ const Courses = () => {
                 <div className={`absolute inset-0 bg-gradient-to-br ${course.gradient} opacity-30 group-hover:opacity-50 transition-opacity duration-500 rounded-2xl`} />
                 
                 <div className="relative z-10 flex flex-col h-full">
-                  <CardHeader className="pb-4 p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
+                  <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-6">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 rounded-2xl bg-gray-800/80 border border-gray-700/60 group-hover:border-gray-600/60 transition-all duration-500 backdrop-blur-sm shadow-lg">
                         {course.icon}
                       </div>
                       
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1 sm:gap-2">
                         <Badge className={`text-xs font-semibold border ${levelColors[course.level as keyof typeof levelColors]}`}>
                           {course.level}
                         </Badge>
                         <div className="text-right">
-                          <div className="text-sm font-bold text-green-400">
+                          <div className="text-xs sm:text-sm font-bold text-green-400">
                             {course.price}
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <CardTitle className="text-lg font-bold text-white tracking-tight leading-tight mb-2">
+                    <CardTitle className="text-base sm:text-lg font-bold text-white tracking-tight leading-tight mb-2">
                       {course.title}
                     </CardTitle>
                     
-                    <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs text-gray-400 mb-2 sm:mb-3">
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
                         {course.students}
@@ -447,16 +447,16 @@ const Courses = () => {
                       </span>
                     </div>
                     
-                    <p className="text-gray-300 text-sm leading-relaxed font-medium line-clamp-4">
+                    <p className="text-gray-300 text-xs sm:text-sm leading-relaxed font-medium line-clamp-3 sm:line-clamp-4">
                       {course.description}
                     </p>
                   </CardHeader>
 
-                  <CardContent className="pt-0 px-6 flex-grow">
-                    <div className="space-y-4">
+                  <CardContent className="pt-0 px-4 sm:px-6 flex-grow">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h4 className="text-sm font-semibold text-white mb-2">What you'll learn:</h4>
-                        <div className="flex flex-wrap gap-2">
+                        <h4 className="text-xs sm:text-sm font-semibold text-white mb-2">What you'll learn:</h4>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
                           {course.topics.slice(0, 4).map((topic, i) => (
                             <Badge 
                               key={i} 
@@ -485,13 +485,13 @@ const Courses = () => {
                     </div>
                   </CardContent>
 
-                  <div className="p-6 pt-4 mt-auto">
+                  <div className="p-4 sm:p-6 pt-3 sm:pt-4 mt-auto">
                     <Button 
-                      className="w-full h-10 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 rounded-xl text-sm" 
+                      className="w-full h-9 sm:h-10 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-500 hover:to-blue-400 text-white font-bold transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 rounded-xl text-xs sm:text-sm" 
                       onClick={() => window.open(course.link, '_blank')}
                     >
                       Start Learning
-                      <ExternalLink className="ml-2 h-4 w-4" />
+                      <ExternalLink className="ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -500,11 +500,11 @@ const Courses = () => {
           </div>
           
           {filteredCourses.length === 0 && (
-            <div className="text-center py-16">
+            <div className="text-center py-12 sm:py-16">
               <div className="p-6 rounded-2xl bg-gray-900/60 border border-gray-800/60 backdrop-blur-xl max-w-md mx-auto">
-                <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">No courses found</h3>
-                <p className="text-gray-400">
+                <Search className="h-10 w-10 sm:h-12 sm:w-12 text-gray-500 mx-auto mb-4" />
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">No courses found</h3>
+                <p className="text-gray-400 text-sm sm:text-base">
                   Try adjusting your search or filter criteria
                 </p>
               </div>
@@ -512,24 +512,24 @@ const Courses = () => {
           )}
           
           {/* Call to Action */}
-          <div className="mt-20 text-center p-10 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800/60 backdrop-blur-xl shadow-2xl">
-            <h3 className="text-3xl font-bold text-white mb-6">
+          <div className="mt-16 sm:mt-20 text-center p-6 sm:p-10 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-800/60 backdrop-blur-xl shadow-2xl">
+            <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">
               Ready to start your learning journey?
             </h3>
-            <p className="text-gray-200 mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-lg">
+            <p className="text-gray-200 mb-6 sm:mb-8 max-w-2xl mx-auto font-medium leading-relaxed text-base sm:text-lg">
               These courses are carefully selected to provide you with the best free education available online. 
               Start with any course that matches your current skill level and interests.
             </p>
-            <div className="flex items-center justify-center gap-8 text-gray-300 flex-wrap">
-              <span className="flex items-center gap-3 font-semibold">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-gray-300 flex-wrap">
+              <span className="flex items-center gap-3 font-semibold text-sm sm:text-base">
                 <div className="h-2 w-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"></div>
                 Self-paced learning
               </span>
-              <span className="flex items-center gap-3 font-semibold">
+              <span className="flex items-center gap-3 font-semibold text-sm sm:text-base">
                 <div className="h-2 w-2 rounded-full bg-blue-400 shadow-sm shadow-blue-400/50"></div>
                 Industry-relevant skills
               </span>
-              <span className="flex items-center gap-3 font-semibold">
+              <span className="flex items-center gap-3 font-semibold text-sm sm:text-base">
                 <div className="h-2 w-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400/50"></div>
                 Lifetime access
               </span>
