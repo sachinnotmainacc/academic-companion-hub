@@ -410,7 +410,12 @@ const CGPA = () => {
   
   // Update semester settings
   const updateTotalSemesters = (value: number) => {
-    setTotalSemesters(Math.min(Math.max(value, minTotalSemesters), maxTotalSemesters));
+    const newValue = Math.min(Math.max(value, minTotalSemesters), maxTotalSemesters);
+    setTotalSemesters(newValue);
+    // Auto-adjust completed semesters if needed
+    if (completedSemesters >= newValue) {
+      setCompletedSemesters(newValue - 1);
+    }
   };
   
   const updateCompletedSemesters = (value: number) => {
@@ -468,7 +473,7 @@ const CGPA = () => {
                               value={totalSemesters}
                               min={minTotalSemesters}
                               max={maxTotalSemesters}
-                              onChange={(e) => updateTotalSemesters(parseInt(e.target.value))}
+                              onChange={(e) => updateTotalSemesters(parseInt(e.target.value) || minTotalSemesters)}
                             />
                             <Button 
                               variant="outline" 
@@ -499,7 +504,7 @@ const CGPA = () => {
                               value={completedSemesters}
                               min={1}
                               max={totalSemesters - 1}
-                              onChange={(e) => updateCompletedSemesters(parseInt(e.target.value))}
+                              onChange={(e) => updateCompletedSemesters(parseInt(e.target.value) || 1)}
                             />
                             <Button 
                               variant="outline" 
@@ -566,17 +571,27 @@ const CGPA = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="block text-sm text-gray-400 mb-1">Completed</Label>
-                    <div className="py-2 px-3 bg-dark-800 rounded-md border border-dark-700 text-center">
-                      {completedSemesters} <span className="text-xs text-gray-500">semesters</span>
-                    </div>
+                    <Label className="block text-sm text-gray-400 mb-1">Completed Semesters</Label>
+                    <Input
+                      type="number"
+                      className="bg-dark-800 border-dark-700 text-white"
+                      min="1"
+                      max={totalSemesters - 1}
+                      value={completedSemesters}
+                      onChange={(e) => updateCompletedSemesters(parseInt(e.target.value) || 1)}
+                    />
                   </div>
                   
                   <div>
-                    <Label className="block text-sm text-gray-400 mb-1">Total</Label>
-                    <div className="py-2 px-3 bg-dark-800 rounded-md border border-dark-700 text-center">
-                      {totalSemesters} <span className="text-xs text-gray-500">semesters</span>
-                    </div>
+                    <Label className="block text-sm text-gray-400 mb-1">Total Semesters</Label>
+                    <Input
+                      type="number"
+                      className="bg-dark-800 border-dark-700 text-white"
+                      min={minTotalSemesters}
+                      max={maxTotalSemesters}
+                      value={totalSemesters}
+                      onChange={(e) => updateTotalSemesters(parseInt(e.target.value) || minTotalSemesters)}
+                    />
                   </div>
                 </div>
                 
